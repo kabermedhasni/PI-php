@@ -1,0 +1,381 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+
+/* start background */
+.stars-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background-color: #111111;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  background-color: #3bb453;
+  border-radius: 50%;
+  animation: blink var(--duration) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: var(--min-opacity);
+  }
+  50% {
+    opacity: var(--max-opacity);
+  }
+}
+
+.shooting-star {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    #ffffff 50%,
+    #50a3f7 100%
+  );
+  animation: shoot var(--shoot-duration) ease-in infinite;
+  transform-origin: top left;
+  transform: rotate(var(--angle));
+  z-index: 0;
+  border-radius: 100px;
+  filter: drop-shadow(0 0 6px rgba(80, 163, 247, 0.5));
+  opacity: 0;
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scale(0.5);
+  }
+  5% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 1;
+  }
+  30% {
+    transform: rotate(var(--angle)) translateX(var(--travel-distance)) scale(1);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateX(var(--travel-distance)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* end background */
+
+body {
+  font-family: "Outfit", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #111111;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+/* Description Section Styles */
+.description-section {
+  flex: 1;
+  /*  background-image: url(images/university-2704306_1280.jpg) ;*/
+  background-color: #fff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.description-content {
+  max-width: 500px;
+  text-align: center;
+}
+
+.description-logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.description-section h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #3bb453;
+  font-weight: 700;
+}
+
+.description-section p {
+  font-size: 1rem;
+  line-height: 1;
+  margin-bottom: 30px;
+  color: #50a3f7;
+}
+
+/* Login Section Styles */
+.login-section {
+  flex: 1;
+  position: relative;
+}
+
+form {
+  background-color: transparent;
+  padding: 30px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+  z-index: 1;
+  position: relative;
+  width: 85%;
+  max-width: 320px;
+  padding: 25px 20px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo-placeholder {
+  height: 65px;
+  margin-bottom: -5px;
+  margin-top: -20px;
+  padding: 10px;
+}
+
+img {
+  display: block;
+  margin: 0 auto 20px;
+  margin-bottom: -10px;
+  margin-top: -20px;
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border-radius: 15px;
+  width: 65px;
+  height: 65px;
+  margin-bottom: -5px;
+}
+
+h5 {
+  text-align: center;
+  color: #3bb453;
+  font-size: 1.5rem;
+  margin: 15px 0 5px;
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin: 10px 0 5px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+  margin: 0 0 20px;
+  line-height: 1.4;
+  font-size: 0.75rem;
+  margin-bottom: 18px;
+}
+
+.input-container {
+  position: relative;
+  margin-bottom: 15px;
+  margin-bottom: 18px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+input {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 15px 15px 15px 45px;
+  border-radius: 5px;
+  border: 1px solid #111111;
+  background-color: #111111;
+  color: #999;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: all 0.6s ease;
+  height: 40px;
+  font-size: 0.85rem;
+}
+
+input:focus {
+  outline: none;
+  border: 1px solid #0a84ff;
+  box-shadow: 0 0 10px rgba(10, 132, 255, 0.3);
+}
+
+input::placeholder {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.forgot-password {
+  text-align: left;
+  line-height: 0;
+  margin-bottom: 20px;
+}
+
+.forgot-link {
+  color: #999;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.forgot-link:hover {
+  color: #60aefc;
+}
+
+button {
+  display: block;
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  border: none;
+  background-color: #0a84ff;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0 0 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 40px;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+button:hover {
+  background-color: #0070e0;
+}
+
+button:active {
+  background-color: #005ac7;
+  transform: scale(0.98);
+}
+
+.terms-notice {
+  text-align: center;
+  color: #999;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0;
+  margin-top: 15px;
+}
+
+.footer-link {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-link:hover {
+  color: #50a3f7;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .description-section {
+    display: none;
+  }
+
+  .login-section {
+    flex: 1;
+    height: 100vh;
+  }
+
+  .stars-container {
+    height: 100vh;
+  }
+
+  .footer-link {
+    color: #60aefc;
+  }
+}
+
+@media (max-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  form {
+    position: relative;
+    bottom:100px;
+    width: 55%;
+  }
+
+  h5 {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.7rem;
+  }
+
+  .input-container {
+    margin-bottom: 15px;
+  }
+
+  input {
+    height: 35px;
+  }
+
+  button {
+    height: 35px;
+  }
+
+  .terms-notice {
+    font-size: 0.7rem;
+  }
+}
