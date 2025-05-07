@@ -71,9 +71,9 @@ CREATE TABLE IF NOT EXISTS timetable_entries (
 
 -- Insert default years
 INSERT IGNORE INTO years (name, description) VALUES 
-('Y1', 'First Year'),
-('Y2', 'Second Year'),
-('Y3', 'Third Year');
+('Y1', 'Première Année'),
+('Y2', 'Deuxième Année'),
+('Y3', 'Troisième Année');
 
 -- Insert default groups
 INSERT IGNORE INTO groups (name, year_id, description) 

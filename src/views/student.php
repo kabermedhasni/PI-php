@@ -1,46 +1,46 @@
 <?php
 session_start();
 
-// Redirect to timetable view for students
+// Redirection vers la vue d'emploi du temps pour les étudiants
 if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'student') {
-    // If group_id exists and is in numeric format (e.g., 12 for Year 1 Group 2)
+    // Si group_id existe et est au format numérique (ex: 12 pour Année 1 Groupe 2)
     if (isset($_SESSION['group_id']) && is_numeric($_SESSION['group_id']) && strlen($_SESSION['group_id']) >= 2) {
         $groupNumeric = $_SESSION['group_id'];
         $year = substr($groupNumeric, 0, 1);
         $group = substr($groupNumeric, 1, 1);
         
-        // Convert to the format expected by timetable_view.php and timetable data files
+        // Conversion au format attendu par timetable_view.php et les fichiers de données
         switch($year) {
             case '1':
-                $yearName = "First Year";
+                $yearName = "Première Année";
                 break;
             case '2':
-                $yearName = "Second Year";
+                $yearName = "Deuxième Année";
                 break;
             case '3':
-                $yearName = "Third Year";
+                $yearName = "Troisième Année";
                 break;
             default:
-                $yearName = "First Year";
+                $yearName = "Première Année";
         }
         
         $groupName = "G" . $group;
         
-        error_log("Student redirect: Using groupID $groupNumeric as year=$yearName, group=$groupName");
+        error_log("Redirection étudiant: Utilisation de groupID $groupNumeric comme année=$yearName, groupe=$groupName");
         header("Location: timetable_view.php?role=student&year=$yearName&group=$groupName");
         exit;
     } else {
-        // Fallback for legacy format or missing group_id
-        // Default to "First Year" instead of "Y1" format
-        $year_id = $_SESSION['year_id'] ?? 'First Year';
+        // Alternative pour format hérité ou group_id manquant
+        // Par défaut "Première Année" au lieu du format "Y1"
+        $year_id = $_SESSION['year_id'] ?? 'Première Année';
         $group_id = $_SESSION['group_id'] ?? 'G1';
         
-        error_log("Student redirect (legacy): year=$year_id, group=$group_id");
+        error_log("Redirection étudiant (format hérité): année=$year_id, groupe=$group_id");
         header("Location: timetable_view.php?role=student&year=$year_id&group=$group_id");
         exit;
     }
 } else {
-    // Not logged in or not a student, redirect to login
+    // Non connecté ou pas un étudiant, redirection vers la page de connexion
     header("Location: login.php?error=invalid_access");
     exit;
 }

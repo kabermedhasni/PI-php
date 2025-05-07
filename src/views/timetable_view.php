@@ -53,14 +53,14 @@ try {
 } catch (PDOException $e) {
     // Fallback to defaults if database query fails
     error_log("Failed to load years and groups from database: " . $e->getMessage());
-    $years = ["First Year", "Second Year", "Third Year"];
+    $years = ["Première Année", "Deuxième Année", "Troisième Année"];
     $groups = ["G1", "G2", "G3", "G4", "G5", "G6"];
     
     // Default groupsByYear structure based on the database results
     $groupsByYear = [
-        "First Year" => ["G1", "G2", "G3", "G4", "G5", "G6"],
-        "Second Year" => ["G1", "G2", "G3", "G4"],
-        "Third Year" => ["G1", "G2"]
+        "Première Année" => ["G1", "G2", "G3", "G4", "G5", "G6"],
+        "Deuxième Année" => ["G1", "G2", "G3", "G4"],
+        "Troisième Année" => ["G1", "G2"]
     ];
 }
 
@@ -72,12 +72,12 @@ $timeSlots = [
     "15:00 - 16:30",
     "16:30 - 18:00"
 ];
-$days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+$days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
 
 // Default selections
 if ($role === 'student') {
     // For students, use their assigned year and group
-    $currentYear = $_SESSION['year_id'] ?? 'First Year';
+    $currentYear = $_SESSION['year_id'] ?? 'Première Année';
     $currentGroup = $_SESSION['group_id'] ?? 'G1';
     
     // Override with URL parameters if they exist
@@ -85,18 +85,18 @@ if ($role === 'student') {
     if (isset($_GET['group'])) $currentGroup = $_GET['group'];
 } else {
     // For professors, allow selection
-    $currentYear = isset($_GET['year']) ? $_GET['year'] : 'First Year';
+    $currentYear = isset($_GET['year']) ? $_GET['year'] : 'Première Année';
     $currentGroup = isset($_GET['group']) ? $_GET['group'] : 'G1';
 }
 
 // Page title based on role
-$pageTitle = ($role === 'student') ? 'Student Timetable' : 'Professor Timetable';
+$pageTitle = ($role === 'student') ? 'Emploi du Temps Étudiant' : 'Emploi du Temps Professeur';
 $headerClass = ($role === 'student') ? 'header-student' : 'header-professor';
 $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -284,7 +284,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             <h1 class="text-2xl font-bold">
                 <?php echo $pageTitle; ?>
                 <?php if ($isPreview): ?>
-                <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Preview Mode</span>
+                <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Mode Aperçu</span>
                 <?php endif; ?>
             </h1>
             <div class="flex space-x-3">
@@ -293,14 +293,14 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Back to Dashboard
+                    Retour au Tableau de Bord
                 </a>
                 <?php endif; ?>
                 <a href="logout.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    Logout
+                    Déconnexion
                 </a>
             </div>
         </div>
@@ -310,7 +310,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             <?php if ($role === 'professor') : ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Année</label>
                     <div class="dropdown-container">
                         <button class="dropdown-button" id="year-dropdown">
                             <span id="selected-year"><?php echo $currentYear; ?></span>
@@ -327,7 +327,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Group</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Groupe</label>
                     <div class="dropdown-container">
                         <button class="dropdown-button" id="group-dropdown">
                             <span id="selected-group"><?php echo $currentGroup; ?></span>
@@ -347,11 +347,11 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             <!-- For students, show their fixed year and group -->
             <div class="flex mb-6">
                 <div class="flex items-center mr-6">
-                    <span class="text-sm font-medium text-gray-700 mr-2">Year:</span>
+                    <span class="text-sm font-medium text-gray-700 mr-2">Année:</span>
                     <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"><?php echo $currentYear; ?></span>
                 </div>
                 <div class="flex items-center">
-                    <span class="text-sm font-medium text-gray-700 mr-2">Group:</span>
+                    <span class="text-sm font-medium text-gray-700 mr-2">Groupe:</span>
                     <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"><?php echo $currentGroup; ?></span>
                 </div>
             </div>
@@ -362,7 +362,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                 <table class="timetable" id="timetable">
                     <thead>
                         <tr>
-                            <th class="time-cell">Time</th>
+                            <th class="time-cell">Heure</th>
                             <?php foreach ($days as $day): ?>
                                 <th><?php echo $day; ?></th>
                             <?php endforeach; ?>
@@ -437,7 +437,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
                             const roomDiv = document.createElement("div");
                             roomDiv.className = "text-xs text-gray-500 mt-1";
-                            roomDiv.textContent = `Room: ${data.room}`;
+                            roomDiv.textContent = `Salle: ${data.room}`;
 
                             classBlock.appendChild(subjectDiv);
                             classBlock.appendChild(professorDiv);
@@ -446,7 +446,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                             cell.appendChild(classBlock);
                         } else {
                             // Empty cell
-                            cell.innerHTML = `<div class="h-full flex items-center justify-center text-gray-300 text-sm">No class</div>`;
+                            cell.innerHTML = `<div class="h-full flex items-center justify-center text-gray-300 text-sm">Pas de cours</div>`;
                         }
 
                         row.appendChild(cell);
@@ -507,7 +507,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
                         // Load timetable for this year/group
                         loadTimetableData();
-                        showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                        showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                     });
                 });
                 
@@ -530,7 +530,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                                 
                                 // Load timetable for this year/group
                                 loadTimetableData();
-                                showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                                showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                             });
                             groupMenu.appendChild(item);
                         });
@@ -585,18 +585,18 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                     if (data && data.data) {
                         timetableData = data.data;
                         generateViewTimetable();
-                        showToast("success", `Loaded timetable for ${currentYear}-${currentGroup}`);
+                        showToast("success", `Emploi du temps chargé pour ${currentYear}-${currentGroup}`);
                     } else {
                         // If no data from server, show empty timetable
                         initTimetableData();
                         generateViewTimetable();
-                        showToast("info", `No timetable found for ${currentYear}-${currentGroup}`);
+                        showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
                     }
                 })
                 .catch(error => {
-                    console.error('Error loading timetable data:', error);
+                    console.error('Erreur lors du chargement des données:', error);
                     // Show error toast
-                    showToast("error", "Error loading timetable data");
+                    showToast("error", "Erreur lors du chargement des données");
                     // Initialize empty
                     initTimetableData();
                     generateViewTimetable();

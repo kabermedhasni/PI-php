@@ -20,7 +20,7 @@ if ($role === 'admin') {
 } elseif ($role === 'student') {
     // Redirect students to view-only version with their group pre-selected
     $group_id = $_SESSION['group_id'] ?? 'G1';
-    $year_id = $_SESSION['year_id'] ?? 'First Year';
+    $year_id = $_SESSION['year_id'] ?? 'Première Année';
     header("Location: timetable_view.php?role=student&year=$year_id&group=$group_id");
     exit;
 } else {
@@ -67,14 +67,14 @@ try {
 } catch (PDOException $e) {
     // Fallback to defaults if database query fails
     error_log("Failed to load database data: " . $e->getMessage());
-    $years = ["First Year", "Second Year", "Third Year"];
+    $years = ["Première Année", "Deuxième Année", "Troisième Année"];
     $groups = ["G1", "G2", "G3", "G4", "G5", "G6"];
     
     // Default groupsByYear structure based on the database results
     $groupsByYear = [
-        "First Year" => ["G1", "G2", "G3", "G4", "G5", "G6"],
-        "Second Year" => ["G1", "G2", "G3", "G4"],
-        "Third Year" => ["G1", "G2"]
+        "Première Année" => ["G1", "G2", "G3", "G4", "G5", "G6"],
+        "Deuxième Année" => ["G1", "G2", "G3", "G4"],
+        "Troisième Année" => ["G1", "G2"]
     ];
     
     // Fallback to empty array if query fails
@@ -103,19 +103,19 @@ $timeSlots = [
     "15:00 - 16:30",
     "16:30 - 18:00"
 ];
-$days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+$days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
 $rooms = [
-    "Room 101",
-    "Room 102",
-    "Room 201",
-    "Room 202",
-    "Lab 301",
-    "Lab 302",
+    "Salle 101",
+    "Salle 102",
+    "Salle 201",
+    "Salle 202",
+    "Labo 301",
+    "Labo 302",
     "Auditorium"
 ];
 
 // Default selections
-$currentYear = isset($_GET['year']) ? $_GET['year'] : $years[0] ?? 'First Year';
+$currentYear = isset($_GET['year']) ? $_GET['year'] : $years[0] ?? 'Première Année';
 $currentGroup = isset($_GET['group']) ? $_GET['group'] : 
     (isset($groupsByYear[$currentYear]) && !empty($groupsByYear[$currentYear]) ? 
     $groupsByYear[$currentYear][0] : 'G1');
@@ -140,7 +140,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, sans-serif;
         margin: 0;
-        padding: 20px;
+        padding: 10px;
+
       }
 
       .card {
@@ -150,7 +151,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         overflow: hidden;
         background-color: white;
         max-width: 1200px;
-        margin: 20px auto;
+        margin: 10px auto;
+        transition: all 0.3s ease;
       }
 
       .header-admin {
@@ -178,17 +180,17 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
       }
 
       .timetable td {
-        padding: 8px;
+        padding: 4px;
         border-bottom: 1px solid #e2e8f0;
         border-right: 1px solid #e2e8f0;
         vertical-align: top;
-        height: 100px;
+        height: 80px;
       }
 
       .time-cell {
         font-weight: 500;
         text-align: center;
-        width: 100px;
+        width: 90px;
         background-color: #f8fafc;
       }
 
@@ -210,6 +212,32 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         cursor: pointer;
         font-weight: 500;
         height: 38px;
+        transition: all 0.3s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      
+      .dropdown-button:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+      }
+      
+      .dropdown-button[disabled] {
+        cursor: not-allowed;
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        border-color: #e2e8f0;
+      }
+      
+      .dropdown-button[disabled]:hover {
+        border-color: #e2e8f0;
+        box-shadow: none;
+      }
+
+      .dropdown-button svg {
+        transition: transform 0.3s ease;
+      }
+
+      .dropdown-button.active svg {
+        transform: rotate(180deg);
       }
 
       .dropdown-menu {
@@ -220,37 +248,83 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         background-color: #fff;
         border-radius: 0.375rem;
         box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
-        display: none;
         z-index: 100;
         max-height: 200px;
         overflow-y: auto;
+        opacity: 0;
+        transform: translateY(-10px) rotateX(-5deg);
+        transform-origin: top center;
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        visibility: hidden;
+        display: none; /* Start with display none to prevent initial animation */
       }
 
       .dropdown-menu.open {
         display: block;
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+        pointer-events: auto;
+        animation: menuAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      
+      .dropdown-menu.closing {
+        display: block;
+        animation: menuClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      
+      @keyframes menuAppear {
+        0% {
+          opacity: 0;
+          transform: translateY(-10px) rotateX(-5deg);
+          visibility: visible;
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) rotateX(0);
+          visibility: visible;
+        }
+      }
+      
+      @keyframes menuClose {
+        0% {
+          opacity: 1;
+          transform: translateY(0) rotateX(0);
+          visibility: visible;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-10px) rotateX(-5deg);
+          visibility: hidden;
+        }
       }
 
       .dropdown-item {
         padding: 8px 12px;
         cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
       }
 
       .dropdown-item:hover {
         background-color: #f1f5f9;
+        transform: translateX(2px);
       }
 
       .class-block {
         background-color: #f8fafc;
         border-radius: 0.375rem;
         border-left: 4px solid #3b82f6;
-        padding: 8px;
-        margin-bottom: 4px;
-        transition: all 0.3s ease;
+        padding: 6px;
+        margin-bottom: 2px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.9rem;
       }
 
       .class-block:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
 
       .empty-cell {
@@ -259,10 +333,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         justify-content: center;
         align-items: center;
         cursor: pointer;
-      }
-
-      .empty-cell:hover {
-        background-color: #f1f5f9;
       }
 
       .modal {
@@ -275,7 +345,15 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 1000;
         backdrop-filter: blur(5px);
-        animation: fadeIn 0.3s ease;
+        opacity: 1;
+      }
+      
+      .modal.fade-in {
+        animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .modal.fade-out {
+        animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .modal-content {
@@ -285,7 +363,14 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         padding: 20px;
         border-radius: 0.5rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        animation: slideDown 0.3s ease;
+      }
+      
+      .modal.fade-in .modal-content {
+        animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      .modal.fade-out .modal-content {
+        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .modal-header {
@@ -301,23 +386,24 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
       }
 
       .btn {
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .btn:hover {
         transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
 
       /* Compact styling for smaller screens */
       @media (max-width: 768px) {
         .timetable td {
-          height: 80px;
-          padding: 4px;
-          font-size: 0.85rem;
+          height: 70px;
+          padding: 3px;
+          font-size: 0.8rem;
         }
 
         .time-cell {
-          width: 80px;
+          width: 70px;
         }
       }
 
@@ -330,38 +416,60 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
           opacity: 1;
         }
       }
+      
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
 
       @keyframes slideDown {
         from {
-          transform: translateY(-20px);
+          transform: translateY(-30px) scale(0.95);
           opacity: 0;
         }
         to {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
           opacity: 1;
+        }
+      }
+      
+      @keyframes slideUp {
+        from {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(10px) scale(0.95);
+          opacity: 0;
         }
       }
 
       /* Set maximum height for the timetable container */
       .timetable-container {
-        max-height: 80vh;
+        max-height: 60vh;
         overflow-y: auto;
         border-radius: 0.5rem;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
       }
-
-      /* Custom scrollbar */
-      .timetable-container::-webkit-scrollbar {
-        width: 8px;
+      
+      /* Hide scrollbar for all browsers */
+      .timetable-container::-webkit-scrollbar,
+      *::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
       }
-
-      .timetable-container::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-
-      .timetable-container::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 8px;
+      
+      /* Hide all scrollbars for any element */
+      * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
 
       /* Custom select styling */
@@ -407,17 +515,21 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         background-color: #ef4444;
         color: white;
       }
+
+      .p-6 {
+        padding: 1rem !important;
+      }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="p-6 flex justify-between items-center header-admin">
-            <h1 class="text-2xl font-bold">Admin Timetable Management</h1>
+            <h1 class="text-2xl font-bold">Gestion des Emplois du Temps - Admin</h1>
             <a href="../admin/index.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to Dashboard
+                Retour au Tableau de Bord
             </a>
         </div>
 
@@ -425,7 +537,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             <!-- Filters -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Année</label>
                     <div class="dropdown-container">
                         <button class="dropdown-button" id="year-dropdown">
                             <span id="selected-year"><?php echo $currentYear; ?></span>
@@ -442,7 +554,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Group</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Groupe</label>
                     <div class="dropdown-container">
                         <button class="dropdown-button" id="group-dropdown">
                             <span id="selected-group"><?php echo $currentGroup; ?></span>
@@ -459,12 +571,12 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 </div>
             </div>
 
-            <!-- Timetable -->
+            <!-- Emploi du temps -->
             <div class="timetable-container overflow-x-auto rounded-lg shadow-sm border border-gray-200">
                 <table class="timetable" id="timetable">
                     <thead>
                         <tr>
-                            <th class="time-cell">Time</th>
+                            <th class="time-cell">Heure</th>
                             <?php foreach ($days as $day): ?>
                                 <th><?php echo $day; ?></th>
                             <?php endforeach; ?>
@@ -491,29 +603,29 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 </table>
             </div>
 
-            <!-- Admin controls -->
+            <!-- Contrôles admin -->
             <div class="mt-6 flex justify-end space-x-3">
                 <button id="save-btn" class="btn px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
-                    Save Timetable
+                    Enregistrer
                 </button>
                 <button id="publish-btn" class="btn px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700">
-                    Publish Timetable
+                    Publier
                 </button>
                 <button id="publish-all-btn" class="btn px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700">
-                    Publish All Timetables
+                    Tout Publier
                 </button>
             </div>
 
-            <!-- Status message -->
+            <!-- Message de statut -->
             <div id="status-message" class="mt-4 hidden p-4 rounded-md"></div>
         </div>
     </div>
 
-    <!-- Add/Edit Class Modal -->
+    <!-- Modal Ajouter/Modifier Cours -->
     <div id="class-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-xl font-bold" id="modal-title">Add Class</h2>
+                <h2 class="text-xl font-bold" id="modal-title">Ajouter un Cours</h2>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
@@ -524,10 +636,10 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     <input type="hidden" id="edit-color" value="#3b82f6" />
 
                     <div class="mb-4">
-                        <label for="professor-select" class="block text-sm font-medium text-gray-700 mb-1">Professor</label>
+                        <label for="professor-select" class="block text-sm font-medium text-gray-700 mb-1">Professeur</label>
                         <div class="dropdown-container">
                             <button type="button" class="dropdown-button" id="professor-dropdown">
-                                <span id="selected-professor">Select a professor</span>
+                                <span id="selected-professor">Sélectionner un professeur</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -543,10 +655,10 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     </div>
 
                     <div class="mb-4">
-                        <label for="subject-select" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <label for="subject-select" class="block text-sm font-medium text-gray-700 mb-1">Matière</label>
                         <div class="dropdown-container">
                             <button type="button" class="dropdown-button" id="subject-dropdown" disabled>
-                                <span id="selected-subject">Select a professor first</span>
+                                <span id="selected-subject">Sélectionner un professeur d'abord</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -562,10 +674,10 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     </div>
 
                     <div class="mb-4">
-                        <label for="room-select" class="block text-sm font-medium text-gray-700 mb-1">Room</label>
+                        <label for="room-select" class="block text-sm font-medium text-gray-700 mb-1">Salle</label>
                         <div class="dropdown-container">
                             <button type="button" class="dropdown-button" id="room-dropdown">
-                                <span id="selected-room">Select a room</span>
+                                <span id="selected-room">Sélectionner une salle</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -582,10 +694,10 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
                     <div class="flex justify-end space-x-3">
                         <button type="button" id="cancel-btn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
+                            Annuler
                         </button>
                         <button type="submit" id="save-class-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
-                            Save
+                            Enregistrer
                         </button>
                     </div>
                 </form>
@@ -593,50 +705,75 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         </div>
     </div>
 
-    <!-- Unsaved Changes Warning Modal -->
+    <!-- Modal d'avertissement pour modifications non enregistrées -->
     <div id="unsaved-changes-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-xl font-bold text-red-600">Unsaved Changes</h2>
+                <h2 class="text-xl font-bold text-red-600">Modifications Non Enregistrées</h2>
                 <span class="close" id="unsaved-close">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="mb-4">
-                    <p class="mb-2">You have unsaved changes in your timetable.</p>
-                    <p>Would you like to save your changes before continuing?</p>
+                    <p class="mb-2">Vous avez des modifications non enregistrées dans votre emploi du temps.</p>
+                    <p>Souhaitez-vous enregistrer vos modifications avant de continuer ?</p>
                 </div>
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" id="discard-btn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Discard Changes
+                        Ignorer les Modifications
                     </button>
                     <button type="button" id="save-continue-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
-                        Save and Continue
+                        Enregistrer et Continuer
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Publish All Timetables Modal -->
+    <!-- Modal pour Publier Tous les Emplois du Temps -->
     <div id="publish-all-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-xl font-bold text-purple-600">Publish All Timetables</h2>
+                <h2 class="text-xl font-bold text-purple-600">Publier Tous les Emplois du Temps</h2>
                 <span class="close" id="publish-all-close">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="mb-4">
-                    <p class="mb-2">This will publish ALL timetables for ALL years and groups.</p>
-                    <p>Published timetables will be visible to all students and professors. Are you sure?</p>
+                    <p class="mb-2">Ceci va publier TOUS les emplois du temps pour TOUTES les années et groupes.</p>
+                    <p>Les emplois du temps publiés seront visibles par tous les étudiants et professeurs. Êtes-vous sûr ?</p>
                 </div>
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" id="publish-all-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Cancel
+                        Annuler
                     </button>
                     <button type="button" id="publish-all-confirm" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">
-                        Yes, Publish All
+                        Oui, Tout Publier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmation de Suppression -->
+    <div id="delete-class-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold text-red-600">Supprimer le Cours</h2>
+                <span class="close" id="delete-class-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <p class="mb-2">Êtes-vous sûr de vouloir supprimer ce cours ?</p>
+                    <p id="delete-class-name" class="font-medium"></p>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="delete-class-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button type="button" id="delete-class-confirm" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                        Supprimer
                     </button>
                 </div>
             </div>
@@ -645,6 +782,79 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Additional global functions for modal animation
+            window.showModalWithAnimation = function(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.add('fade-in');
+                modal.classList.remove('fade-out');
+                modal.style.display = 'block';
+            };
+            
+            window.closeModalWithAnimation = function(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('fade-in');
+                modal.classList.add('fade-out');
+                
+                setTimeout(function() {
+                    modal.style.display = 'none';
+                    modal.classList.remove('fade-out');
+                }, 300);
+            };
+            
+            // Apply animations to existing modals
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                const closeBtn = modal.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        closeModalWithAnimation(modal.id);
+                    });
+                }
+                
+                // Close on click outside
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModalWithAnimation(modal.id);
+                    }
+                });
+            });
+            
+            // Replace existing event listeners for modal specific buttons
+            document.getElementById("cancel-btn").addEventListener("click", function() {
+                closeModalWithAnimation("class-modal");
+            });
+            
+            // Publish all modal buttons
+            document.getElementById("publish-all-btn").addEventListener("click", function() {
+                showModalWithAnimation("publish-all-modal");
+            });
+            
+            document.getElementById("publish-all-close").addEventListener("click", function() {
+                closeModalWithAnimation("publish-all-modal");
+            });
+            
+            document.getElementById("publish-all-cancel").addEventListener("click", function() {
+                closeModalWithAnimation("publish-all-modal");
+            });
+            
+            document.getElementById("publish-all-confirm").addEventListener("click", function() {
+                closeModalWithAnimation("publish-all-modal");
+                setTimeout(performPublishAllTimetables, 300);
+            });
+            
+            // Delete class modal buttons
+            document.getElementById("delete-class-close").addEventListener("click", function() {
+                closeModalWithAnimation("delete-class-modal");
+            });
+            
+            document.getElementById("delete-class-cancel").addEventListener("click", function() {
+                closeModalWithAnimation("delete-class-modal");
+            });
+            
+            // Variables for storing class to be deleted
+            let deleteClassDay = null;
+            let deleteClassTime = null;
+            
             // Timetable data
             let timetableData = {};
             let currentYear = "<?php echo $currentYear; ?>";
@@ -660,6 +870,50 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
             const timeSlots = <?php echo json_encode($timeSlots); ?>;
             const days = <?php echo json_encode($days); ?>;
+
+            // Function to toggle dropdown state and arrow rotation
+            function toggleDropdown(dropdownButton, dropdownMenu) {
+                if (dropdownMenu.classList.contains("open")) {
+                    // Closing the dropdown
+                    dropdownButton.classList.remove("active");
+                    dropdownMenu.classList.remove("open");
+                    dropdownMenu.classList.add("closing");
+                    
+                    // After animation completes, hide the dropdown completely
+                    setTimeout(() => {
+                        dropdownMenu.classList.remove("closing");
+                        dropdownMenu.style.display = "none";
+                    }, 300); // Match the animation duration
+                    
+                    return false;
+                } else {
+                    // Opening the dropdown
+                    closeAllDropdowns(); // Close any other open dropdowns
+                    dropdownButton.classList.add("active");
+                    dropdownMenu.style.display = "block"; // Make it visible first
+                    
+                    // Trigger reflow/repaint to ensure the animation runs
+                    void dropdownMenu.offsetWidth;
+                    
+                    dropdownMenu.classList.add("open");
+                    return true;
+                }
+            }
+            
+            // Function to close all dropdowns
+            function closeAllDropdowns() {
+                document.querySelectorAll(".dropdown-menu.open").forEach(menu => {
+                    const button = menu.parentElement.querySelector(".dropdown-button");
+                    button.classList.remove("active");
+                    menu.classList.remove("open");
+                    menu.classList.add("closing");
+                    
+                    setTimeout(() => {
+                        menu.classList.remove("closing");
+                        menu.style.display = "none";
+                    }, 300);
+                });
+            }
 
             // Initialize empty timetable data
             function initTimetableData() {
@@ -680,33 +934,54 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 const statusDiv = document.getElementById("status-message");
                 statusDiv.classList.remove("hidden", "bg-green-100", "bg-yellow-100", "bg-blue-100", "text-green-800", "text-yellow-800", "text-blue-800");
                 
+                // Check if timetable is completely empty
+                let isEmptyTimetable = true;
+                for (const day in timetableData) {
+                    for (const time in timetableData[day]) {
+                        if (timetableData[day][time] !== null) {
+                            isEmptyTimetable = false;
+                            break;
+                        }
+                    }
+                    if (!isEmptyTimetable) break;
+                }
+                
+                // Hide status message for completely empty timetables that haven't been saved yet
+                if (isEmptyTimetable && !hasUnsavedChanges && !hasDraftChanges && !isCurrentlyPublished) {
+                    statusDiv.classList.add("hidden");
+                    return;
+                }
+                
                 if (hasUnsavedChanges) {
                     // Always show unsaved changes first regardless of publish state
                     statusDiv.classList.add("bg-yellow-100", "text-yellow-800");
-                    statusDiv.textContent = "You have unsaved changes. Don't forget to save before leaving!";
+                    statusDiv.textContent = "Vous avez des modifications non enregistrées. N'oubliez pas d'enregistrer avant de quitter !";
                     statusDiv.classList.remove("hidden");
                 } else if (hasDraftChanges && isCurrentlyPublished) {
                     // Show when we have saved changes that differ from the published version
                     statusDiv.classList.add("bg-blue-100", "text-blue-800");
-                    statusDiv.textContent = "You have saved changes that are not yet published. Students and professors still see the previous published version.";
+                    statusDiv.textContent = "Vous avez des modifications enregistrées qui ne sont pas encore publiées. Les étudiants et professeurs voient toujours la version précédemment publiée.";
                     statusDiv.classList.remove("hidden");
                 } else if (isCurrentlyPublished) {
                     // If saved and published with no draft changes
                     statusDiv.classList.add("bg-green-100", "text-green-800");
-                    statusDiv.textContent = "This timetable is published and visible to students and professors.";
+                    statusDiv.textContent = "Cet emploi du temps est publié et visible par les étudiants et professeurs.";
                     statusDiv.classList.remove("hidden");
-                } else {
+                } else if (!isEmptyTimetable) {
                     // If saved but not published
                     statusDiv.classList.add("bg-yellow-100", "text-yellow-800");
-                    statusDiv.textContent = "This timetable is saved but not published yet. Only visible to admins until published.";
+                    statusDiv.textContent = "Cet emploi du temps est enregistré mais pas encore publié. Visible uniquement par les admins jusqu'à la publication.";
                     statusDiv.classList.remove("hidden");
+                } else {
+                    // Empty timetable, hide status
+                    statusDiv.classList.add("hidden");
                 }
             }
 
             // Function to show unsaved changes warning
             function showUnsavedChangesWarning(callback) {
                 const modal = document.getElementById("unsaved-changes-modal");
-                modal.style.display = "block";
+                showModalWithAnimation("unsaved-changes-modal");
                 
                 const closeBtn = document.getElementById("unsaved-close");
                 const discardBtn = document.getElementById("discard-btn");
@@ -724,28 +999,21 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 
                 // Add event listeners
                 newCloseBtn.addEventListener("click", function() {
-                    modal.style.display = "none";
+                    closeModalWithAnimation("unsaved-changes-modal");
                 });
                 
                 newDiscardBtn.addEventListener("click", function() {
-                    modal.style.display = "none";
+                    closeModalWithAnimation("unsaved-changes-modal");
                     hasUnsavedChanges = false;
                     hasDraftChanges = false;
                     if (callback) callback(false); // Continue without saving
                 });
                 
                 newSaveBtn.addEventListener("click", function() {
-                    modal.style.display = "none";
+                    closeModalWithAnimation("unsaved-changes-modal");
                     saveCurrentTimetable(function() {
                         if (callback) callback(true); // Continue after saving
                     });
-                });
-                
-                // Close if clicking outside
-                window.addEventListener("click", function(event) {
-                    if (event.target === modal) {
-                        modal.style.display = "none";
-                    }
                 });
             }
 
@@ -787,26 +1055,31 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
                             const roomDiv = document.createElement("div");
                             roomDiv.className = "text-xs text-gray-500 mt-1";
-                            roomDiv.textContent = `Room: ${data.room}`;
+                            roomDiv.textContent = `Salle: ${data.room}`;
 
                             const actionDiv = document.createElement("div");
                             actionDiv.className = "mt-2 flex justify-end space-x-2";
 
                             const editBtn = document.createElement("button");
                             editBtn.className = "text-xs text-blue-600 hover:text-blue-800";
-                            editBtn.textContent = "Edit";
+                            editBtn.textContent = "Modifier";
                             editBtn.addEventListener("click", function() {
                                 openEditModal(day, time);
                             });
 
                             const deleteBtn = document.createElement("button");
                             deleteBtn.className = "text-xs text-red-600 hover:text-red-800";
-                            deleteBtn.textContent = "Delete";
+                            deleteBtn.textContent = "Supprimer";
                             deleteBtn.addEventListener("click", function() {
-                                if (confirm(`Delete ${data.subject} class?`)) {
-                                    timetableData[day][time] = null;
-                                    generateEmptyTimetable();
-                                }
+                                // Store the day and time for the class to delete
+                                deleteClassDay = day;
+                                deleteClassTime = time;
+                                
+                                // Set the class name in the modal
+                                document.getElementById("delete-class-name").textContent = data.subject;
+                                
+                                // Show the delete confirmation modal
+                                showModalWithAnimation("delete-class-modal");
                             });
 
                             actionDiv.appendChild(editBtn);
@@ -853,24 +1126,21 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             const groupDropdown = document.getElementById("group-dropdown");
             const groupMenu = document.getElementById("group-menu");
 
-            yearDropdown.addEventListener("click", function() {
-                yearMenu.classList.toggle("open");
-                groupMenu.classList.remove("open");
+            yearDropdown.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDropdown(yearDropdown, yearMenu);
             });
 
-            groupDropdown.addEventListener("click", function() {
-                groupMenu.classList.toggle("open");
-                yearMenu.classList.remove("open");
+            groupDropdown.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDropdown(groupDropdown, groupMenu);
             });
 
             // Close dropdowns when clicking outside
             document.addEventListener("click", function(event) {
-                if (!yearDropdown.contains(event.target)) {
-                    yearMenu.classList.remove("open");
-                }
-                if (!groupDropdown.contains(event.target)) {
-                    groupMenu.classList.remove("open");
-                }
+                closeAllDropdowns();
             });
             
             // Function to update group dropdown based on selected year
@@ -890,6 +1160,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                             // Skip if selecting the same group
                             if (selectedGroup === currentGroup) {
                                 groupMenu.classList.remove("open");
+                                groupDropdown.classList.remove("active"); // Retirer la classe active
                                 return;
                             }
                             
@@ -907,20 +1178,22 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                                     document.getElementById("selected-group").textContent = selectedGroup;
                                     currentGroup = selectedGroup;
                                     groupMenu.classList.remove("open");
+                                    groupDropdown.classList.remove("active"); // Retirer la classe active
                                     
                                     // Load timetable for this year/group
                                     loadSavedData();
-                                    showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                                    showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                                 });
                             } else {
                                 // No changes, just update and load
                                 document.getElementById("selected-group").textContent = selectedGroup;
                                 currentGroup = selectedGroup;
                                 groupMenu.classList.remove("open");
+                                groupDropdown.classList.remove("active"); // Retirer la classe active
                                 
                                 // Load timetable for this year/group
                                 loadSavedData();
-                                showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                                showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                             }
                         });
                         groupMenu.appendChild(item);
@@ -936,6 +1209,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     // Skip if selecting the same year
                     if (year === currentYear) {
                         yearMenu.classList.remove("open");
+                        yearDropdown.classList.remove("active"); // Retirer la classe active
                         return;
                     }
                     
@@ -952,6 +1226,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                             document.getElementById("selected-year").textContent = year;
                             currentYear = year;
                             yearMenu.classList.remove("open");
+                            yearDropdown.classList.remove("active"); // Retirer la classe active
                             
                             // Update the group dropdown with year-specific groups
                             updateGroupDropdown(year);
@@ -964,13 +1239,14 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
                             // Load timetable for this year/group
                             loadSavedData();
-                            showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                            showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                         });
                     } else {
                         // No changes, just update and load
                         document.getElementById("selected-year").textContent = year;
                         currentYear = year;
                         yearMenu.classList.remove("open");
+                        yearDropdown.classList.remove("active"); // Retirer la classe active
                         
                         // Update the group dropdown with year-specific groups
                         updateGroupDropdown(year);
@@ -983,7 +1259,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
                         // Load timetable for this year/group
                         loadSavedData();
-                        showToast("info", `Viewing timetable for ${currentYear}-${currentGroup}`);
+                        showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
                     }
                 });
             });
@@ -1018,7 +1294,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 .then(data => {
                     console.log('Save response data:', data);
                     if (data.success) {
-                        showToast("success", `Timetable saved for ${currentYear}-${currentGroup}`);
+                        showToast("success", `Emploi du temps enregistré pour ${currentYear}-${currentGroup}`);
                         hasUnsavedChanges = false;
                         
                         // Check if the server tells us this is already published elsewhere
@@ -1034,12 +1310,12 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                         updatePublishStatus();
                         if (callback) callback();
                     } else {
-                        showToast("error", "Failed to save timetable");
+                        showToast("error", "Échec de l'enregistrement de l'emploi du temps");
                     }
                 })
                 .catch(error => {
                     console.error('Error saving timetable:', error);
-                    showToast("error", "Error saving timetable");
+                    showToast("error", "Erreur lors de l'enregistrement de l'emploi du temps");
                     if (callback) callback();
                 });
             }
@@ -1059,23 +1335,23 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             document.getElementById("publish-all-btn").addEventListener("click", function() {
                 console.log('Publish All button clicked');
                 // Show the modal instead of confirm dialog
-                document.getElementById("publish-all-modal").style.display = "block";
+                showModalWithAnimation("publish-all-modal");
             });
             
             // Close publish all modal when clicking X
             document.getElementById("publish-all-close").addEventListener("click", function() {
-                document.getElementById("publish-all-modal").style.display = "none";
+                closeModalWithAnimation("publish-all-modal");
             });
             
             // Cancel publish all action
             document.getElementById("publish-all-cancel").addEventListener("click", function() {
-                document.getElementById("publish-all-modal").style.display = "none";
+                closeModalWithAnimation("publish-all-modal");
             });
             
             // Confirm publish all action
             document.getElementById("publish-all-confirm").addEventListener("click", function() {
-                document.getElementById("publish-all-modal").style.display = "none";
-                performPublishAllTimetables();
+                closeModalWithAnimation("publish-all-modal");
+                setTimeout(performPublishAllTimetables, 300);
             });
             
             // Function to publish current timetable - separated from save functionality
@@ -1105,18 +1381,18 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 .then(data => {
                     console.log('Publish response data:', data);
                     if (data.success) {
-                        showToast("success", `Timetable published for ${currentYear}-${currentGroup}`);
+                        showToast("success", `Emploi du temps publié pour ${currentYear}-${currentGroup}`);
                         hasUnsavedChanges = false;
                         isCurrentlyPublished = true;
                         hasDraftChanges = false; // Reset draft changes flag since we just published
                         updatePublishStatus();
                     } else {
-                        showToast("error", "Failed to publish timetable");
+                        showToast("error", "Échec de la publication de l'emploi du temps");
                     }
                 })
                 .catch(error => {
                     console.error('Error publishing timetable:', error);
-                    showToast("error", "Error publishing timetable");
+                    showToast("error", "Erreur lors de la publication de l'emploi du temps");
                 });
             }
 
@@ -1150,12 +1426,12 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                             updatePublishStatus();
                         }
                     } else {
-                        showToast("error", data.message || "Failed to publish all timetables");
+                        showToast("error", data.message || "Échec de la publication de tous les emplois du temps");
                     }
                 })
                 .catch(error => {
                     console.error('Error publishing all timetables:', error);
-                    showToast("error", "Error publishing all timetables");
+                    showToast("error", "Erreur lors de la publication de tous les emplois du temps");
                 });
             }
 
@@ -1173,9 +1449,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
             professorDropdown.addEventListener("click", function(e) {
                 e.preventDefault();
-                professorMenu.classList.toggle("open");
-                document.getElementById("subject-menu").classList.remove("open");
-                document.getElementById("room-menu").classList.remove("open");
+                e.stopPropagation();
+                toggleDropdown(professorDropdown, professorMenu);
             });
 
             document.querySelectorAll("#professor-menu .dropdown-item").forEach(item => {
@@ -1188,10 +1463,11 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     document.getElementById("selected-professor").textContent = professorName; // Display name
                     document.getElementById("selected-professor").setAttribute("data-id", professorId);
                     professorMenu.classList.remove("open");
+                    professorDropdown.classList.remove("active"); // Retirer la classe active
                     
                     // Enable subject dropdown now that a professor is selected
                     subjectDropdown.removeAttribute("disabled");
-                    document.getElementById("selected-subject").textContent = "Loading subjects...";
+                    document.getElementById("selected-subject").textContent = "Chargement des matières...";
                     
                     // Filter subjects based on selected professor
                     filterSubjectsByProfessor(professorId);
@@ -1200,13 +1476,17 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
             function filterSubjectsByProfessor(professorId) {
                 // Fetch subjects assigned to this professor from the database
-                if (!professorId) return;
+                if (!professorId) {
+                    document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
+                    subjectDropdown.setAttribute("disabled", "disabled");
+                    return;
+                }
                 
                 console.log('Fetching subjects for professor ID:', professorId);
                 
                 // Clear existing subject menu items
                 const subjectMenu = document.getElementById("subject-menu");
-                subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Loading...</div>';
+                subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Chargement...</div>';
                 
                 // Make an AJAX call to get the subjects for this professor
                 // Use a full URL path to test
@@ -1226,7 +1506,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     console.log('API response data:', data);
                     
                     if (data.success && data.subjects && data.subjects.length > 0) {
-                        console.log('Found subjects:', data.subjects.length);
                         // Clear current menu
                         subjectMenu.innerHTML = '';
                         
@@ -1254,6 +1533,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                                 document.getElementById("selected-subject").setAttribute("data-id", subjectId);
                                 document.getElementById("edit-color").value = color;
                                 subjectMenu.classList.remove("open");
+                                subjectDropdown.classList.remove("active"); // Retirer la classe active
                             });
                             
                             subjectMenu.appendChild(item);
@@ -1261,29 +1541,30 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                         
                         // Enable the dropdown
                         document.getElementById("subject-dropdown").removeAttribute("disabled");
-                        document.getElementById("selected-subject").textContent = "Select a subject";
+                        document.getElementById("selected-subject").textContent = "Sélectionner une matière";
                     } else {
-                        console.log('No subjects found or API error:', data);
                         // No subjects found for this professor
-                        subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">No subjects assigned to this professor</div>';
-                        document.getElementById("selected-subject").textContent = "No subjects available";
+                        subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Aucune matière assignée à ce professeur</div>';
+                        document.getElementById("selected-subject").textContent = "Aucune matière disponible";
+                        document.getElementById("subject-dropdown").setAttribute("disabled", "disabled");
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching professor subjects:', error);
-                    document.getElementById("selected-subject").textContent = "Error loading subjects";
+                    document.getElementById("selected-subject").textContent = "Erreur lors du chargement des matières";
+                    document.getElementById("subject-dropdown").setAttribute("disabled", "disabled");
+                    subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Erreur lors du chargement des matières</div>';
                 });
             }
 
             // Subject dropdown handling
             subjectDropdown.addEventListener("click", function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 
                 // Only allow opening if not disabled
                 if (!this.hasAttribute("disabled")) {
-                    subjectMenu.classList.toggle("open");
-                    document.getElementById("professor-menu").classList.remove("open");
-                    document.getElementById("room-menu").classList.remove("open");
+                    toggleDropdown(subjectDropdown, subjectMenu);
                 }
             });
 
@@ -1297,6 +1578,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     document.getElementById("selected-subject").setAttribute("data-id", subjectId);
                     document.getElementById("edit-color").value = color;
                     subjectMenu.classList.remove("open");
+                    subjectDropdown.classList.remove("active"); // Retirer la classe active
                 });
             });
 
@@ -1306,82 +1588,76 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
             roomDropdown.addEventListener("click", function(e) {
                 e.preventDefault();
-                roomMenu.classList.toggle("open");
-                document.getElementById("subject-menu").classList.remove("open");
-                document.getElementById("professor-menu").classList.remove("open");
+                e.stopPropagation();
+                toggleDropdown(roomDropdown, roomMenu);
             });
 
             document.querySelectorAll("#room-menu .dropdown-item").forEach(item => {
                 item.addEventListener("click", function() {
                     document.getElementById("selected-room").textContent = this.getAttribute("data-value");
                     roomMenu.classList.remove("open");
+                    roomDropdown.classList.remove("active"); // Retirer la classe active
                 });
             });
 
             function openAddModal(day, time) {
-                document.getElementById("modal-title").textContent = "Add Class";
+                document.getElementById("modal-title").textContent = "Ajouter un Cours";
                 document.getElementById("edit-day").value = day;
                 document.getElementById("edit-time").value = time;
                 document.getElementById("edit-id").value = ""; // New class
 
                 // Reset dropdowns
-                document.getElementById("selected-professor").textContent = "Select a professor";
+                document.getElementById("selected-professor").textContent = "Sélectionner un professeur";
                 document.getElementById("selected-professor").removeAttribute("data-id");
-                document.getElementById("selected-subject").textContent = "Select a professor first";
-                document.getElementById("selected-room").textContent = "Select a room";
+                document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
+                document.getElementById("selected-room").textContent = "Sélectionner une salle";
                 
                 // Disable subject dropdown until professor is selected
                 document.getElementById("subject-dropdown").setAttribute("disabled", "disabled");
 
-                modal.style.display = "block";
+                showModalWithAnimation("class-modal");
             }
 
             function openEditModal(day, time) {
                 const data = timetableData[day][time];
                 if (!data) return;
 
-                document.getElementById("modal-title").textContent = "Edit Class";
+                document.getElementById("modal-title").textContent = "Modifier un Cours";
                 document.getElementById("edit-day").value = day;
                 document.getElementById("edit-time").value = time;
                 document.getElementById("edit-id").value = data.id || "";
                 document.getElementById("edit-color").value = data.color || "#3b82f6";
 
                 // Fill form with existing data - use professor name
-                document.getElementById("selected-professor").textContent = data.professor || "Select a professor";
+                document.getElementById("selected-professor").textContent = data.professor || "Sélectionner un professeur";
                 if (data.professor_id) {
                     document.getElementById("selected-professor").setAttribute("data-id", data.professor_id);
                 }
                 
                 // Enable subject dropdown since we have a professor
                 document.getElementById("subject-dropdown").removeAttribute("disabled");
-                document.getElementById("selected-subject").textContent = data.subject || "Select a subject";
+                document.getElementById("selected-subject").textContent = data.subject || "Sélectionner une matière";
                 if (data.subject_id) {
                     document.getElementById("selected-subject").setAttribute("data-id", data.subject_id);
                 }
                 
-                document.getElementById("selected-room").textContent = data.room || "Select a room";
+                document.getElementById("selected-room").textContent = data.room || "Sélectionner une salle";
 
-                modal.style.display = "block";
+                showModalWithAnimation("class-modal");
             }
 
             closeBtn.addEventListener("click", function() {
-                modal.style.display = "none";
+                closeModalWithAnimation("class-modal");
             });
 
             cancelBtn.addEventListener("click", function() {
-                modal.style.display = "none";
+                closeModalWithAnimation("class-modal");
             });
 
             // Close modal when clicking outside
             window.addEventListener("click", function(event) {
-                if (event.target === modal) {
-                    modal.style.display = "none";
-                }
-                
-                // Also close the publish all modal
-                const publishAllModal = document.getElementById("publish-all-modal");
-                if (event.target === publishAllModal) {
-                    publishAllModal.style.display = "none";
+                if (event.target.classList.contains('modal')) {
+                    closeModalWithAnimation(event.target.id);
                 }
             });
 
@@ -1405,20 +1681,24 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 const room = roomElement.textContent;
 
                 // Validate professor first
-                if (professor === "Select a professor") {
-                    showToast("error", "Please select a professor");
+                if (professor === "Sélectionner un professeur") {
+                    showToast("error", "Veuillez sélectionner un professeur");
                     return;
                 }
                 
                 // Then validate subject
-                if (subject === "Select a subject" || subject === "Select a professor first") {
-                    showToast("error", "Please select a subject");
+                if (subject === "Select a subject" || 
+                    subject === "Sélectionner un professeur d'abord" ||
+                    subject === "Aucune matière disponible" ||
+                    subject === "Erreur lors du chargement des matières" ||
+                    subject === "Chargement des matières...") {
+                    showToast("error", "Veuillez sélectionner une matière");
                     return;
                 }
                 
                 // Finally validate room
-                if (room === "Select a room") {
-                    showToast("error", "Please select a room");
+                if (room === "Sélectionner une salle") {
+                    showToast("error", "Veuillez sélectionner une salle");
                     return;
                 }
 
@@ -1443,9 +1723,9 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 generateEmptyTimetable();
 
                 // Close modal
-                modal.style.display = "none";
+                closeModalWithAnimation("class-modal");
 
-                showToast("success", "Class saved! Remember to use the Save button to persist changes");
+                showToast("success", "Cours enregistré ! N'oubliez pas d'utiliser le bouton Enregistrer pour sauvegarder les modifications");
             });
 
             // Create toast notification element
@@ -1493,7 +1773,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                         // We found saved data, load it
                         timetableData = data.data;
                         generateEmptyTimetable(); // This will actually display the loaded data
-                        showToast("success", `Loaded timetable for ${currentYear}-${currentGroup}`);
+                        showToast("success", `Emploi du temps chargé pour ${currentYear}-${currentGroup}`);
                         
                         // Set published flag based on the server response
                         isCurrentlyPublished = data.is_published || false;
@@ -1504,7 +1784,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     } else {
                         // No saved data found, keep the empty timetable
                         generateEmptyTimetable();
-                        showToast("info", `No saved timetable found for ${currentYear}-${currentGroup}`);
+                        showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
                         isCurrentlyPublished = false;
                         hasDraftChanges = false;
                         hasUnsavedChanges = false;
@@ -1514,7 +1794,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 .catch(error => {
                     console.error('Error loading timetable data:', error);
                     // Show error toast
-                    showToast("error", "Error loading timetable data");
+                    showToast("error", "Erreur lors du chargement des données");
                     // Just use empty timetable
                     generateEmptyTimetable();
                     isCurrentlyPublished = false;
@@ -1546,6 +1826,31 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             
             // Load any saved data on initial load
             loadSavedData(); // Actually load data instead of just initializing empty
+            
+            // Set up the delete confirmation button
+            document.getElementById("delete-class-confirm").addEventListener("click", function() {
+                if (deleteClassDay && deleteClassTime) {
+                    // Delete the class
+                    timetableData[deleteClassDay][deleteClassTime] = null;
+                    
+                    // Mark as unsaved changes
+                    hasUnsavedChanges = true;
+                    updatePublishStatus();
+                    
+                    // Regenerate timetable
+                    generateEmptyTimetable();
+                    
+                    // Show success message
+                    showToast("success", "Cours supprimé! N'oubliez pas de sauvegarder vos modifications.");
+                    
+                    // Close modal
+                    closeModalWithAnimation("delete-class-modal");
+                    
+                    // Reset variables
+                    deleteClassDay = null;
+                    deleteClassTime = null;
+                }
+            });
         });
     </script>
 </body>

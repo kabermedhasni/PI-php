@@ -31,7 +31,7 @@ try {
     // Query the database for subjects taught by this professor
     // Using the CORRECT table name "professor_subjects" (with 's')
     $query = "
-        SELECT s.id, s.name 
+        SELECT s.id, s.name
         FROM subjects s
         INNER JOIN professor_subjects ps ON s.id = ps.subject_id
         WHERE ps.professor_id = ?

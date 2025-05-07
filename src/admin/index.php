@@ -2,43 +2,43 @@
 session_start();
 require_once '../includes/db.php';
 
-// Check if user is logged in and has admin role
+// Vérification si l'utilisateur est connecté et a le rôle d'administrateur
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    // Log unauthorized access attempt
+    // Journaliser la tentative d'accès non autorisé
     if (isset($_SESSION['user_id'])) {
-        error_log("Unauthorized access attempt to admin.php by user ID: " . $_SESSION['user_id']);
+        error_log("Tentative d'accès non autorisé à admin.php par l'utilisateur ID: " . $_SESSION['user_id']);
     } else {
-        error_log("Unauthorized access attempt to admin.php (no session)");
+        error_log("Tentative d'accès non autorisé à admin.php (pas de session)");
     }
     
-    // Redirect to login page
+    // Redirection vers la page de connexion
     header("Location: ../views/login.php");
     exit;
 }
 
-// Get admin info
+// Obtenir les informations de l'administrateur
 try {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'admin'");
     $stmt->execute([$_SESSION['user_id']]);
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$admin) {
-        // This should not happen if session checks are working, but just in case
-        error_log("Admin user not found in database despite valid session. User ID: " . $_SESSION['user_id']);
+        // Cela ne devrait pas se produire si les vérifications de session fonctionnent, mais juste au cas où
+        error_log("Utilisateur admin non trouvé dans la base de données malgré une session valide. ID utilisateur: " . $_SESSION['user_id']);
         session_destroy();
         header("Location: ../views/login.php");
         exit;
     }
 } catch (PDOException $e) {
-    error_log("Database error in admin.php: " . $e->getMessage());
+    error_log("Erreur de base de données dans admin.php: " . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Tableau de Bord Admin</title>
     <!-- Include Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -49,36 +49,98 @@ try {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        
+        /* Modal animations */
+        .modal {
+            backdrop-filter: blur(0px);
+            transition: backdrop-filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+        }
+        
+        .modal.fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.fade-out {
+            animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            backdrop-filter: blur(0px);
+        }
+        
+        .modal-content {
+            transform: translateY(-30px) scale(0.95);
+            opacity: 0;
+        }
+        
+        .modal.fade-in .modal-content {
+            animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        .modal.fade-out .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-30px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(10px) scale(0.95);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-gradient-to-r from-indigo-700 to-blue-500 text-white shadow-md">
         <div class="container mx-auto px-4 py-6">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Admin Dashboard</h1>
-                <a href="../views/logout.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">Logout</a>
+                <h1 class="text-2xl font-bold">Tableau de Bord Admin</h1>
+                <a href="../views/logout.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">Déconnexion</a>
             </div>
         </div>
     </header>
     
     <main class="container mx-auto px-4 py-8">
-        <!-- display success message if operation was done -->
+        <!-- Afficher un message de succès si l'opération a été effectuée -->
         <?php if (isset($_GET['status'])): ?>
             <?php if ($_GET['status'] === 'cleared'): ?>
             <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8" role="alert">
-                <p class="font-bold">Success!</p>
-                <p>All timetable data has been cleared successfully.</p>
+                <p class="font-bold">Succès !</p>
+                <p>Toutes les données d'emploi du temps ont été effacées avec succès.</p>
             </div>
             <?php endif; ?>
         <?php endif; ?>
         
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Welcome, <?php echo htmlspecialchars($admin['email']); ?>!</h2>
-            <p class="text-gray-600">Use the tools below to manage the timetable system.</p>
+            <h2 class="text-xl font-semibold mb-4">Bienvenue, <?php echo htmlspecialchars($admin['email']); ?> !</h2>
+            <p class="text-gray-600">Utilisez les outils ci-dessous pour gérer le système d'emploi du temps.</p>
         </div>
         
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Timetable Management</h2>
+            <h2 class="text-xl font-semibold">Gestion des Emplois du Temps</h2>
             <div class="flex space-x-3">
                 <form action="../utils/clear_timetables.php" method="POST" id="clear-form" class="m-0">
                     <button type="button" id="clear-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm flex items-center">
@@ -88,37 +150,61 @@ try {
                         <svg id="clear-icon-loading" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 animate-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span id="clear-text">Clear All Timetables</span>
+                        <span id="clear-text">Effacer Tous les Emplois du Temps</span>
                     </button>
                 </form>
             </div>
         </div>
         
-        <!-- Confirmation Modal for Clear All Timetables -->
-        <div id="clear-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 transform transition-all">
-                <h3 class="text-lg font-bold text-red-600 mb-2">Confirm Action</h3>
-                <p class="text-gray-700 mb-4">Are you sure you want to clear ALL timetable data? This action cannot be undone.</p>
+        <!-- Modal de confirmation pour Effacer Tous les Emplois du Temps -->
+        <div id="clear-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-red-600 mb-2">Confirmer l'Action</h3>
+                <p class="text-gray-700 mb-4">Êtes-vous sûr de vouloir effacer TOUTES les données d'emploi du temps ? Cette action ne peut pas être annulée.</p>
                 <div class="flex justify-end space-x-3">
                     <button id="clear-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Cancel
+                        Annuler
                     </button>
                     <button id="clear-confirm" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Yes, Clear All Data
+                        Oui, Effacer Toutes les Données
                     </button>
                 </div>
             </div>
         </div>
         
         <script>
+        // Modal animation functions
+        function showModalWithAnimation(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            
+            // Force reflow
+            void modal.offsetWidth;
+            
+            modal.classList.add('fade-in');
+            modal.classList.remove('fade-out');
+        }
+        
+        function closeModalWithAnimation(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('fade-in');
+            modal.classList.add('fade-out');
+            
+            // Hide after animation completes
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('fade-out');
+            }, 300);
+        }
+        
         // Show the modal when clicking the clear button
         document.getElementById('clear-button').addEventListener('click', function() {
-            document.getElementById('clear-modal').classList.remove('hidden');
+            showModalWithAnimation('clear-modal');
         });
         
         // Hide the modal when clicking cancel
         document.getElementById('clear-cancel').addEventListener('click', function() {
-            document.getElementById('clear-modal').classList.add('hidden');
+            closeModalWithAnimation('clear-modal');
         });
         
         // Submit the form when confirming
@@ -129,24 +215,27 @@ try {
             const loadingIcon = document.getElementById('clear-icon-loading');
             const clearText = document.getElementById('clear-text');
             
-            // Hide the modal
-            document.getElementById('clear-modal').classList.add('hidden');
+            // Hide the modal with animation
+            closeModalWithAnimation('clear-modal');
             
-            // Disable the button and show loading state
-            button.disabled = true;
-            button.classList.add('opacity-75');
-            defaultIcon.classList.add('hidden');
-            loadingIcon.classList.remove('hidden');
-            clearText.textContent = 'Clearing...';
-            
-            // Submit the form
-            form.submit();
+            // Add delay to match animation time
+            setTimeout(() => {
+                // Disable the button and show loading state
+                button.disabled = true;
+                button.classList.add('opacity-75');
+                defaultIcon.classList.add('hidden');
+                loadingIcon.classList.remove('hidden');
+                clearText.textContent = 'Suppression en cours...';
+                
+                // Submit the form
+                form.submit();
+            }, 300);
         });
         
         // Close the modal if clicking outside of it
         document.getElementById('clear-modal').addEventListener('click', function(e) {
             if (e.target === this) {
-                this.classList.add('hidden');
+                closeModalWithAnimation('clear-modal');
             }
         });
         </script>
@@ -160,8 +249,8 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Manage Timetables</h3>
-                        <p class="mt-1 text-sm text-gray-500">Create and edit timetables for all years and groups</p>
+                        <h3 class="text-lg font-medium text-gray-900">Gérer les Emplois du Temps</h3>
+                        <p class="mt-1 text-sm text-gray-500">Créer et modifier les emplois du temps pour toutes les années et groupes</p>
                     </div>
                 </div>
             </a>
@@ -175,8 +264,8 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Professor View</h3>
-                        <p class="mt-1 text-sm text-gray-500">Preview the timetable as professors see it</p>
+                        <h3 class="text-lg font-medium text-gray-900">Vue Professeur</h3>
+                        <p class="mt-1 text-sm text-gray-500">Prévisualiser l'emploi du temps comme les professeurs le voient</p>
                     </div>
                 </div>
             </a>
@@ -190,14 +279,14 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Student View</h3>
-                        <p class="mt-1 text-sm text-gray-500">Preview the timetable as students see it</p>
+                        <h3 class="text-lg font-medium text-gray-900">Vue Étudiant</h3>
+                        <p class="mt-1 text-sm text-gray-500">Prévisualiser l'emploi du temps comme les étudiants le voient</p>
                     </div>
                 </div>
             </a>
         </div>
         
-        <h2 class="text-xl font-semibold mb-4">System Management</h2>
+        <h2 class="text-xl font-semibold mb-4">Gestion du Système</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <a href="../utils/fix_passwords.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
@@ -208,8 +297,8 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Fix User Passwords</h3>
-                        <p class="mt-1 text-sm text-gray-500">Reset or update user passwords</p>
+                        <h3 class="text-lg font-medium text-gray-900">Corriger les Mots de Passe</h3>
+                        <p class="mt-1 text-sm text-gray-500">Réinitialiser ou mettre à jour les mots de passe utilisateurs</p>
                     </div>
                 </div>
             </a>
@@ -222,8 +311,8 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Check Users</h3>
-                        <p class="mt-1 text-sm text-gray-500">Manage user accounts and permissions</p>
+                        <h3 class="text-lg font-medium text-gray-900">Vérifier les Utilisateurs</h3>
+                        <p class="mt-1 text-sm text-gray-500">Gérer les comptes utilisateurs et les permissions</p>
                     </div>
                 </div>
             </a>

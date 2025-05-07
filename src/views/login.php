@@ -107,16 +107,16 @@ function redirectUserByRole($role) {
                     // Use "First Year", "Second Year", etc. instead of "Y1", "Y2"
                     switch($year) {
                         case '1':
-                            $yearName = "First Year";
+                            $yearName = "Première Année";
                             break;
                         case '2':
-                            $yearName = "Second Year";
+                            $yearName = "Deuxième Année";
                             break;
                         case '3':
-                            $yearName = "Third Year";
+                            $yearName = "Troisième Année";
                             break;
                         default:
-                            $yearName = "First Year";
+                            $yearName = "Troisième Année";
                     }
                     
                     $groupName = "G" . $group;
@@ -183,8 +183,8 @@ function redirectUserByRole($role) {
               />
               <img
                 src="../assets/images/eye-show-svgrepo-com.svg"
-                alt="Toggle Password"
                 class="toggle-password"
+                alt="Toggle Password"
                 id="togglePassword"
               />
             </div>
