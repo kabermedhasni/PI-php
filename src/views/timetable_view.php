@@ -12,6 +12,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 // Check if user is student or professor
 $role = $_SESSION['role'];
 $isPreview = isset($_GET['preview']) && $_GET['preview'] === 'true';
+$isProfessorDebug = isset($_GET['professor_id']) && ($role === 'admin' || $role === 'professor');
 
 // If it's a preview request
 if ($isPreview && $role === 'admin') {
@@ -20,10 +21,10 @@ if ($isPreview && $role === 'admin') {
     if ($role !== 'student' && $role !== 'professor') {
         $role = 'student'; // Default to student view if invalid
     }
-} else if ($role !== 'student' && $role !== 'professor') {
-    // Regular user with invalid role
-    header("Location: login.php?error=invalid_access");
-    exit;
+} else if ($role !== 'student' && $role !== 'professor' && $role !== 'admin') {
+    // For invalid roles, default to student view instead of redirecting
+    $role = 'student';
+    error_log("Invalid role detected: " . $role . ". Defaulting to student view.");
 }
 
 // Initialize variables and define constants
@@ -74,6 +75,27 @@ $timeSlots = [
 ];
 $days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
 
+// If we're in admin preview with professor_id set, get professor info
+$professorId = null;
+$professorName = null;
+if ($isProfessorDebug && isset($_GET['professor_id'])) {
+    $professorId = $_GET['professor_id'];
+    try {
+        $stmt = $pdo->prepare("SELECT id, name FROM users WHERE id = ? AND role = 'professor'");
+        $stmt->execute([$professorId]);
+        $professor = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($professor) {
+            $professorName = $professor['name'];
+        }
+    } catch (PDOException $e) {
+        error_log("Failed to fetch professor data: " . $e->getMessage());
+    }
+} elseif ($role === 'professor') {
+    // For regular professor view, use their own ID
+    $professorId = $_SESSION['user_id'];
+    $professorName = $_SESSION['name'] ?? 'Professeur';
+}
+
 // Default selections
 if ($role === 'student') {
     // For students, use their assigned year and group
@@ -84,7 +106,8 @@ if ($role === 'student') {
     if (isset($_GET['year'])) $currentYear = $_GET['year'];
     if (isset($_GET['group'])) $currentGroup = $_GET['group'];
 } else {
-    // For professors, allow selection
+    // For professors, we don't have specific group/year - we'll display all their courses
+    // The API call will filter by professor ID
     $currentYear = isset($_GET['year']) ? $_GET['year'] : 'Première Année';
     $currentGroup = isset($_GET['group']) ? $_GET['group'] : 'G1';
 }
@@ -103,6 +126,8 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
     <title><?php echo $pageTitle; ?></title>
     <!-- Include Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include Outfit Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <style>
       * {
         transition: all 0.2s ease;
@@ -111,7 +136,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
       body {
         background-color: #f5f7fa;
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, sans-serif;
         margin: 0;
         padding: 20px;
@@ -221,7 +246,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
       .class-block {
         background-color: #f8fafc;
         border-radius: 0.375rem;
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid #6b7280;
         padding: 8px;
         margin-bottom: 4px;
       }
@@ -286,6 +311,9 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                 <?php if ($isPreview): ?>
                 <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Mode Aperçu</span>
                 <?php endif; ?>
+                <?php if ($isProfessorDebug && $professorName): ?>
+                <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Debug: <?php echo htmlspecialchars($professorName); ?></span>
+                <?php endif; ?>
             </h1>
             <div class="flex space-x-3">
                 <?php if ($isPreview): ?>
@@ -306,44 +334,31 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
         </div>
 
         <div class="p-6">
-            <!-- Filters - Professor can switch, Student is fixed -->
-            <?php if ($role === 'professor') : ?>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                    <div class="dropdown-container">
-                        <button class="dropdown-button" id="year-dropdown">
-                            <span id="selected-year"><?php echo $currentYear; ?></span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div class="dropdown-menu" id="year-menu">
-                            <?php foreach ($years as $year): ?>
-                                <div class="dropdown-item" data-value="<?php echo $year; ?>"><?php echo $year; ?></div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Groupe</label>
-                    <div class="dropdown-container">
-                        <button class="dropdown-button" id="group-dropdown">
-                            <span id="selected-group"><?php echo $currentGroup; ?></span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div class="dropdown-menu" id="group-menu">
-                            <?php foreach ($groups as $group): ?>
-                                <div class="dropdown-item" data-value="<?php echo $group; ?>"><?php echo $group; ?></div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
+            <!-- Filters - only for admin debugging or students, professors don't get filtering -->
+            <?php if ($isProfessorDebug): ?>
+            <!-- Admin Debug Controls -->
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+                <h3 class="text-lg font-medium text-amber-800">Mode Debug Professeur</h3>
+                <p class="text-amber-700 mb-3">Sélectionnez un professeur pour visualiser son emploi du temps</p>
+                
+                <div class="flex flex-wrap gap-3 mt-2">
+                    <?php
+                    try {
+                        $stmt = $pdo->query("SELECT id, name FROM users WHERE role = 'professor' ORDER BY name");
+                        $professors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        
+                        foreach ($professors as $prof) {
+                            $isActive = ($prof['id'] == $professorId);
+                            $btnClass = $isActive ? "bg-amber-600 text-white" : "bg-white text-amber-800 border border-amber-300";
+                            echo '<a href="?professor_id=' . $prof['id'] . '" class="px-3 py-1.5 rounded-full text-sm font-medium ' . $btnClass . ' hover:bg-amber-500 hover:text-white transition-colors">' . htmlspecialchars($prof['name']) . '</a>';
+                        }
+                    } catch (PDOException $e) {
+                        echo '<p class="text-red-600">Erreur: Impossible de charger la liste des professeurs</p>';
+                    }
+                    ?>
                 </div>
             </div>
-            <?php else: ?>
+            <?php elseif ($role === 'student'): ?>
             <!-- For students, show their fixed year and group -->
             <div class="flex mb-6">
                 <div class="flex items-center mr-6">
@@ -354,6 +369,14 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                     <span class="text-sm font-medium text-gray-700 mr-2">Groupe:</span>
                     <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"><?php echo $currentGroup; ?></span>
                 </div>
+            </div>
+            <?php else: ?>
+            <!-- For professors, show a message that they see their own timetable -->
+            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6">
+                <p class="text-purple-800">
+                    Bonjour <strong><?php echo htmlspecialchars($_SESSION['name'] ?? 'Professeur'); ?></strong>, voici votre emploi du temps personnel.
+                    Vous trouverez ci-dessous tous vos cours planifiés pour la semaine.
+                </p>
             </div>
             <?php endif; ?>
 
@@ -378,15 +401,19 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Timetable data
-            let timetableData = {};
+            // Initialize variables
             let currentYear = "<?php echo $currentYear; ?>";
             let currentGroup = "<?php echo $currentGroup; ?>";
-            let groupsByYear = <?php echo json_encode($groupsByYear); ?>;
-
+            const professorId = "<?php echo $professorId; ?>";
+            const userRole = "<?php echo $role; ?>";
+            const groupsByYear = <?php echo json_encode($groupsByYear); ?>;
             const timeSlots = <?php echo json_encode($timeSlots); ?>;
             const days = <?php echo json_encode($days); ?>;
-            const userRole = "<?php echo $role; ?>";
+            const isPreview = <?php echo $isPreview ? 'true' : 'false'; ?>;
+            const isProfessorDebug = <?php echo $isProfessorDebug ? 'true' : 'false'; ?>;
+
+            // Timetable data
+            let timetableData = {};
 
             // Initialize empty timetable data
             function initTimetableData() {
@@ -422,28 +449,43 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                         if (timetableData[day] && timetableData[day][time]) {
                             const data = timetableData[day][time];
 
-                            const classBlock = document.createElement("div");
-                            classBlock.className = "class-block";
-                            // Use the color from data if available, otherwise use default blue
-                            classBlock.style.borderLeftColor = data.color || "#3b82f6";
+                            // If we're in professor view, we might have multiple classes at same time
+                            const classes = Array.isArray(data) ? data : [data];
+                            
+                            classes.forEach(classData => {
+                                if (!classData) return;
+                                
+                                const classBlock = document.createElement("div");
+                                classBlock.className = "class-block";
+                                // Use the color from data if available, otherwise use default color
+                                classBlock.style.borderLeftColor = classData.color || "#3b82f6";
 
-                            const subjectDiv = document.createElement("div");
-                            subjectDiv.className = "font-medium";
-                            subjectDiv.textContent = data.subject;
+                                const subjectDiv = document.createElement("div");
+                                subjectDiv.className = "font-medium";
+                                subjectDiv.textContent = classData.subject;
 
-                            const professorDiv = document.createElement("div");
-                            professorDiv.className = "text-sm text-gray-600";
-                            professorDiv.textContent = data.professor;
+                                // For professors, show group and year
+                                let detailsText = '';
+                                if (userRole === 'professor' || isProfessorDebug) {
+                                    detailsText = `${classData.year} - ${classData.group}`;
+                                } else {
+                                    detailsText = classData.professor;
+                                }
+                                
+                                const detailsDiv = document.createElement("div");
+                                detailsDiv.className = "text-sm text-gray-600";
+                                detailsDiv.textContent = detailsText;
 
-                            const roomDiv = document.createElement("div");
-                            roomDiv.className = "text-xs text-gray-500 mt-1";
-                            roomDiv.textContent = `Salle: ${data.room}`;
+                                const roomDiv = document.createElement("div");
+                                roomDiv.className = "text-xs text-gray-500 mt-1";
+                                roomDiv.textContent = `Salle: ${classData.room}`;
 
-                            classBlock.appendChild(subjectDiv);
-                            classBlock.appendChild(professorDiv);
-                            classBlock.appendChild(roomDiv);
+                                classBlock.appendChild(subjectDiv);
+                                classBlock.appendChild(detailsDiv);
+                                classBlock.appendChild(roomDiv);
 
-                            cell.appendChild(classBlock);
+                                cell.appendChild(classBlock);
+                            });
                         } else {
                             // Empty cell
                             cell.innerHTML = `<div class="h-full flex items-center justify-center text-gray-300 text-sm">Pas de cours</div>`;
@@ -459,90 +501,6 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             // Initialize
             initTimetableData();
             generateViewTimetable();
-
-            // Only setup dropdown handling for professors
-            if (userRole === 'professor') {
-                // Dropdown handling
-                const yearDropdown = document.getElementById("year-dropdown");
-                const yearMenu = document.getElementById("year-menu");
-                const groupDropdown = document.getElementById("group-dropdown");
-                const groupMenu = document.getElementById("group-menu");
-
-                yearDropdown.addEventListener("click", function() {
-                    yearMenu.classList.toggle("open");
-                    groupMenu.classList.remove("open");
-                });
-
-                groupDropdown.addEventListener("click", function() {
-                    groupMenu.classList.toggle("open");
-                    yearMenu.classList.remove("open");
-                });
-
-                // Close dropdowns when clicking outside
-                document.addEventListener("click", function(event) {
-                    if (!yearDropdown.contains(event.target)) {
-                        yearMenu.classList.remove("open");
-                    }
-                    if (!groupDropdown.contains(event.target)) {
-                        groupMenu.classList.remove("open");
-                    }
-                });
-
-                // Year selection
-                document.querySelectorAll("#year-menu .dropdown-item").forEach(item => {
-                    item.addEventListener("click", function() {
-                        const year = this.getAttribute("data-value");
-                        document.getElementById("selected-year").textContent = year;
-                        currentYear = year;
-                        yearMenu.classList.remove("open");
-                        
-                        // Update the group dropdown with year-specific groups
-                        updateGroupDropdown(year);
-                        
-                        // Reset to first group in the list
-                        if (groupsByYear[year] && groupsByYear[year].length > 0) {
-                            currentGroup = groupsByYear[year][0];
-                            document.getElementById("selected-group").textContent = currentGroup;
-                        }
-
-                        // Load timetable for this year/group
-                        loadTimetableData();
-                        showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
-                    });
-                });
-                
-                // Function to update group dropdown based on selected year
-                function updateGroupDropdown(year) {
-                    const groupMenu = document.getElementById("group-menu");
-                    groupMenu.innerHTML = '';
-                    
-                    if (groupsByYear[year]) {
-                        groupsByYear[year].forEach(group => {
-                            const item = document.createElement("div");
-                            item.className = "dropdown-item";
-                            item.setAttribute("data-value", group);
-                            item.textContent = group;
-                            item.addEventListener("click", function() {
-                                const selectedGroup = this.getAttribute("data-value");
-                                document.getElementById("selected-group").textContent = selectedGroup;
-                                currentGroup = selectedGroup;
-                                groupMenu.classList.remove("open");
-                                
-                                // Load timetable for this year/group
-                                loadTimetableData();
-                                showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
-                            });
-                            groupMenu.appendChild(item);
-                        });
-                    }
-                }
-                
-                // Initialize group dropdown with current year's groups immediately on page load
-                updateGroupDropdown(currentYear);
-                
-                // We don't need this anymore since the event listeners are added in updateGroupDropdown
-                // for each dynamically created dropdown item
-            }
 
             // Create toast notification element
             function createToastElement() {
@@ -578,19 +536,33 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
             // Load timetable data
             function loadTimetableData() {
+                let apiUrl = '';
+                
+                if (userRole === 'professor' || isProfessorDebug) {
+                    // For professor view, we get courses filtered by professor ID
+                    apiUrl = `../api/get_timetable.php?professor_id=${professorId}`;
+                } else {
+                    // For students and admin preview of student view, filter by year and group
+                    apiUrl = `../api/get_timetable.php?year=${currentYear}&group=${currentGroup}`;
+                }
+                
                 // Try to load from server - prefer published version first
-                fetch(`../api/get_timetable.php?year=${currentYear}&group=${currentGroup}`)
+                fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.data) {
                         timetableData = data.data;
                         generateViewTimetable();
-                        showToast("success", `Emploi du temps chargé pour ${currentYear}-${currentGroup}`);
+                        showToast("success", `Emploi du temps chargé`);
                     } else {
                         // If no data from server, show empty timetable
                         initTimetableData();
                         generateViewTimetable();
-                        showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
+                        if (userRole === 'professor' || isProfessorDebug) {
+                            showToast("info", "Aucun cours n'a été trouvé dans votre emploi du temps");
+                        } else {
+                            showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
+                        }
                     }
                 })
                 .catch(error => {

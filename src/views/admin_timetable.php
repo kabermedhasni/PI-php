@@ -129,6 +129,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
     <title>University Timetable Management</title>
     <!-- Include Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include Outfit Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <style>
       * {
         transition: all 0.2s ease;
@@ -137,7 +139,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
       body {
         background-color: #f5f7fa;
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, sans-serif;
         margin: 0;
         padding: 10px;
@@ -345,15 +347,12 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 1000;
         backdrop-filter: blur(5px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .modal.show {
         opacity: 1;
-      }
-      
-      .modal.fade-in {
-        animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      .modal.fade-out {
-        animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .modal-content {
@@ -363,14 +362,14 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         padding: 20px;
         border-radius: 0.5rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
       }
       
-      .modal.fade-in .modal-content {
-        animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      
-      .modal.fade-out .modal-content {
-        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      .modal.show .modal-content {
+        transform: translateY(0);
+        opacity: 1;
       }
 
       .modal-header {
@@ -407,7 +406,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
         }
       }
 
-      /* Animation keyframes */
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -428,22 +426,22 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
       @keyframes slideDown {
         from {
-          transform: translateY(-30px) scale(0.95);
+          transform: translateY(-30px);
           opacity: 0;
         }
         to {
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
           opacity: 1;
         }
       }
       
       @keyframes slideUp {
         from {
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
           opacity: 1;
         }
         to {
-          transform: translateY(10px) scale(0.95);
+          transform: translateY(-30px);
           opacity: 0;
         }
       }
@@ -692,6 +690,25 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label for="course-type-select" class="block text-sm font-medium text-gray-700 mb-1">Type de Cours</label>
+                        <div class="dropdown-container">
+                            <button type="button" class="dropdown-button" id="course-type-dropdown">
+                                <span id="selected-course-type">CM</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu" id="course-type-menu">
+                                <div class="dropdown-item" data-value="CM" data-color="#6b7280">CM</div>
+                                <div class="dropdown-item" data-value="TD" data-color="#10b981">TD</div>
+                                <div class="dropdown-item" data-value="TP" data-color="#3b82f6">TP</div>
+                                <div class="dropdown-item" data-value="DE" data-color="#f59e0b">DE</div>
+                                <div class="dropdown-item" data-value="CO" data-color="#ef4444">CO</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end space-x-3">
                         <button type="button" id="cancel-btn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                             Annuler
@@ -714,8 +731,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             </div>
             <div class="modal-body">
                 <div class="mb-4">
-                    <p class="mb-2">Vous avez des modifications non enregistrées dans votre emploi du temps.</p>
-                    <p>Souhaitez-vous enregistrer vos modifications avant de continuer ?</p>
+                    <p class="mb-2 leading-[1.4]">Vous avez des modifications non enregistrées dans votre emploi du temps.</p>
+                    <p class="leading-[0.6]">Enregistrer les modifications avant de continuer ?</p>
                 </div>
 
                 <div class="flex justify-end space-x-3">
@@ -779,25 +796,51 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
             </div>
         </div>
     </div>
+    
+    <!-- Modal for Professor Availability Conflicts -->
+    <div id="professor-conflict-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold text-red-600">Conflit d'Horaire</h2>
+                <span class="close" id="professor-conflict-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <p class="mb-2 font-medium text-red-600">Ce professeur ne peut pas être assigné à ce créneau horaire car il est déjà occupé :</p>
+                    <div id="conflict-details" class="mt-3 p-3 bg-transparent border border-red-600 rounded-md">
+                        <!-- Conflict details will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-4">
+                    <button type="button" id="conflict-cancel" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Additional global functions for modal animation
             window.showModalWithAnimation = function(modalId) {
                 const modal = document.getElementById(modalId);
-                modal.classList.add('fade-in');
-                modal.classList.remove('fade-out');
                 modal.style.display = 'block';
+                
+                // Force reflow to ensure transitions work
+                void modal.offsetWidth;
+                
+                modal.classList.add('show');
             };
             
             window.closeModalWithAnimation = function(modalId) {
                 const modal = document.getElementById(modalId);
-                modal.classList.remove('fade-in');
-                modal.classList.add('fade-out');
+                modal.classList.remove('show');
                 
+                // Wait for animation to complete before hiding
                 setTimeout(function() {
                     modal.style.display = 'none';
-                    modal.classList.remove('fade-out');
                 }, 300);
             };
             
@@ -1042,33 +1085,35 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
 
                             const classBlock = document.createElement("div");
                             classBlock.className = "class-block";
-                            // Use the color from data if available, otherwise use default blue
-                            classBlock.style.borderLeftColor = data.color || "#3b82f6";
+                            // Use the color from data if available, otherwise use default grey
+                            const color = data.color || "#6b7280";
+                            classBlock.style.borderLeftColor = color;
 
                             const subjectDiv = document.createElement("div");
-                            subjectDiv.className = "font-medium";
+                            subjectDiv.className = "text-sm font-semibold";
                             subjectDiv.textContent = data.subject;
+                            subjectDiv.style.color = color; // Make subject name same color as course type
 
                             const professorDiv = document.createElement("div");
-                            professorDiv.className = "text-sm text-gray-600";
+                            professorDiv.className = "text-xs text-black mt-1 font-semibold";
                             professorDiv.textContent = data.professor;
 
                             const roomDiv = document.createElement("div");
-                            roomDiv.className = "text-xs text-gray-500 mt-1";
+                            roomDiv.className = "text-xs text-black mt-1 font-semibold";
                             roomDiv.textContent = `Salle: ${data.room}`;
 
                             const actionDiv = document.createElement("div");
                             actionDiv.className = "mt-2 flex justify-end space-x-2";
 
                             const editBtn = document.createElement("button");
-                            editBtn.className = "text-xs text-blue-600 hover:text-blue-800";
+                            editBtn.className = "text-xs text-blue-600 hover:text-blue-800 font-semibold";
                             editBtn.textContent = "Modifier";
                             editBtn.addEventListener("click", function() {
                                 openEditModal(day, time);
                             });
 
                             const deleteBtn = document.createElement("button");
-                            deleteBtn.className = "text-xs text-red-600 hover:text-red-800";
+                            deleteBtn.className = "text-xs text-red-600 hover:text-red-800 font-semibold";
                             deleteBtn.textContent = "Supprimer";
                             deleteBtn.addEventListener("click", function() {
                                 // Store the day and time for the class to delete
@@ -1467,6 +1512,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     
                     // Enable subject dropdown now that a professor is selected
                     subjectDropdown.removeAttribute("disabled");
+                    subjectDropdown.style.backgroundColor = "#ffffff"; // White background
+                    subjectDropdown.style.cursor = "pointer";
                     document.getElementById("selected-subject").textContent = "Chargement des matières...";
                     
                     // Filter subjects based on selected professor
@@ -1600,6 +1647,28 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 });
             });
 
+            // Course type dropdown handling
+            const courseTypeDropdown = document.getElementById("course-type-dropdown");
+            const courseTypeMenu = document.getElementById("course-type-menu");
+
+            courseTypeDropdown.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDropdown(courseTypeDropdown, courseTypeMenu);
+            });
+
+            document.querySelectorAll("#course-type-menu .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    const courseType = this.getAttribute("data-value");
+                    const color = this.getAttribute("data-color");
+                    
+                    document.getElementById("selected-course-type").textContent = courseType;
+                    document.getElementById("edit-color").value = color;
+                    courseTypeMenu.classList.remove("open");
+                    courseTypeDropdown.classList.remove("active");
+                });
+            });
+
             function openAddModal(day, time) {
                 document.getElementById("modal-title").textContent = "Ajouter un Cours";
                 document.getElementById("edit-day").value = day;
@@ -1611,9 +1680,14 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                 document.getElementById("selected-professor").removeAttribute("data-id");
                 document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
                 document.getElementById("selected-room").textContent = "Sélectionner une salle";
+                document.getElementById("selected-course-type").textContent = "CM";
+                document.getElementById("edit-color").value = "#6b7280"; // Default grey color for CM
                 
                 // Disable subject dropdown until professor is selected
-                document.getElementById("subject-dropdown").setAttribute("disabled", "disabled");
+                const subjectDropdown = document.getElementById("subject-dropdown");
+                subjectDropdown.setAttribute("disabled", "disabled");
+                subjectDropdown.style.backgroundColor = "#f1f5f9"; // Light grey background
+                subjectDropdown.style.cursor = "not-allowed";
 
                 showModalWithAnimation("class-modal");
             }
@@ -1686,9 +1760,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     return;
                 }
                 
-                // Then validate subject
-                if (subject === "Select a subject" || 
-                    subject === "Sélectionner un professeur d'abord" ||
+                // Then validate subject - make it mandatory
+                if (subject === "Sélectionner une matière" || 
                     subject === "Aucune matière disponible" ||
                     subject === "Erreur lors du chargement des matières" ||
                     subject === "Chargement des matières...") {
@@ -1851,6 +1924,170 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :
                     deleteClassTime = null;
                 }
             });
+
+            // Modal handling for professor conflict
+            document.getElementById("professor-conflict-close").addEventListener("click", function() {
+                closeModalWithAnimation("professor-conflict-modal");
+            });
+            
+            document.getElementById("conflict-cancel").addEventListener("click", function() {
+                closeModalWithAnimation("professor-conflict-modal");
+            });
+
+            // Form submission
+            classForm.addEventListener("submit", function(e) {
+                e.preventDefault();
+
+                const day = document.getElementById("edit-day").value;
+                const time = document.getElementById("edit-time").value;
+                const id = document.getElementById("edit-id").value || new Date().getTime().toString();
+                const color = document.getElementById("edit-color").value || "#3b82f6";
+
+                const professorElement = document.getElementById("selected-professor");
+                const subjectElement = document.getElementById("selected-subject");
+                const roomElement = document.getElementById("selected-room");
+                
+                const professor = professorElement.textContent;
+                const professorId = professorElement.getAttribute("data-id");
+                const subject = subjectElement.textContent;
+                const subjectId = subjectElement.getAttribute("data-id");
+                const room = roomElement.textContent;
+
+                // Validate professor first
+                if (professor === "Sélectionner un professeur") {
+                    showToast("error", "Veuillez sélectionner un professeur");
+                    return;
+                }
+                
+                // Then validate subject - make it mandatory
+                if (subject === "Sélectionner une matière" || 
+                    subject === "Aucune matière disponible" ||
+                    subject === "Erreur lors du chargement des matières" ||
+                    subject === "Chargement des matières...") {
+                    showToast("error", "Veuillez sélectionner une matière");
+                    return;
+                }
+                
+                // Finally validate room
+                if (room === "Sélectionner une salle") {
+                    showToast("error", "Veuillez sélectionner une salle");
+                    return;
+                }
+                
+                // Create class data object
+                const classData = {
+                    id: id,
+                    subject: subject,
+                    subject_id: subjectId,
+                    professor: professor,
+                    professor_id: professorId,
+                    room: room,
+                    color: color,
+                    year: currentYear,
+                    group: currentGroup
+                };
+                
+                // Check professor availability
+                checkProfessorAvailability(professorId, day, time, currentYear, currentGroup, function(isAvailable, conflicts) {
+                    if (isAvailable) {
+                        // No conflicts, save the class
+                        saveClassData(classData, day, time);
+                    } else {
+                        // Remove any data from this time slot to ensure conflicts aren't saved
+                        if (timetableData[day] && timetableData[day][time]) {
+                            timetableData[day][time] = null;
+                        }
+                        
+                        // Show conflict modal and do NOT save the class
+                        showProfessorConflict(conflicts, classData);
+                        
+                        // Close the class modal
+                        closeModalWithAnimation("class-modal");
+                    }
+                });
+            });
+            
+            // Function to check professor availability
+            function checkProfessorAvailability(professorId, day, time, year, group, callback) {
+                // Prepare data for the API call
+                const data = {
+                    professor_id: professorId,
+                    day: day,
+                    time: time,
+                    year: year,
+                    group: group
+                };
+                
+                // Make API call to check availability
+                fetch('../api/check_professor_availability.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        callback(data.available, data.conflicts);
+                    } else {
+                        // API error, assume available to prevent blocking
+                        console.error('Error checking professor availability:', data.message);
+                        callback(true, []);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking professor availability:', error);
+                    // Network error, assume available to prevent blocking
+                    callback(true, []);
+                });
+            }
+            
+            // Function to display professor conflict
+            function showProfessorConflict(conflicts, classData) {
+                // Generate conflict details HTML
+                const conflictDetailsElement = document.getElementById('conflict-details');
+                let conflictHtml = '';
+                
+                conflicts.forEach(conflict => {
+                    conflictHtml += `
+                        <div>
+                            <p><span class="font-semibold">Professeur:</span> ${classData.professor}</p>
+                            <p><span class="font-semibold">Jour:</span> ${conflict.day}</p>
+                            <p><span class="font-semibold">Heure:</span> ${conflict.time}</p>
+                            <p><span class="font-semibold">Année:</span> ${conflict.year}</p>
+                            <p><span class="font-semibold">Groupe:</span> ${conflict.group}</p>
+                            <p><span class="font-semibold">Matière:</span> ${conflict.subject}</p>
+                        </div>
+                    `;
+                });
+                
+                conflictDetailsElement.innerHTML = conflictHtml;
+                
+                // Show the conflict modal
+                showModalWithAnimation("professor-conflict-modal");
+                
+                // Refresh the timetable to ensure any temporary changes are removed
+                generateEmptyTimetable();
+            }
+            
+            // Function to save class data
+            function saveClassData(classData, day, time) {
+                // Save to timetable data
+                timetableData[day][time] = classData;
+                
+                // Mark that we have unsaved changes
+                hasUnsavedChanges = true;
+                updatePublishStatus();
+                
+                // Regenerate table
+                generateEmptyTimetable();
+                
+                // Close modal
+                closeModalWithAnimation("class-modal");
+                
+                showToast("success", "Cours enregistré ! N'oubliez pas d'utiliser le bouton Enregistrer pour sauvegarder les modifications");
+            }
         });
     </script>
 </body>

@@ -49,8 +49,8 @@ try {
     
     // Add default color for each subject
     foreach ($subjects as &$subject) {
-        // Generate a random color or use default blue
-        $subject['color'] = '#3b82f6';
+        // Use grey as default color for CM
+        $subject['color'] = '#6b7280';
     }
     
     // Return the subjects as JSON
