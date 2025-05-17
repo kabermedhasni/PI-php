@@ -18,9 +18,11 @@ if (!$data || !isset($data['year']) || !isset($data['group']) || !isset($data['d
 }
 
 // Create the published version of the data
+$year = $data['year'];
+$group = $data['group'];
 $published_data = [
-    'year' => $data['year'],
-    'group' => $data['group'],
+    'year' => $year,
+    'group' => $group,
     'data' => $data['data'],
     'is_published' => true, // Explicitly mark as published
     'has_draft_changes' => false, // Reset draft changes flag when publishing
@@ -35,8 +37,8 @@ if (!is_dir($dir)) {
 }
 
 // Define filenames
-$published_filename = $dir . '/timetable_' . $data['year'] . '_' . $data['group'] . '_published.json';
-$admin_filename = $dir . '/timetable_' . $data['year'] . '_' . $data['group'] . '.json';
+$published_filename = $dir . '/timetable_' . $year . '_' . $group . '_published.json';
+$admin_filename = $dir . '/timetable_' . $year . '_' . $group . '.json';
 
 // Convert to JSON once
 $published_json = json_encode($published_data);

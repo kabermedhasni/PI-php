@@ -1,76 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
-/* start background */
-.stars-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100vh;
-  background-color: #111111;
-  overflow: hidden;
-}
-
-.star {
-  position: absolute;
-  background-color: #3bb453;
-  border-radius: 50%;
-  animation: blink var(--duration) infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: var(--min-opacity);
-  }
-  50% {
-    opacity: var(--max-opacity);
-  }
-}
-
-.shooting-star {
-  position: absolute;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 20%,
-    #ffffff 50%,
-    #50a3f7 100%
-  );
-  animation: shoot var(--shoot-duration) ease-in infinite;
-  transform-origin: top left;
-  transform: rotate(var(--angle));
-  z-index: 0;
-  border-radius: 100px;
-  filter: drop-shadow(0 0 6px rgba(80, 163, 247, 0.5));
-  opacity: 0;
-}
-
-@keyframes shoot {
-  0% {
-    opacity: 0;
-    transform: rotate(var(--angle)) translateX(0) scale(0.5);
-  }
-  5% {
-    opacity: 1;
-  }
-  15% {
-    opacity: 1;
-  }
-  30% {
-    transform: rotate(var(--angle)) translateX(var(--travel-distance)) scale(1);
-    opacity: 0;
-  }
-  100% {
-    transform: rotate(var(--angle)) translateX(var(--travel-distance)) scale(1);
-    opacity: 0;
-  }
-}
-
-/* end background */
-
 body {
   font-family: "Outfit", sans-serif;
   display: flex;
@@ -89,18 +18,8 @@ body {
   height: 100vh;
 }
 
-/* Description Section Styles */
 .description-section {
   flex: 1;
-  /*  background-image: url(images/university-2704306_1280.jpg) ;*/
-  background-color: #fff;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
 }
 
 .description-content {
@@ -111,7 +30,6 @@ body {
 .description-logo {
   width: 100px;
   height: 100px;
-  margin-bottom: 20px;
 }
 
 .description-section h2 {
@@ -132,16 +50,15 @@ body {
 .login-section {
   flex: 1;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 form {
   background-color: transparent;
   padding: 30px;
   border-radius: 15px;
-  width: 300px;
-  text-align: center;
-  z-index: 1;
-  position: relative;
   width: 85%;
   max-width: 320px;
   padding: 25px 20px;
@@ -149,6 +66,7 @@ form {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  z-index: 1;
 }
 
 .logo-placeholder {
@@ -160,16 +78,9 @@ form {
 
 img {
   display: block;
-  margin: 0 auto 20px;
-  margin-bottom: -10px;
-  margin-top: -20px;
+  margin: 0 auto -20px;
   width: 80px;
-  height: 80px;
-  padding: 10px;
-  border-radius: 15px;
-  width: 65px;
-  height: 65px;
-  margin-bottom: -5px;
+  height: auto;
 }
 
 h5 {
@@ -185,16 +96,13 @@ h5 {
 .subtitle {
   text-align: center;
   color: #999;
-  font-size: 0.85rem;
-  margin: 0 0 20px;
-  line-height: 1.4;
   font-size: 0.75rem;
   margin-bottom: 18px;
+  line-height: 1.4;
 }
 
 .input-container {
   position: relative;
-  margin-bottom: 15px;
   margin-bottom: 18px;
 }
 
@@ -232,11 +140,9 @@ input {
   border: 1px solid #111111;
   background-color: #111111;
   color: #999;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   box-sizing: border-box;
   transition: all 0.6s ease;
-  height: 40px;
-  font-size: 0.85rem;
 }
 
 input:focus {
@@ -275,13 +181,11 @@ button {
   border: none;
   background-color: #0a84ff;
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   margin: 0 0 15px;
   cursor: pointer;
   transition: all 0.3s ease;
-  height: 40px;
-  font-size: 0.9rem;
   margin-top: 5px;
 }
 
@@ -313,6 +217,14 @@ button:active {
   color: #50a3f7;
 }
 
+.error {
+  color: red;
+  font-size: 12px;
+  min-height: 20px;
+  margin-top: 10px;
+  text-align: center;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .container {
@@ -335,9 +247,14 @@ button:active {
   .footer-link {
     color: #60aefc;
   }
-}
 
-@media (max-width: 600px) {
+  form {
+    width: 85%;
+    position: relative;
+    top: -35px;
+    margin: 0 auto;
+  }
+
   html {
     font-size: 14px;
   }
@@ -346,13 +263,8 @@ button:active {
     padding: 0;
     margin: 0;
     height: 100vh;
-    overflow-y: auto;
-  }
-
-  form {
-    position: relative;
-    bottom:100px;
-    width: 55%;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h5 {
@@ -361,10 +273,6 @@ button:active {
 
   .subtitle {
     font-size: 0.7rem;
-  }
-
-  .input-container {
-    margin-bottom: 15px;
   }
 
   input {
@@ -377,5 +285,18 @@ button:active {
 
   .terms-notice {
     font-size: 0.7rem;
+  }
+}
+
+/* Laptop View */
+@media (min-width: 768px) {
+  .login-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  form {
+    margin: 0 auto;
   }
 }

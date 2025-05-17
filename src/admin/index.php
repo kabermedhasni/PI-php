@@ -119,6 +119,17 @@ try {
                 opacity: 0;
             }
         }
+        @media (max-width: 768px){
+            #clear-icon-default{
+                width:35px;
+                height:auto;
+            }
+
+            #clear-icon-loading{
+                width:20px;
+                height:auto;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -276,27 +287,12 @@ try {
                     </div>
                 </div>
             </a>
-            
-            <a href="../views/timetable_view.php?role=student&preview=true" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
-                <div class="flex items-start">
-                    <div class="bg-blue-100 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Vue Étudiant</h3>
-                        <p class="mt-1 text-sm text-gray-500">Prévisualiser l'emploi du temps comme les étudiants le voient</p>
-                    </div>
-                </div>
-            </a>
         </div>
         
         <h2 class="text-xl font-semibold mb-4">Gestion du Système</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a href="../utils/fix_passwords.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
+            <a href="../views/fix_passwords.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
                 <div class="flex items-start">
                     <div class="bg-yellow-100 p-3 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -310,7 +306,7 @@ try {
                 </div>
             </a>
             
-            <a href="../utils/check_users.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
+            <a href="../views/check_users.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
                 <div class="flex items-start">
                     <div class="bg-red-100 p-3 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -324,16 +320,16 @@ try {
                 </div>
             </a>
             
-            <a href="../utils/test_professor_timetable.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
+            <a href="../views/manage_users.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
                 <div class="flex items-start">
                     <div class="bg-green-100 p-3 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Test Emploi du Temps Professeur</h3>
-                        <p class="mt-1 text-sm text-gray-500">Vérifier les cours assignés à chaque professeur</p>
+                        <h3 class="text-lg font-medium text-gray-900">Gestion des Utilisateurs</h3>
+                        <p class="mt-1 text-sm text-gray-500">Créer et gérer les comptes utilisateurs et leurs rôles</p>
                     </div>
                 </div>
             </a>

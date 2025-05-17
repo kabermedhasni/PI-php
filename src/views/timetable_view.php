@@ -67,13 +67,13 @@ try {
 
 $timeSlots = [
     "08:00 - 09:30",
-    "09:30 - 11:00",
+    "09:45 - 11:15",
     "11:30 - 13:00",
-    "13:00 - 14:30",
+    "13:15 - 14:45",
     "15:00 - 16:30",
-    "16:30 - 18:00"
+    "16:45 - 18:15"
 ];
-$days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+$days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 // If we're in admin preview with professor_id set, get professor info
 $professorId = null;
@@ -122,7 +122,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title><?php echo $pageTitle; ?></title>
     <!-- Include Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -253,10 +253,12 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
       /* Set maximum height for the timetable container */
       .timetable-container {
-        max-height: 100ch;
+        max-height: 70vh;
         overflow-y: auto;
-        border-radius: 0.5rem;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        overflow-x: auto;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
       }
 
       /* Custom scrollbar */
@@ -300,6 +302,189 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
       .toast-error {
         background-color: #ef4444;
         color: white;
+      }
+
+      /* Mobile responsive adjustments */
+      @media (max-width: 768px) {
+        body {
+          padding: 8px;
+          margin: 0;
+        }
+        
+        .card {
+          margin: 5px;
+          border-radius: 0.5rem;
+        }
+        
+        .p-6 {
+          padding: 0.75rem !important;
+        }
+        
+        h1.text-2xl {
+          font-size: 1.25rem;
+          line-height: 1.75rem;
+        }
+        
+        /* Hide scrollbar on mobile */
+        .timetable-container {
+          max-height: 70vh;
+          border-radius: 0.25rem;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+          overflow-x: auto;
+        }
+        
+        .timetable-container::-webkit-scrollbar {
+          display: none;
+          width: 0;
+        }
+        
+        /* Compact timetable for mobile */
+        .timetable th, .timetable td {
+          padding: 4px;
+          font-size: 0.7rem;
+        }
+        
+        .time-cell {
+          width: 40px;
+          font-size: 0.65rem;
+          padding: 2px !important;
+        }
+        
+        .timetable td {
+          height: 70px;
+          vertical-align: top;
+        }
+        
+        .class-block {
+          padding: 4px;
+          margin-bottom: 2px;
+          font-size: 0.7rem;
+        }
+        
+        /* Make class block details more compact */
+        .class-block div {
+          margin-bottom: 2px;
+        }
+        
+        /* Adjust the filter section */
+        .flex.mb-6 {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        
+        /* Improve info boxes */
+        .bg-purple-50, .bg-amber-50 {
+          padding: 0.5rem !important;
+          margin-bottom: 0.5rem !important;
+        }
+        
+        .bg-purple-50 p, .bg-amber-50 p {
+          font-size: 0.8rem;
+          margin: 0;
+        }
+        
+        /* Make toast notifications more visible on mobile */
+        .toast {
+          width: 90%;
+          left: 5%;
+          right: 5%;
+          font-size: 0.8rem;
+          padding: 10px;
+          text-align: center;
+        }
+        
+        /* Adjust buttons */
+        a.flex.items-center {
+          padding: 0.4rem 0.75rem !important;
+          font-size: 0.75rem !important;
+        }
+        
+        a.flex.items-center svg {
+          width: 0.75rem;
+          height: 0.75rem;
+        }
+
+        #arrow {
+          width: 22px;
+          height: auto;
+        }
+      }
+      
+      /* Additional optimizations for extra small screens */
+      @media (max-width: 480px) {
+        body {
+          padding: 4px;
+        }
+        
+        .card {
+          margin: 3px;
+        }
+        
+        .p-6 {
+          padding: 0.5rem !important;
+        }
+        
+        /* Make timetable even more compact */
+        .timetable-container {
+          max-height: 75vh;
+        }
+        
+        .timetable td {
+          height: 50px !important;
+          padding: 2px !important;
+        }
+        
+        .time-cell {
+          width: 30px !important;
+          font-size: 0.6rem !important;
+        }
+        
+        .timetable th {
+          padding: 3px !important;
+          font-size: 0.65rem !important;
+        }
+        
+        /* Ultra compact class blocks */
+        .class-block {
+          padding: 2px !important;
+          margin-bottom: 0 !important;
+          font-size: 0.65rem !important;
+        }
+        
+        /* Optimize class block content */
+        .class-block div {
+          margin-bottom: 1px !important;
+          line-height: 1.1 !important;
+        }
+        
+        .class-block div.font-medium {
+          font-size: 0.65rem !important;
+        }
+        
+        .class-block div.text-sm {
+          font-size: 0.6rem !important;
+        }
+        
+        .class-block div.text-xs {
+          font-size: 0.55rem !important;
+        }
+        
+        /* Empty cell message */
+        .h-full.flex.items-center.justify-center.text-gray-300.text-sm {
+          font-size: 0.6rem !important;
+        }
+        
+        /* Adjust year and group badges */
+        .px-3.py-1.bg-blue-100.text-blue-800.rounded-full.text-sm {
+          padding: 2px 6px !important;
+          font-size: 0.65rem !important;
+        }
+        
+        /* Adjust info boxes */
+        .bg-purple-50 p, .bg-amber-50 p {
+          font-size: 0.7rem !important;
+        }
       }
     </style>
 </head>
@@ -543,7 +728,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                     apiUrl = `../api/get_timetable.php?professor_id=${professorId}`;
                 } else {
                     // For students and admin preview of student view, filter by year and group
-                    apiUrl = `../api/get_timetable.php?year=${currentYear}&group=${currentGroup}`;
+                    apiUrl = `../api/get_timetable.php?year=${encodeURIComponent(currentYear)}&group=${encodeURIComponent(currentGroup)}`;
                 }
                 
                 // Try to load from server - prefer published version first
@@ -554,6 +739,9 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                         timetableData = data.data;
                         generateViewTimetable();
                         showToast("success", `Emploi du temps chargé`);
+                        
+                        // Update URL with current year and group
+                        updateUrlWithYearAndGroup(currentYear, currentGroup);
                     } else {
                         // If no data from server, show empty timetable
                         initTimetableData();
@@ -562,6 +750,9 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                             showToast("info", "Aucun cours n'a été trouvé dans votre emploi du temps");
                         } else {
                             showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
+                            
+                            // Update URL with current year and group even if no data found
+                            updateUrlWithYearAndGroup(currentYear, currentGroup);
                         }
                     }
                 })
@@ -573,6 +764,16 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                     initTimetableData();
                     generateViewTimetable();
                 });
+            }
+            
+            // Function to update URL with current year and group without reloading the page
+            function updateUrlWithYearAndGroup(year, group) {
+                if (userRole !== 'professor' && !isProfessorDebug) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('year', year);
+                    url.searchParams.set('group', group);
+                    window.history.replaceState({}, '', url);
+                }
             }
 
             // Load timetable data on page load

@@ -4,8 +4,8 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
 // Get parameters from query parameters
-$year = isset($_GET['year']) ? $_GET['year'] : null;
-$group = isset($_GET['group']) ? $_GET['group'] : null;
+$year = isset($_GET['year']) ? urldecode($_GET['year']) : null;
+$group = isset($_GET['group']) ? urldecode($_GET['group']) : null;
 $admin = isset($_GET['admin']) && $_GET['admin'] === 'true';
 $professor_id = isset($_GET['professor_id']) ? $_GET['professor_id'] : null;
 
@@ -18,10 +18,41 @@ if (!$professor_id && (!$year || !$group)) {
 // Define data directory
 $dir = '../timetable_data';
 
+// Helper function to get subject name from ID
+function getSubjectName($subject_id) {
+    try {
+        require_once '../includes/db.php';
+        global $pdo;
+        
+        $stmt = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
+        $stmt->execute([$subject_id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $result ? $result['name'] : 'Unknown Subject';
+    } catch (Exception $e) {
+        return 'Subject #' . $subject_id;
+    }
+}
+
+// Helper function to get professor name from ID
+function getProfessorName($professor_id) {
+    try {
+        require_once '../includes/db.php';
+        global $pdo;
+        
+        $stmt = $pdo->prepare("SELECT name FROM users WHERE id = ? AND role = 'professor'");
+        $stmt->execute([$professor_id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $result ? $result['name'] : 'Unknown Professor';
+    } catch (Exception $e) {
+        return 'Professor #' . $professor_id;
+    }
+}
+
 // Define file paths based on request type
 if ($professor_id) {
     // Professor view - we'll need to aggregate data from multiple files
-    // First, let's load all available timetable files
     $timetable_files = glob($dir . '/timetable_*_published.json');
     $all_timetable_data = [];
     
@@ -33,7 +64,6 @@ if ($professor_id) {
             
             if ($data && isset($data['data'])) {
                 // Extract year and group from filename
-                // Format: timetable_YEAR_GROUP_published.json
                 $filename = basename($file);
                 preg_match('/timetable_(.+)_(.+)_published\.json/', $filename, $matches);
                 
@@ -46,9 +76,23 @@ if ($professor_id) {
                         foreach ($times as $time => $course) {
                             if ($course && isset($course['professor_id']) && $course['professor_id'] == $professor_id) {
                                 // This course belongs to the requested professor
-                                // Add year and group information
-                                $course['year'] = $file_year;
-                                $course['group'] = $file_group;
+                                // Add year and group information if not already set
+                                if (!isset($course['year'])) {
+                                    $course['year'] = $file_year;
+                                }
+                                if (!isset($course['group'])) {
+                                    $course['group'] = $file_group;
+                                }
+                                
+                                // Make sure subject and other required fields are included
+                                if (!isset($course['subject']) && isset($course['subject_id'])) {
+                                    $course['subject'] = getSubjectName($course['subject_id']);
+                                }
+                                
+                                // Make sure professor name is set
+                                if (!isset($course['professor']) && isset($course['professor_id'])) {
+                                    $course['professor'] = getProfessorName($course['professor_id']);
+                                }
                                 
                                 // Add to the results
                                 if (!isset($all_timetable_data[$day])) {
@@ -133,6 +177,26 @@ if ($professor_id) {
         if (file_exists($published_file)) {
             $json = file_get_contents($published_file);
             $data = json_decode($json, true);
+            
+            // Ensure data structure has all required fields for proper rendering
+            if (isset($data['data'])) {
+                foreach ($data['data'] as $day => $times) {
+                    foreach ($times as $time => $course) {
+                        if ($course) {
+                            // Make sure subject and other required fields are included
+                            if (!isset($course['subject']) && isset($course['subject_id'])) {
+                                // If we have subject_id but not subject name, try to get it
+                                $data['data'][$day][$time]['subject'] = getSubjectName($course['subject_id']);
+                            }
+                            // Make sure professor name is set
+                            if (!isset($course['professor']) && isset($course['professor_id'])) {
+                                $data['data'][$day][$time]['professor'] = getProfessorName($course['professor_id']);
+                            }
+                        }
+                    }
+                }
+            }
+            
             echo json_encode($data);
         } else {
             // No published data found

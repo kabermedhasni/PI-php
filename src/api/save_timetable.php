@@ -23,9 +23,11 @@ if (!is_dir($dir)) {
     mkdir($dir, 0755, true);
 }
 
-// Define file paths
-$published_file = $dir . '/timetable_' . $data['year'] . '_' . $data['group'] . '_published.json';
-$admin_file = $dir . '/timetable_' . $data['year'] . '_' . $data['group'] . '.json';
+// Define file paths - ensure we're using the exact year and group names
+$year = $data['year'];
+$group = $data['group'];
+$published_file = $dir . '/timetable_' . $year . '_' . $group . '_published.json';
+$admin_file = $dir . '/timetable_' . $year . '_' . $group . '.json';
 
 // Check if a published version exists
 $has_published_version = file_exists($published_file);

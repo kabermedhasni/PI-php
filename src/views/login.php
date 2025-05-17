@@ -29,7 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate inputs
     if (empty($email) || empty($password)) {
         $error_message = "Email and password are required.";
-    } else {
+    } 
+    else {
         try {
             // Fetch user data from the database with better error handling
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
@@ -39,42 +40,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (!$user) {
                 // User not found
                 error_log("Login failed: No user found with email $email");
-                $error_message = "Invalid email or password.";
+                $error_message = "Invalid email.";
             } else {
-                // Check if the password is stored as plain text (bad practice but might be the issue)
-                if ($user['password'] === $password) {
-                    // Plain text password match (not secure)
-                    error_log("WARNING: Using plain text password comparison for user: $email");
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['role'] = $user['role'];
-                    $_SESSION['group_id'] = $user['group_id'] ?? null;
-                    
-                    // For students, directly use the group_id to determine year and group
-                    if ($user['role'] === 'student' && !empty($user['group_id'])) {
-                        // Store the raw group_id for direct routing to timetable
-                        error_log("Student login: Using group_id {$user['group_id']} for timetable routing");
-                    }
-                    
-                    redirectUserByRole($user['role']);
-                } 
                 // Check if the password is properly hashed
-                else if (password_verify($password, $user['password'])) {
+                if (password_verify($password, $user['password'])) {
                     error_log("Login successful for user: $email");
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['group_id'] = $user['group_id'] ?? null;
                     
-                    // For students, directly use the group_id to determine year and group
-                    if ($user['role'] === 'student' && !empty($user['group_id'])) {
-                        // Store the raw group_id for direct routing to timetable
-                        error_log("Student login: Using group_id {$user['group_id']} for timetable routing");
-                    }
-                    
                     redirectUserByRole($user['role']);
                 } else {
                     // Password doesn't match
                     error_log("Login failed: Incorrect password for user $email");
-                    $error_message = "Invalid email or password.";
+                    $error_message = "Mot de passe incorrect.";
                 }
             }
         } catch (PDOException $e) {
@@ -151,7 +130,16 @@ function redirectUserByRole($role) {
         <div class="stars-container" id="starsContainer">
           <form action="login.php" method="post">
             <div class="logo-placeholder"></div>
-            <h5>Bienvenue</h5>
+            
+            <!-- Only logo -->
+            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+              <img
+                src="../assets/images/logo-supnum2.png"
+                alt="SupNum"
+                style="width: 80px; height: auto;"
+              />
+            </div>
+            
             <p class="subtitle">
               Connectez-vous pour consulter votre emploi du temps
             </p>
@@ -203,20 +191,8 @@ function redirectUserByRole($role) {
           </form>
         </div>
       </div>
-      <!-- Left side: Description section -->
-      <div class="description-section">
-        <div class="description-content">
-          <img
-            src="../assets/images/logo-supnum2.png"
-            alt="SupNum"
-            class="description-logo"
-          />
-          <h2>École Supérieure du Numérique</h2>
-          <p>
-            Plateforme de suivi pédagogique permettant aux étudiants de
-            consulter leur emploi du temps.
-          </p>
-        </div>
+      <!-- Background image section (without content) -->
+      <div style="background: url(../assets/images/SupNum.jpg) no-repeat center center; background-size: cover; background-position: center; background-repeat: no-repeat;" class="description-section">
       </div>
     </div>
     <script src="../assets/js/main.js"></script>
