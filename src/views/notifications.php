@@ -21,9 +21,10 @@ $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
 
 // Récupérer les cours annulés ou reportés
 try {
+    // Base query for all notifications
     $query = "
         SELECT t.id, s.name as subject, t.day, t.time_slot, t.is_canceled, t.is_reschedule, 
-            u.name as professor_name, y.name as year, g.name as group_name, t.room
+            u.name as professor_name, y.name as year, g.name as group_name, t.room, t.professor_id
         FROM timetables t
         JOIN users u ON t.professor_id = u.id
         JOIN years y ON t.year_id = y.id
@@ -33,13 +34,13 @@ try {
         
     if ($filter === 'canceled') {
         $query .= "t.is_canceled = 1 ";
-    } else if ($filter === 'rescheduled') {
+    } elseif ($filter === 'rescheduled') {
         $query .= "t.is_reschedule = 1 ";
     } else {
         $query .= "(t.is_canceled = 1 OR t.is_reschedule = 1) ";
     }
         
-    $query .= "ORDER BY t.day ASC, t.time_slot ASC";
+    $query .= "ORDER BY t.professor_id ASC, t.day ASC, t.time_slot ASC";
     
     $stmt = $pdo->prepare($query);
     $stmt->execute();
@@ -60,8 +61,7 @@ try {
     $canceledCount = 0;
     $rescheduledCount = 0;
     
-    foreach ($notifications as &$notification) {
-        // Incrémenter les compteurs
+    foreach ($notifications as $notification) {
         if ($notification['is_canceled'] == 1) {
             $canceledCount++;
         } 
@@ -177,15 +177,55 @@ try {
             </div>
             <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <?php foreach ($notifications as $notification): ?>
-                    <?php 
-                        $bgColor = $notification['is_canceled'] == 1 ? 'bg-red-50' : 'bg-blue-50';
-                        $borderColor = $notification['is_canceled'] == 1 ? 'border-red-200' : 'border-blue-200';
-                        $iconColor = $notification['is_canceled'] == 1 ? 'text-red-600' : 'text-blue-600';
-                        $status = $notification['is_canceled'] == 1 ? 'Annulé' : 'Report demandé';
-                        $statusColor = $notification['is_canceled'] == 1 ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
-                        $redirectUrl = "../views/admin_timetable.php?year=" . urlencode($notification['year']) . "&group=" . urlencode($notification['group_name']);
-                    ?>
+                <?php 
+                // Create separate arrays for each type of notification
+                $canceledClasses = [];
+                $rescheduledClasses = [];
+                
+                // Sort notifications by type
+                foreach ($notifications as $notification) {
+                    if ($filter === 'all') {
+                        if ($notification['is_canceled'] == 1) {
+                            $canceledClasses[] = $notification;
+                        }
+                        if ($notification['is_reschedule'] == 1) {
+                            $rescheduledClasses[] = $notification;
+                        }
+                    } else {
+                        // For single-type filters, just use the notification as is
+                        if (($filter === 'canceled' && $notification['is_canceled'] == 1) || 
+                            ($filter === 'rescheduled' && $notification['is_reschedule'] == 1)) {
+                            if ($notification['is_canceled'] == 1) {
+                                $canceledClasses[] = $notification;
+                            } else {
+                                $rescheduledClasses[] = $notification;
+                            }
+                        }
+                    }
+                }
+                
+                // Combine the arrays for display
+                $displayNotifications = array_merge($rescheduledClasses, $canceledClasses);
+                
+                // Display each notification
+                foreach ($displayNotifications as $notification): 
+                    // Determine card styling based on status
+                    if ($notification['is_reschedule'] == 1) {
+                        $bgColor = 'bg-blue-50';
+                        $borderColor = 'border-blue-200';
+                        $iconColor = 'text-blue-600';
+                        $status = 'Report';
+                        $statusColor = 'bg-blue-100 text-blue-800';
+                    } else if ($notification['is_canceled'] == 1) {
+                        $bgColor = 'bg-red-50';
+                        $borderColor = 'border-red-200';
+                        $iconColor = 'text-red-600';
+                        $status = 'Annulé';
+                        $statusColor = 'bg-red-100 text-red-800';
+                    }
+                    
+                    $redirectUrl = "../views/admin_timetable.php?year=" . urlencode($notification['year']) . "&group=" . urlencode($notification['group_name']);
+                ?>
                     <a href="<?php echo $redirectUrl; ?>" class="notification-card <?php echo $bgColor; ?> border <?php echo $borderColor; ?> rounded-lg p-4 block">
                         <h3 class="font-semibold text-lg"><?php echo htmlspecialchars($notification['subject']); ?></h3>
                         <div class="mt-2 space-y-1">
@@ -206,6 +246,30 @@ try {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                                 <span class="text-sm"><?php echo htmlspecialchars($notification['year'] . ' - ' . $notification['group_name']); ?></span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 <?php echo $iconColor; ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-sm">
+                                    <?php 
+                                    // Make sure day and time_slot are integers and within valid range
+                                    $dayIndex = (int)$notification['day'] - 1;
+                                    $timeSlotIndex = (int)$notification['time_slot'];
+                                    
+                                    if ($dayIndex >= 0 && $dayIndex < count($days) && isset($time_slots[$timeSlotIndex])) {
+                                        echo $days[$dayIndex] . ', ' . $time_slots[$timeSlotIndex];
+                                    } else {
+                                        echo "Horaire non spécifié";
+                                    }
+                                    ?>
+                                </span>
+                            </div>
+                            <!-- Add status badge to clearly show notification type -->
+                            <div class="mt-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusColor; ?>">
+                                    <?php echo $status; ?>
+                                </span>
                             </div>
                         </div>
                     </a>
