@@ -1,78 +1,182 @@
 <?php
-// Allow cross-origin requests (if needed)
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json");
+require_once '../includes/db.php';
 
 // Get JSON input
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
-// Log the received data for debugging
-error_log("save_timetable.php received data: " . substr($json, 0, 200) . "...");
-
 // Validate input
-if (!$data || !isset($data['year']) || !isset($data['group']) || !isset($data['data'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid data received']);
+if (!$data) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid JSON data received'
+    ]);
     exit;
 }
 
-// Create data directory if it doesn't exist
-$dir = '../timetable_data';
-if (!is_dir($dir)) {
-    mkdir($dir, 0755, true);
+if (!isset($data['year']) || !isset($data['group']) || !isset($data['data'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Missing required data (year, group, or timetable data)'
+    ]);
+    exit;
 }
 
-// Define file paths - ensure we're using the exact year and group names
-$year = $data['year'];
-$group = $data['group'];
-$published_file = $dir . '/timetable_' . $year . '_' . $group . '_published.json';
-$admin_file = $dir . '/timetable_' . $year . '_' . $group . '.json';
-
-// Check if a published version exists
-$has_published_version = file_exists($published_file);
-
-// Initialize the draft changes flag
-$has_draft_changes = false;
-
-// If published version exists, check if current data differs from published
-if ($has_published_version) {
-    $published_json = file_get_contents($published_file);
-    $published_data = json_decode($published_json, true);
+try {
+    // Get year ID
+    $yearStmt = $pdo->prepare("SELECT id FROM `years` WHERE name = ?");
+    $yearStmt->execute([$data['year']]);
+    $year_id = $yearStmt->fetchColumn();
     
-    // Compare the timetable data (ignore metadata like timestamps)
-    if ($published_data && isset($published_data['data'])) {
-        // Check if the data is different
-        $has_draft_changes = json_encode($data['data']) !== json_encode($published_data['data']);
-        error_log("save_timetable.php draft changes detected: " . ($has_draft_changes ? "YES" : "NO"));
-    } else {
-        // Can't compare, assume there are draft changes
-        $has_draft_changes = true;
+    if (!$year_id) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Year not found: ' . $data['year']
+        ]);
+        exit;
     }
-}
+    
+    // Get group ID
+    $groupStmt = $pdo->prepare("SELECT id FROM `groups` WHERE name = ? AND year_id = ?");
+    $groupStmt->execute([$data['group'], $year_id]);
+    $group_id = $groupStmt->fetchColumn();
+    
+    if (!$group_id) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Group not found: ' . $data['group']
+        ]);
+        exit;
+    }
+    
+    // Begin transaction
+    $pdo->beginTransaction();
 
-// Create the admin-only version of the data (unpublished)
-$admin_data = [
-    'year' => $data['year'],
-    'group' => $data['group'],
-    'data' => $data['data'],
-    'is_published' => false, // This is just a flag for the UI
-    'has_draft_changes' => $has_draft_changes,
-    'last_modified' => date('Y-m-d H:i:s')
-];
+    // First, get all existing entries (both published and unpublished)
+    $existingStmt = $pdo->prepare("
+        SELECT * FROM `timetables` 
+        WHERE year_id = ? AND group_id = ?
+    ");
+    $existingStmt->execute([$year_id, $group_id]);
+    $existingEntries = $existingStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Create maps for published and unpublished entries
+    $publishedMap = [];
+    $unpublishedMap = [];
+    foreach ($existingEntries as $entry) {
+        $key = $entry['day'] . '_' . $entry['time_slot'];
+        if ($entry['is_published'] == 1) {
+            $publishedMap[$key] = $entry;
+        } else {
+            $unpublishedMap[$key] = $entry;
+        }
+    }
+    
+    // Delete only unpublished entries - we'll recreate them
+    $deleteStmt = $pdo->prepare("
+        DELETE FROM `timetables` 
+        WHERE year_id = ? AND group_id = ? AND is_published = 0
+    ");
+    $deleteStmt->execute([$year_id, $group_id]);
+    
+    // Track which days and time slots we've processed from the incoming data
+    $processedSlots = [];
 
-// Save the admin draft version (never publish)
-$result = file_put_contents($admin_file, json_encode($admin_data));
-
-if ($result !== false) {
-    $response = [
-        'success' => true, 
+    // Process each day and time slot from the incoming data
+    foreach ($data['data'] as $day => $timeSlots) {
+        if (!is_array($timeSlots)) {
+            continue;
+        }
+        
+        foreach ($timeSlots as $timeSlot => $course) {
+            if (empty($course)) {
+                continue; // Skip empty slots
+            }
+            
+            $key = $day . '_' . $timeSlot;
+            $processedSlots[$key] = true;
+            
+            // Check if this slot already exists in published entries
+            if (isset($publishedMap[$key])) {
+                $existing = $publishedMap[$key];
+                
+                // If there are changes, create a draft version
+                if ($existing['subject_id'] != ($course['subject_id'] ?? null) ||
+                    $existing['professor_id'] != ($course['professor_id'] ?? null) ||
+                    $existing['room'] != ($course['room'] ?? null)) {
+                    
+                    // Insert a new unpublished version
+                    $insertStmt = $pdo->prepare("
+                        INSERT INTO `timetables` 
+                        (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    ");
+                    $insertStmt->execute([
+                        $year_id,
+                        $group_id,
+                        $day,
+                        $timeSlot,
+                        $course['subject_id'] ?? null,
+                        $course['professor_id'] ?? null,
+                        $course['room'] ?? null,
+                        $course['class_type'] ?? null
+                    ]);
+                }
+            } else {
+                // Insert new entry as unpublished
+                $insertStmt = $pdo->prepare("
+                    INSERT INTO `timetables` 
+                    (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                ");
+                $insertStmt->execute([
+                    $year_id,
+                    $group_id,
+                    $day,
+                    $timeSlot,
+                    $course['subject_id'] ?? null,
+                    $course['professor_id'] ?? null,
+                    $course['room'] ?? null,
+                    $course['class_type'] ?? null
+                ]);
+            }
+        }
+    }
+    
+    // Check for published entries
+    $publishedCheckStmt = $pdo->prepare("
+        SELECT COUNT(*) FROM `timetables` 
+        WHERE year_id = ? AND group_id = ? AND is_published = 1
+    ");
+    $publishedCheckStmt->execute([$year_id, $group_id]);
+    $has_published_version = $publishedCheckStmt->fetchColumn() > 0;
+    
+    // Check for draft changes
+    $draftCheckStmt = $pdo->prepare("
+        SELECT COUNT(*) FROM `timetables` 
+        WHERE year_id = ? AND group_id = ? AND is_published = 0
+    ");
+    $draftCheckStmt->execute([$year_id, $group_id]);
+    $has_draft_changes = $draftCheckStmt->fetchColumn() > 0;
+    
+    // Commit the transaction
+    $pdo->commit();
+    
+    echo json_encode([
+        'success' => true,
         'message' => 'Timetable saved successfully',
         'is_published' => $has_published_version,
-        'has_draft_changes' => $has_draft_changes,
-        'file_path' => $admin_file
-    ];
-    echo json_encode($response);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Failed to save timetable']);
+        'has_draft_changes' => $has_draft_changes
+    ]);
+    
+} catch (Exception $e) {
+    // Rollback the transaction on error
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error: ' . $e->getMessage()
+    ]);
 } 

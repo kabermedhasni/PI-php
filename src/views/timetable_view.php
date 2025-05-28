@@ -11,17 +11,10 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 
 // Check if user is student or professor
 $role = $_SESSION['role'];
-$isPreview = isset($_GET['preview']) && $_GET['preview'] === 'true';
-$isProfessorDebug = isset($_GET['professor_id']) && ($role === 'admin' || $role === 'professor');
+$isProfessorDebug = isset($_GET['professor_id']) && $role === 'admin';
 
-// If it's a preview request
-if ($isPreview && $role === 'admin') {
-    // Admin can preview student or professor view
-    $role = isset($_GET['role']) ? $_GET['role'] : 'student';
-    if ($role !== 'student' && $role !== 'professor') {
-        $role = 'student'; // Default to student view if invalid
-    }
-} else if ($role !== 'student' && $role !== 'professor' && $role !== 'admin') {
+// Handle invalid roles
+if ($role !== 'student' && $role !== 'professor' && $role !== 'admin') {
     // For invalid roles, default to student view instead of redirecting
     $role = 'student';
     error_log("Invalid role detected: " . $role . ". Defaulting to student view.");
@@ -52,17 +45,9 @@ try {
     $groups = array_unique($allGroups);
     
 } catch (PDOException $e) {
-    // Fallback to defaults if database query fails
+    // Log the error but don't provide fallbacks
     error_log("Failed to load years and groups from database: " . $e->getMessage());
-    $years = ["Première Année", "Deuxième Année", "Troisième Année"];
-    $groups = ["G1", "G2", "G3", "G4", "G5", "G6"];
-    
-    // Default groupsByYear structure based on the database results
-    $groupsByYear = [
-        "Première Année" => ["G1", "G2", "G3", "G4", "G5", "G6"],
-        "Deuxième Année" => ["G1", "G2", "G3", "G4"],
-        "Troisième Année" => ["G1", "G2"]
-    ];
+    die("Database error occurred. Please contact administrator.");
 }
 
 $timeSlots = [
@@ -80,6 +65,8 @@ $professorId = null;
 $professorName = null;
 if ($isProfessorDebug && isset($_GET['professor_id'])) {
     $professorId = $_GET['professor_id'];
+    $currentYear = null;
+    $currentGroup = null;
     try {
         $stmt = $pdo->prepare("SELECT id, name FROM users WHERE id = ? AND role = 'professor'");
         $stmt->execute([$professorId]);
@@ -93,23 +80,25 @@ if ($isProfessorDebug && isset($_GET['professor_id'])) {
 } elseif ($role === 'professor') {
     // For regular professor view, use their own ID
     $professorId = $_SESSION['user_id'];
-    $professorName = $_SESSION['name'] ?? 'Professeur';
+    $currentYear = null;
+    $currentGroup = null;
+    try {
+        $stmt = $pdo->prepare("SELECT name FROM users WHERE id = ?");
+        $stmt->execute([$professorId]);
+        $professor = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($professor) {
+            $professorName = $professor['name'];
+        }
+    } catch (PDOException $e) {
+        error_log("Failed to fetch professor data: " . $e->getMessage());
+    }
 }
 
 // Default selections
-if ($role === 'student') {
+else {
     // For students, use their assigned year and group
-    $currentYear = $_SESSION['year_id'] ?? 'Première Année';
-    $currentGroup = $_SESSION['group_id'] ?? 'G1';
-    
-    // Override with URL parameters if they exist
-    if (isset($_GET['year'])) $currentYear = $_GET['year'];
-    if (isset($_GET['group'])) $currentGroup = $_GET['group'];
-} else {
-    // For professors, we don't have specific group/year - we'll display all their courses
-    // The API call will filter by professor ID
-    $currentYear = isset($_GET['year']) ? $_GET['year'] : 'Première Année';
-    $currentGroup = isset($_GET['group']) ? $_GET['group'] : 'G1';
+    $currentYear = $_SESSION['year_id'];
+    $currentGroup = $_SESSION['group_id'];
 }
 
 // Page title based on role
@@ -491,22 +480,14 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 <body>
     <div class="card">
         <div class="p-6 flex justify-between items-center <?php echo $headerClass; ?>">
-            <h1 class="text-2xl font-bold">
-                <?php echo $pageTitle; ?>
-                <?php if ($isPreview): ?>
-                <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Mode Aperçu</span>
-                <?php endif; ?>
-                <?php if ($isProfessorDebug && $professorName): ?>
-                <span class="text-sm bg-white/20 px-2 py-1 rounded ml-2">Debug: <?php echo htmlspecialchars($professorName); ?></span>
-                <?php endif; ?>
-            </h1>
+            <h1 class="text-2xl font-bold"><?php echo $pageTitle; ?></h1>
             <div class="flex space-x-3">
-                <?php if ($isPreview): ?>
-                <a href="../admin/index.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
+                <?php if ($isProfessorDebug): ?>
+                <a href="../views/professor.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Retour au Tableau de Bord
+                    Retour à la Sélection
                 </a>
                 <?php endif; ?>
                 <a href="logout.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
@@ -559,7 +540,7 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             <!-- For professors, show a message that they see their own timetable -->
             <div class="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6">
                 <p class="text-purple-800">
-                    Bonjour <strong><?php echo htmlspecialchars($_SESSION['name'] ?? 'Professeur'); ?></strong>, voici votre emploi du temps personnel.
+                    Bonjour <strong><?php echo htmlspecialchars($professorName); ?></strong>, voici votre emploi du temps personnel.
                     Vous trouverez ci-dessous tous vos cours planifiés pour la semaine.
                 </p>
             </div>
@@ -594,7 +575,6 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
             const groupsByYear = <?php echo json_encode($groupsByYear); ?>;
             const timeSlots = <?php echo json_encode($timeSlots); ?>;
             const days = <?php echo json_encode($days); ?>;
-            const isPreview = <?php echo $isPreview ? 'true' : 'false'; ?>;
             const isProfessorDebug = <?php echo $isProfessorDebug ? 'true' : 'false'; ?>;
 
             // Timetable data
@@ -642,12 +622,48 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                                 
                                 const classBlock = document.createElement("div");
                                 classBlock.className = "class-block";
-                                // Use the color from data if available, otherwise use default color
-                                classBlock.style.borderLeftColor = classData.color || "#3b82f6";
+                                
+                                // Determine color based on class_type if available
+                                let color;
+                                if (classData.class_type) {
+                                    switch(classData.class_type) {
+                                        case "CM": color = "#6b7280"; break;
+                                        case "TD": color = "#10b981"; break;
+                                        case "TP": color = "#3b82f6"; break;
+                                        case "DE": color = "#f59e0b"; break;
+                                        case "CO": color = "#ef4444"; break;
+                                        default: color = classData.color || "#6b7280"; // Fallback to data.color or default grey
+                                    }
+                                } else {
+                                    // Use the color from data if available, otherwise use default color
+                                    color = classData.color || "#6b7280";
+                                }
+                                
+                                classBlock.style.borderLeftColor = color;
+                                
+                                // Apply visual styling for professor view and admin debug mode if class is canceled or rescheduled
+                                if ((userRole === 'professor' || userRole === 'admin') && (classData.is_canceled == 1 || classData.is_reschedule == 1)) {
+                                    if (classData.is_canceled == 1) {
+                                        classBlock.style.backgroundColor = "#FEF2F2"; // Very light red background for professor
+                                    } else if (classData.is_reschedule == 1) {
+                                        classBlock.style.backgroundColor = "#EFF6FF"; // Very light blue background for professor
+                                    }
+                                }
 
                                 const subjectDiv = document.createElement("div");
                                 subjectDiv.className = "font-medium";
                                 subjectDiv.textContent = classData.subject;
+                                
+                                // Color the subject name based on class type
+                                if (classData.class_type) {
+                                    subjectDiv.style.color = color;
+                                    
+                                    // Add class type indicator
+                                    const typeSpan = document.createElement("span");
+                                    typeSpan.className = "ml-2 text-xs font-normal";
+                                    typeSpan.textContent = `(${classData.class_type})`;
+                                    subjectDiv.appendChild(typeSpan);
+                                }
 
                                 // For professors, show group and year
                                 let detailsText = '';
@@ -663,11 +679,84 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
                                 const roomDiv = document.createElement("div");
                                 roomDiv.className = "text-xs text-gray-500 mt-1";
-                                roomDiv.textContent = `Salle: ${classData.room}`;
+                                
+                                // Add class type to room info if available
+                                if (classData.class_type) {
+                                    roomDiv.textContent = `Salle: ${classData.room}`;
+                                }
 
                                 classBlock.appendChild(subjectDiv);
                                 classBlock.appendChild(detailsDiv);
                                 classBlock.appendChild(roomDiv);
+                                
+                                // Add action buttons for professors (but not for admins in debug mode)
+                                if (userRole === 'professor') {
+                                    const actionsDiv = document.createElement("div");
+                                    actionsDiv.className = "flex justify-end space-x-2 mt-2";
+                                    
+                                    if (classData.is_reschedule == 1) {
+                                        // Show undo reschedule button
+                                        const undoRescheduleBtn = document.createElement("button");
+                                        undoRescheduleBtn.className = "text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 px-2 py-1 rounded relative right-[5px]";
+                                        undoRescheduleBtn.textContent = "Annuler le report";
+                                        undoRescheduleBtn.onclick = function(e) {
+                                            e.stopPropagation();
+                                            updateClassStatus(classData.id, 'reset', classData.professor_id);
+                                        };
+                                        actionsDiv.appendChild(undoRescheduleBtn);
+                                    } else if (classData.is_canceled == 1) {
+                                        // Show undo cancel button
+                                        const undoCancelBtn = document.createElement("button");
+                                        undoCancelBtn.className = "text-xs bg-red-100 text-red-800 hover:bg-red-200 px-2 py-1 rounded ";
+                                        undoCancelBtn.textContent = "Annuler l'annulation";
+                                        undoCancelBtn.onclick = function(e) {
+                                            e.stopPropagation();
+                                            updateClassStatus(classData.id, 'reset', classData.professor_id);
+                                        };
+                                        actionsDiv.appendChild(undoCancelBtn);
+                                    } else {
+                                        // Show regular buttons
+                                        // Reschedule button
+                                        const rescheduleBtn = document.createElement("button");
+                                        rescheduleBtn.className = "text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded relative left-[10px]";
+                                        rescheduleBtn.textContent = "Reporter";
+                                        rescheduleBtn.onclick = function(e) {
+                                            e.stopPropagation();
+                                            updateClassStatus(classData.id, 'reschedule', classData.professor_id);
+                                        };
+                                        
+                                        // Cancel button
+                                        const cancelBtn = document.createElement("button");
+                                        cancelBtn.className = "text-xs text-red-600 hover:text-red-800 px-2 py-1 rounded";
+                                        cancelBtn.textContent = "Annuler";
+                                        cancelBtn.onclick = function(e) {
+                                            e.stopPropagation();
+                                            updateClassStatus(classData.id, 'cancel', classData.professor_id);
+                                        };
+                                        
+                                        actionsDiv.appendChild(rescheduleBtn);
+                                        actionsDiv.appendChild(cancelBtn);
+                                    }
+                                    
+                                    classBlock.appendChild(actionsDiv);
+                                }
+                                
+                                // Apply visual indicators for admin if class is canceled or rescheduled
+                                if (userRole === 'admin' && (classData.is_canceled == 1 || classData.is_reschedule == 1)) {
+                                    if (classData.is_canceled == 1) {
+                                        classBlock.style.backgroundColor = "#FEE2E2"; // Light red background
+                                        const statusDiv = document.createElement("div");
+                                        statusDiv.className = "text-xs font-medium text-red-700 mt-1";
+                                        statusDiv.textContent = "ANNULÉ PAR LE PROFESSEUR";
+                                        classBlock.appendChild(statusDiv);
+                                    } else if (classData.is_reschedule == 1) {
+                                        classBlock.style.backgroundColor = "#DBEAFE"; // Light blue background
+                                        const statusDiv = document.createElement("div");
+                                        statusDiv.className = "text-xs font-medium text-blue-700 mt-1";
+                                        statusDiv.textContent = "DEMANDE DE REPORT";
+                                        classBlock.appendChild(statusDiv);
+                                    }
+                                }
 
                                 cell.appendChild(classBlock);
                             });
@@ -776,6 +865,40 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                 }
             }
 
+            // Function to update class status (cancel or reschedule)
+            function updateClassStatus(classId, status, professorId) {
+                if (!classId || !status || !professorId) {
+                    showToast("error", "Données manquantes pour mettre à jour le statut du cours");
+                    return;
+                }
+                
+                const data = {
+                    id: classId,
+                    status: status,
+                    professor_id: professorId
+                };
+                
+                fetch('../api/update_class_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showToast("success", result.message);
+                        // Reload timetable data to reflect the changes
+                        loadTimetableData();
+                    } else {
+                        showToast("error", result.message || "Erreur lors de la mise à jour du statut");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast("error", "Erreur lors de la mise à jour du statut");
+                });
+            }
+            
             // Load timetable data on page load
             loadTimetableData();
         });

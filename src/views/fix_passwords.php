@@ -15,16 +15,16 @@ $selectedUser = null;
 $searchResults = [];
 
 // Search for a user
-if (isset($_POST['search_user']) && isset($_POST['email_search'])) {
-    $email_search = trim($_POST['email_search']);
+if (isset($_POST['search_user']) && isset($_POST['user_search'])) {
+    $user_search = trim($_POST['user_search']);
     
     try {
-        $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE email = ?");
-        $stmt->execute([$email_search]);
+        $stmt = $pdo->prepare("SELECT id, name, role, email FROM users WHERE name = ?");
+        $stmt->execute([$user_search]);
         $searchResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         if (empty($searchResults)) {
-            $message = "Aucun utilisateur trouvé avec l'email: " . htmlspecialchars($email_search);
+            $message = "Aucun utilisateur trouvé avec c'est username: " . htmlspecialchars($user_search);
             $messageType = "error";
         }
     } catch (PDOException $e) {
@@ -38,7 +38,7 @@ if (isset($_GET['user_id'])) {
     $user_id = $_GET['user_id'];
     
     try {
-        $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, name, role, email FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
         $selectedUser = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -69,7 +69,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
             $messageType = "success";
             
             // Get the updated user info
-            $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, name, role, email FROM users WHERE id = ?");
             $stmt->execute([$user_id]);
             $selectedUser = $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
@@ -105,7 +105,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
         }
         
         /* Target both inputs specifically */
-        input[name="email_search"], 
+        input[name="user_search"], 
         input[name="new_password"] {
             border: 1px solid #d1d5db !important;
             border-radius: 0.375rem !important;
@@ -113,7 +113,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
         
         /* Simple yellow focus style without animations */
         input:focus,
-        input[name="email_search"]:focus, 
+        input[name="user_search"]:focus, 
         input[name="new_password"]:focus {
             outline: none !important;
             border-color: #eab308 !important;
@@ -161,6 +161,14 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             z-index: 2000;
             max-width: 350px;
+            transform: translateY(150%);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
         }
         
         .toast-success {
@@ -200,7 +208,10 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
         <div class="container mx-auto px-4 py-6">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold">Modifier les Mots de Passe</h1>
-                <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">
+                <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
                     Retour au Tableau de Bord
                 </a>
             </div>
@@ -234,7 +245,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                 </div>
                 <div>
                     <h2 class="text-xl font-semibold">Modification des Mots de Passe</h2>
-                    <p class="text-gray-600 mt-1">Recherchez un utilisateur par email puis modifiez son mot de passe</p>
+                    <p class="text-gray-600 mt-1">Recherchez un utilisateur par son username puis modifiez son mot de passe</p>
                 </div>
             </div>
             
@@ -242,14 +253,14 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                 <!-- Step 1: Search for a user -->
                 <form method="post" action="" class="mb-6">
                     <div class="mb-4">
-                        <label for="email_search" class="block text-sm font-medium text-gray-700 mb-1">Email utilisateur:</label>
+                        <label for="user_search" class="block text-sm font-medium text-gray-700 mb-1">Username utilisateur:</label>
                         <div class="mt-1 relative rounded-md">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                                </svg>
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
                             </div>
-                            <input type="text" name="email_search" id="email_search" class="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Entrez l'email à rechercher" required>
+                            <input type="text" name="user_search" id="user_search" class="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Entrez le username à rechercher" required>
                         </div>
                     </div>
                     <button type="submit" name="search_user" class="w-full md:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
@@ -269,6 +280,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
@@ -285,6 +297,9 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                                             }
                                         ?>
                                             <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['name']); ?></div>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['email']); ?></div>
                                                 </td>
@@ -318,7 +333,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                             <div class="ml-3 flex flex-col">
                                 <h3 class="text-sm font-medium text-blue-800">Modification du mot de passe pour:</h3>
                                 <div class="mt-2 flex items-center">
-                                    <span class="font-medium text-blue-800 mr-2"><?php echo htmlspecialchars($selectedUser['email']); ?></span>
+                                    <span class="font-medium text-blue-800 mr-2"><?php echo htmlspecialchars($selectedUser['name']); ?></span>
                                     <span class="role-badge <?php
                                         if ($selectedUser['role'] === 'admin') echo 'badge-admin';
                                         elseif ($selectedUser['role'] === 'professor') echo 'badge-professor';
@@ -369,11 +384,17 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
             // Show toast notification and auto-hide after 3 seconds
             const toast = document.getElementById('toast');
             if (toast) {
+                // Add the show class after a small delay to trigger the animation
                 setTimeout(() => {
-                    toast.style.opacity = '0';
+                    toast.classList.add('show');
+                }, 100);
+                
+                // Hide the toast after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
                     setTimeout(() => {
                         toast.remove();
-                    }, 300);
+                    }, 500); // Wait for the animation to complete
                 }, 3000);
             }
             

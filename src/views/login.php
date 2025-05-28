@@ -48,7 +48,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['group_id'] = $user['group_id'] ?? null;
-                    
                     redirectUserByRole($user['role']);
                 } else {
                     // Password doesn't match
@@ -97,16 +96,14 @@ function redirectUserByRole($role) {
                         default:
                             $yearName = "Troisième Année";
                     }
-                    
                     $groupName = "G" . $group;
-                    
+                    $_SESSION['group_id'] = $groupName;
+                    $_SESSION['year_id'] = $yearName;
                     error_log("Student login redirection: Parsed group $groupNumeric as Year $yearName, Group $groupName");
                     header("Location: timetable_view.php?role=student&year=$yearName&group=$groupName");
                     exit;
                 }
             }
-            // Fallback to standard student page if group ID format doesn't match expected pattern
-            header("Location: student.php");
             break;
         default:
             echo "Unknown role.";

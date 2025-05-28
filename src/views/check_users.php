@@ -164,6 +164,7 @@ try {
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            transition: all 0.3s ease;
         }
         
         .delete-btn:hover {
@@ -318,11 +319,6 @@ try {
             transition: all 0.2s ease;
             cursor: pointer;
         }
-        
-        .custom-checkbox:hover {
-            background-color: #f9fafb;
-        }
-        
         .custom-checkbox input[type="checkbox"] {
             position: absolute;
             opacity: 0;
@@ -404,6 +400,7 @@ try {
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
+            transition: all 0.3s ease;
         }
         
         .bulk-delete-btn:hover {
@@ -426,7 +423,10 @@ try {
                     <a href="../views/manage_users.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">
                         Créer un Utilisateur
                     </a>
-                    <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">
+                    <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
                         Retour au Tableau de Bord
                     </a>
                 </div>
@@ -569,11 +569,11 @@ try {
                                     <td data-label="Sélection" class="checkbox-column">
                                         <?php if (!$is_current_user): ?>
                                         <div class="custom-checkbox">
-                                            <input type="checkbox" 
-                                                   class="user-checkbox" 
-                                                   id="user-<?php echo htmlspecialchars($user['id']); ?>"
-                                                   data-id="<?php echo htmlspecialchars($user['id']); ?>"
-                                                   data-email="<?php echo htmlspecialchars($user['email']); ?>">
+                                        <input type="checkbox" 
+                                                class="user-checkbox" 
+                                                id="user-<?php echo htmlspecialchars($user['id']); ?>"
+                                                data-id="<?php echo htmlspecialchars($user['id']); ?>"
+                                                data-email="<?php echo htmlspecialchars($user['email']); ?>">
                                             <span class="checkbox-icon"></span>
                                         </div>
                                         <?php endif; ?>
@@ -610,7 +610,7 @@ try {
                 <div class="mt-6 bg-red-50 border-l-4 border-red-500 p-4">
                     <p class="text-red-700">
                         Pour les problèmes de sécurité des mots de passe, utilisez l'utilitaire 
-                        <a href="fix_passwords.php" class="text-red-600 hover:text-red-800 underline font-medium">fix_passwords.php</a>.
+                        <a href="fix_passwords.php" class="text-red-600 hover:text-red-800 font-medium underline">Changer les mots de passe</a>.
                     </p>
                 </div>
             <?php endif; ?>
@@ -648,7 +648,7 @@ try {
                 // Show toast notification if needed
                 if ('<?php echo $success_message; ?>' || '<?php echo $error_message; ?>') {
                     showToast('<?php echo $success_message ? "success" : "error"; ?>', 
-                         '<?php echo addslashes($success_message ?: $error_message); ?>');
+                        '<?php echo addslashes($success_message ?: $error_message); ?>');
                 }
                 
                 // Initialize all interactive components
@@ -961,7 +961,7 @@ try {
                     const formData = new FormData();
                     formData.append('user_id', user.id);
                     
-                    return fetch('../utils/delete_user.php', {
+                    return fetch('../api/delete_user.php', {
                         method: 'POST',
                         body: formData
                     })

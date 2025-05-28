@@ -17,7 +17,6 @@ The project has been reorganized into a more structured directory layout:
   /core           - Core system files
   /includes       - Shared includes (e.g., db.php)
   /models         - Data models
-  /timetable_data - Stored timetable JSON files
   /utils          - Utility scripts
   /views          - User interface files
   index.php       - Main entry point
@@ -31,7 +30,6 @@ The project has been reorganized into a more structured directory layout:
 - **core**: Core system files, including database schema
 - **includes**: Shared files like the database connection
 - **models**: Data models and business logic
-- **timetable_data**: JSON files storing timetable data
 - **utils**: Utility scripts for maintenance and special operations
 - **views**: User interface files for different user roles
 
@@ -57,6 +55,7 @@ The database includes these main tables:
 - `groups`: Student groups within each year
 - `subjects`: Academic subjects
 - `professors`: Professor information
+- `timetables`: Timetable entries with published/draft status
 
 ## Notes About Reorganization
 
@@ -74,19 +73,18 @@ The application previously had a flat structure with files in the root directory
 
 1. Ensure you have PHP installed on your server (version 7.0 or higher recommended)
 2. Upload all files to your web server
-3. Make sure the `timetable_data` directory is writable by the web server:
-   ```
-   chmod 755 timetable_data
-   ```
-4. Access the system via your web browser: `http://yourserver.com/table.php`
+3. Create a MySQL database and import the schema
+4. Configure the database connection in `src/includes/db.php`
+5. Access the system via your web browser
 
 ## File Structure
 
-- `table.php` - The main timetable interface
-- `save_timetable.php` - Handles saving timetable data
-- `publish_timetable.php` - Handles publishing timetable data
-- `get_timetable.php` - Retrieves timetable data for a specific year/group
-- `timetable_data/` - Directory where timetable data is stored
+- `src/views/admin_timetable.php` - The main timetable interface for administrators
+- `src/views/timetable_view.php` - The timetable view for students
+- `src/views/professor.php` - The timetable view for professors
+- `src/api/save_timetable.php` - Handles saving timetable data to the database
+- `src/api/publish_timetable.php` - Handles publishing timetable data
+- `src/api/get_timetable.php` - Retrieves timetable data for a specific year/group
 
 ## Usage
 
@@ -99,12 +97,11 @@ The application previously had a flat structure with files in the root directory
 
 ## Data Storage
 
-Timetable data is stored in JSON format in the `timetable_data` directory:
+Timetable data is stored in the MySQL database in the `timetables` table with the following structure:
 
-- Regular saved timetables: `timetable_[YEAR]_[GROUP].json`
-- Published timetables: `timetable_[YEAR]_[GROUP]_published.json`
-
-If the server storage fails, data is automatically saved to the browser's localStorage as a fallback.
+- Each entry contains year_id, group_id, day, time_slot, subject_id, professor_id, room
+- The is_published flag indicates whether an entry is a draft (0) or published (1)
+- The system maintains both draft and published versions for change management
 
 ## Browser Compatibility
 
@@ -119,6 +116,6 @@ This system works on all modern browsers including:
 
 You can easily customize the system by:
 
-- Modifying the PHP arrays in `table.php` to change available years, groups, subjects, professors, or rooms
-- Editing the CSS in the `<style>` section to change the appearance
+- Modifying the database content to change available years, groups, subjects, professors, or rooms
+- Editing the CSS to change the appearance
 - Adding additional fields to the class form as needed

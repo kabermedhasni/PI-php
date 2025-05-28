@@ -1,84 +1,116 @@
 <?php
-// Allow cross-origin requests
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json");
+require_once '../includes/db.php';
 
-// Data directory
-$dir = '../timetable_data';
-if (!is_dir($dir)) {
-    echo json_encode(['success' => false, 'message' => 'Data directory not found']);
+// Check if user is admin
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit;
 }
 
-// Get all timetable files
-$timetable_files = glob($dir . '/timetable_*_*.json');
-$published_files = [];
-$failed_files = [];
-$timetable_count = 0;
-
-// Filter out already published files
-$admin_files = array_filter($timetable_files, function($file) {
-    return strpos($file, '_published.json') === false;
-});
-
-// Publish each timetable
-foreach ($admin_files as $file) {
-    // Extract year and group from filename
-    $filename = basename($file);
-    preg_match('/timetable_(.+)_(.+)\.json/', $filename, $matches);
+try {
+    // Begin transaction
+    $pdo->beginTransaction();
     
-    if (count($matches) !== 3) {
-        $failed_files[] = $filename;
-        continue;
+    // Get all distinct year and group combinations that have timetable entries
+    $stmt = $pdo->prepare("
+        SELECT DISTINCT year_id, group_id
+        FROM `timetables`
+    ");
+    $stmt->execute();
+    $yearGroups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $published_count = 0;
+    $published_items = [];
+    
+    // For each year/group combination, publish its timetable
+    foreach ($yearGroups as $yearGroup) {
+        $year_id = $yearGroup['year_id'];
+        $group_id = $yearGroup['group_id'];
+        
+        // Get year and group names for response
+        $yearNameStmt = $pdo->prepare("SELECT name FROM `years` WHERE id = ?");
+        $yearNameStmt->execute([$year_id]);
+        $year_name = $yearNameStmt->fetchColumn();
+        
+        $groupNameStmt = $pdo->prepare("SELECT name FROM `groups` WHERE id = ?");
+        $groupNameStmt->execute([$group_id]);
+        $group_name = $groupNameStmt->fetchColumn();
+        
+        // Get all timetable entries for this year/group
+        $entriesStmt = $pdo->prepare("
+            SELECT * FROM `timetables`
+            WHERE year_id = ? AND group_id = ?
+        ");
+        $entriesStmt->execute([$year_id, $group_id]);
+        $entries = $entriesStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Create a map of entries by day and time slot
+        $entriesMap = [];
+        foreach ($entries as $entry) {
+            $key = $entry['day'] . '_' . $entry['time_slot'];
+            
+            // For each time slot, prioritize unpublished entries (drafts)
+            if (!isset($entriesMap[$key]) || $entry['is_published'] == 0) {
+                $entriesMap[$key] = $entry;
+            }
+        }
+        
+        // If we have entries to publish
+        if (!empty($entriesMap)) {
+            // Delete all existing entries for this year/group
+            $deleteStmt = $pdo->prepare("
+                DELETE FROM `timetables` 
+                WHERE year_id = ? AND group_id = ?
+            ");
+            $deleteStmt->execute([$year_id, $group_id]);
+            
+            // Insert all entries as published
+            $insertStmt = $pdo->prepare("
+                INSERT INTO `timetables` 
+                (year_id, group_id, day, time_slot, subject_id, professor_id, room, is_published)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+            ");
+            
+            foreach ($entriesMap as $entry) {
+                $insertStmt->execute([
+                    $year_id,
+                    $group_id,
+                    $entry['day'],
+                    $entry['time_slot'],
+                    $entry['subject_id'],
+                    $entry['professor_id'],
+                    $entry['room']
+                ]);
+            }
+            
+            $published_count++;
+            $published_items[] = $year_name . '-' . $group_name;
+        }
     }
     
-    $year = $matches[1];
-    $group = $matches[2];
+    // Commit the transaction
+    $pdo->commit();
     
-    // Read the timetable data
-    $timetable_data = file_get_contents($file);
-    $data = json_decode($timetable_data, true);
-    
-    if (!$data) {
-        $failed_files[] = $filename;
-        continue;
-    }
-    
-    // Create the published version
-    $published_data = $data;
-    $published_data['is_published'] = true;
-    $published_data['has_draft_changes'] = false;
-    $published_data['publish_date'] = date('Y-m-d H:i:s');
-    $published_data['last_modified'] = date('Y-m-d H:i:s');
-    
-    // Save to published file
-    $published_filename = $dir . '/timetable_' . $year . '_' . $group . '_published.json';
-    $published_result = file_put_contents($published_filename, json_encode($published_data));
-    
-    // Also update the admin version
-    $admin_result = file_put_contents($file, json_encode($published_data));
-    
-    if ($published_result !== false && $admin_result !== false) {
-        $published_files[] = $year . '-' . $group;
-        $timetable_count++;
-    } else {
-        $failed_files[] = $filename;
-    }
-}
-
-// Return result
-if ($timetable_count > 0) {
+    // Return success response
     echo json_encode([
         'success' => true,
-        'message' => $timetable_count . ' timetable(s) published successfully',
-        'published' => $published_files,
-        'failed' => $failed_files
+        'message' => $published_count > 0 ? 
+            'Tous les emplois du temps ont été publiés avec succès (' . $published_count . ' emplois du temps)' : 
+            'Aucun emploi du temps à publier',
+        'published_count' => $published_count,
+        'published' => $published_items
     ]);
-} else {
+    
+} catch (PDOException $e) {
+    // Rollback the transaction on error
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    
+    error_log("Database error in publish_all_timetables.php: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'message' => 'No timetables were published',
-        'failed' => $failed_files
+        'message' => 'Database error: ' . $e->getMessage()
     ]);
 } 

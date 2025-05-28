@@ -7,7 +7,7 @@ try {
     $data = json_decode($json, true);
     
     // Validate input
-    if (!$data || !isset($data['professor_id']) || !isset($data['day']) || !isset($data['time_slot'])) {
+    if (!$data || !isset($data['room']) || !isset($data['day']) || !isset($data['time_slot'])) {
         echo json_encode([
             'success' => false,
             'message' => 'Missing required parameters'
@@ -15,7 +15,7 @@ try {
         exit;
     }
     
-    $professor_id = $data['professor_id'];
+    $room = $data['room'];
     $day = $data['day'];
     $timeSlot = $data['time_slot'];
     $current_year = $data['year'] ?? null;
@@ -37,7 +37,7 @@ try {
         $current_group_id = $groupStmt->fetchColumn();
     }
 
-    // Check if the professor is scheduled elsewhere at this time
+    // Check if the room is scheduled elsewhere at this time
     $stmt = $pdo->prepare("
         SELECT t.*, y.name as year_name, g.name as group_name, s.name as subject_name, u.name as professor_name
         FROM `timetables` t
@@ -45,9 +45,9 @@ try {
         JOIN `groups` g ON t.group_id = g.id
         LEFT JOIN `subjects` s ON t.subject_id = s.id
         LEFT JOIN `users` u ON t.professor_id = u.id
-        WHERE t.professor_id = ? AND t.day = ? AND t.time_slot = ?
+        WHERE t.room = ? AND t.day = ? AND t.time_slot = ?
     ");
-    $stmt->execute([$professor_id, $day, $timeSlot]);
+    $stmt->execute([$room, $day, $timeSlot]);
     
     $conflicts = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -73,18 +73,18 @@ try {
         echo json_encode([
             'success' => true,
             'available' => false,
-            'message' => 'Professor is already scheduled at this time',
+            'message' => 'Room is already scheduled at this time',
             'conflicts' => $conflicts
         ]);
     } else {
         echo json_encode([
             'success' => true,
             'available' => true,
-            'message' => 'Professor is available at this time'
+            'message' => 'Room is available at this time'
         ]);
     }
 } catch (PDOException $e) {
-    error_log("Database error in check_professor_availability.php: " . $e->getMessage());
+    error_log("Database error in check_room_availability.php: " . $e->getMessage());
     echo json_encode([
         'success' => false,
         'message' => 'Database error: ' . $e->getMessage()

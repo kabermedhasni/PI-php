@@ -32,7 +32,7 @@ exit;
 // Initialize variables and define constants
 try {
 // Get all years
-$yearsStmt = $pdo->query("SELECT id, name FROM `years` ORDER BY name");
+$yearsStmt = $pdo->query("SELECT id, name FROM `years` ORDER BY id");
 $yearsData = $yearsStmt->fetchAll(PDO::FETCH_ASSOC);
 $years = array_column($yearsData, 'name');
 
@@ -54,41 +54,22 @@ foreach ($groupsByYear as $yearGroups) {
 $groups = array_unique($allGroups);
 
 // Fetch real subjects from database
-$stmt = $pdo->query("SELECT id, name, code FROM subjects ORDER BY name");
+$stmt = $pdo->query("SELECT id, name FROM subjects ORDER BY name");
 $subjectsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Add a default color for each subject since the database doesn't have colors
-foreach ($subjectsData as &$subject) {
-    // Generate a random color or use a default
-    $subject['color'] = '#3b82f6'; // Default blue color
-}
 
 $subjects = array_column($subjectsData, 'name');
 } catch (PDOException $e) {
-// Fallback to defaults if database query fails
-error_log("Failed to load database data: " . $e->getMessage());
-$years = ["Première Année", "Deuxième Année", "Troisième Année"];
-$groups = ["G1", "G2", "G3", "G4", "G5", "G6"];
-
-// Default groupsByYear structure based on the database results
-$groupsByYear = [
-    "Première Année" => ["G1", "G2", "G3", "G4", "G5", "G6"],
-    "Deuxième Année" => ["G1", "G2", "G3", "G4"],
-    "Troisième Année" => ["G1", "G2"]
-];
-
-// Fallback to empty array if query fails
-$subjectsData = [];
-$subjects = [];
+    // Log the error but don't provide fallbacks
+    error_log("Failed to load years and groups from database: " . $e->getMessage());
+    die("Database error occurred. Please contact administrator.");
 }
 
 // Fetch real professors from database
 try {
-// Fetch ID and NAME instead of email
 $stmt = $pdo->query("SELECT id, name FROM users WHERE role = 'professor' ORDER BY name");
 $professorsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-// We don't need the separate $professors array anymore
-// $professors = array_column($professorsData, 'name'); 
 } catch (PDOException $e) {
 error_log("Failed to load professors from database: " . $e->getMessage());
 // Fallback to empty array if query fails
@@ -115,10 +96,8 @@ $rooms = [
 ];
 
 // Default selections
-$currentYear = isset($_GET['year']) ? $_GET['year'] : $years[0] ?? 'Première Année';
-$currentGroup = isset($_GET['group']) ? $_GET['group'] : 
-(isset($groupsByYear[$currentYear]) && !empty($groupsByYear[$currentYear]) ? 
-$groupsByYear[$currentYear][0] : 'G1');
+$currentYear = isset($_GET['year']) ? $_GET['year'] : 'Première Année';
+$currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 ?>
 
 <!DOCTYPE html>
@@ -127,9 +106,7 @@ $groupsByYear[$currentYear][0] : 'G1');
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>University Timetable Management</title>
-<!-- Include Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Include Outfit Font -->
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 <style>
     * {
@@ -143,7 +120,6 @@ $groupsByYear[$currentYear][0] : 'G1');
         Roboto, sans-serif;
     margin: 0;
     padding: 10px;
-
     }
 
     .card {
@@ -275,7 +251,7 @@ $groupsByYear[$currentYear][0] : 'G1');
     border-radius: 0.375rem;
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
     z-index: 100;
-    max-height: 200px;
+    max-height: 210px;
     overflow-y: auto;
     opacity: 0;
     transform: translateY(-10px) rotateX(-5deg);
@@ -335,23 +311,22 @@ $groupsByYear[$currentYear][0] : 'G1');
 
     .dropdown-item:hover {
     background-color: #f1f5f9;
-    transform: translateX(2px);
     }
 
     .class-block {
     background-color: #f8fafc;
     border-radius: 0.375rem;
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid #6b7280; /* Changed from #3b82f6 to match CM default */
     padding: 6px;
     margin-bottom: 2px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.9rem;
     }
 
-    .class-block:hover {
+    /* .class-block:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
+    } */
 
     .empty-cell {
     height: 100%;
@@ -415,148 +390,6 @@ $groupsByYear[$currentYear][0] : 'G1');
     .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-
-    /* Compact styling for smaller screens */
-    @media (max-width: 768px) {
-        body {
-            padding: 8px;
-            margin: 0;
-        }
-        
-        .card {
-            margin: 5px;
-            border-radius: 0.5rem;
-        }
-        
-        .p-6 {
-            padding: 0.75rem !important;
-        }
-        
-        h1.text-2xl {
-            font-size: 1.25rem;
-            line-height: 1.75rem;
-        }
-        
-        /* Hide scrollbar on mobile */
-        .timetable-container {
-            max-height: 70vh;
-            border-radius: 0.25rem;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            overflow-x: auto;
-        }
-        
-        .timetable-container::-webkit-scrollbar {
-            display: none;
-            width: 0;
-        }
-        
-        /* Compact timetable for mobile */
-        .timetable th, .timetable td {
-            padding: 4px;
-            font-size: 0.7rem;
-        }
-        
-        .time-cell {
-            width: 40px;
-            font-size: 0.65rem;
-            padding: 2px !important;
-        }
-        
-        .timetable td {
-            height: 70px;
-            vertical-align: top;
-        }
-        
-        .class-block {
-            padding: 4px;
-            margin-bottom: 2px;
-            font-size: 0.7rem;
-        }
-        
-        /* Make class block details more compact */
-        .class-block div {
-            margin-bottom: 2px;
-        }
-        
-        /* Adjust the filter section */
-        .grid.grid-cols-1.md\:grid-cols-2.gap-6.mb-6 {
-            gap: 0.5rem;
-        }
-        
-        /* Make toast notifications more visible on mobile */
-        .toast {
-            width: 90%;
-            left: 5%;
-            right: 5%;
-            font-size: 0.8rem;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        /* Adjust buttons */
-        a.flex.items-center, .btn {
-            padding: 0.4rem 0.75rem !important;
-            font-size: 0.75rem !important;
-        }
-        
-        a.flex.items-center svg {
-            width: 0.75rem;
-            height: 0.75rem;
-        }
-
-        #arrow {
-            width: 22px;
-            height: auto;
-        }
-        
-        /* Adjust dropdowns */
-        .dropdown-button {
-            height: 32px;
-            padding: 6px 8px;
-            font-size: 0.8rem;
-        }
-    }
-
-    @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-    }
-    
-    @keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-    }
-
-    @keyframes slideDown {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    }
-    
-    @keyframes slideUp {
-    from {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
     }
 
     /* Set maximum height for the timetable container */
@@ -633,6 +466,7 @@ $groupsByYear[$currentYear][0] : 'G1');
     padding: 1rem !important;
     }
 
+    /* Mobile responsive styling */
     @media (max-width: 768px) {
     body {
         padding: 5px;
@@ -668,31 +502,54 @@ $groupsByYear[$currentYear][0] : 'G1');
         font-size: 0.65rem;
         padding: 2px !important;
     }
+        
+        .timetable td {
+            height: 70px;
+            vertical-align: top;
+        }
     
     .class-block {
-        padding: 3px;
-        margin-bottom: 1px;
-    }
-    
-    .dropdown-button {
-        height: 32px;
-        padding: 6px 8px;
-        font-size: 0.8rem;
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: 50px auto;
-        padding: 12px;
-    }
-    
-    .modal-header h2 {
-        font-size: 1.1rem;
-    }
-    
-    .btn {
+            padding: 4px;
+            margin-bottom: 2px;
+            font-size: 0.7rem;
+        }
+        
+        .class-block div {
+            margin-bottom: 2px;
+        }
+        
+        .grid.grid-cols-1.md\:grid-cols-2.gap-6.mb-6 {
+            gap: 0.5rem;
+        }
+        
+        .toast {
+            width: 90%;
+            left: 5%;
+            right: 5%;
+            font-size: 0.8rem;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        a.flex.items-center, .btn {
         padding: 0.4rem 0.75rem !important;
-        font-size: 0.8rem !important;
+            font-size: 0.75rem !important;
+        }
+        
+        a.flex.items-center svg {
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+
+        #arrow {
+            width: 22px;
+            height: auto;
+        }
+        
+        .dropdown-button {
+            height: 32px;
+            padding: 6px 8px;
+            font-size: 0.8rem;
     }
     
     /* Make dropdowns in modals more touch-friendly */
@@ -700,6 +557,16 @@ $groupsByYear[$currentYear][0] : 'G1');
         padding: 10px 12px;
         font-size: 0.9rem;
     }
+        
+        /* Professor search mobile optimization */
+        #professor-search {
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+        
+        #professor-list {
+            max-height: 180px;
+        }
     
     /* Improve empty cell appearance */
     .empty-cell button svg {
@@ -707,28 +574,7 @@ $groupsByYear[$currentYear][0] : 'G1');
         height: 18px;
     }
     
-    /* Adjust form elements in modals */
-    .mb-4 {
-        margin-bottom: 0.5rem;
-    }
-    
-    label.block {
-        font-size: 0.8rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    /* Make toast notifications more visible on mobile */
-    .toast {
-        width: 90%;
-        left: 5%;
-        right: 5%;
-        font-size: 0.8rem;
-        padding: 10px;
-        text-align: center;
-    }
-    }
-    
-    /* Additional mobile optimizations for extra small screens */
+        /* Mobile optimizations for small screens */
     @media (max-width: 480px) {
     body {
         padding: 4px;
@@ -757,14 +603,12 @@ $groupsByYear[$currentYear][0] : 'G1');
         font-size: 0.65rem !important;
     }
     
-    /* Make class blocks much more compact */
     .class-block {
         padding: 2px !important;
         margin-bottom: 0 !important;
         font-size: 0.65rem !important;
     }
     
-    /* Fix the modify and delete buttons */
     .class-block .text-xs {
         font-size: 0.6rem !important;
     }
@@ -777,7 +621,6 @@ $groupsByYear[$currentYear][0] : 'G1');
         margin-left: 0.25rem !important;
     }
     
-    /* Optimize class block content */
     .class-block .text-sm {
         font-size: 0.65rem !important;
         margin-bottom: 0 !important;
@@ -788,7 +631,6 @@ $groupsByYear[$currentYear][0] : 'G1');
         margin-top: 0.1rem !important;
     }
     
-    /* Make action buttons more touch-friendly */
     .class-block .text-xs.text-blue-600,
     .class-block .text-xs.text-red-600 {
         padding: 2px 4px !important;
@@ -804,7 +646,6 @@ $groupsByYear[$currentYear][0] : 'G1');
         border: 1px solid #ef4444 !important;
     }
     
-    /* Make modal more compact */
     .modal-content {
         width: 95%;
         margin: 50px auto;
@@ -815,51 +656,16 @@ $groupsByYear[$currentYear][0] : 'G1');
         font-size: 1.1rem;
     }
     
-    /* Make dropdowns in modals more touch-friendly */
-    .dropdown-item {
-        padding: 10px 12px;
-        font-size: 0.9rem;
-    }
-    
-    /* Adjust control buttons */
     .btn {
         padding: 0.4rem 0.75rem !important;
         font-size: 0.8rem !important;
     }
     
-    /* Improve empty cell appearance */
-    .empty-cell button svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    /* Hide arrow icon on small screens */
     #arrow {
         width: 20px;
         height: auto;
     }
     }
-
-    /* Make dropdowns in modals more touch-friendly */
-    .dropdown-item {
-        padding: 10px 12px;
-        font-size: 0.9rem;
-    }
-    
-    /* Professor search mobile optimization */
-    #professor-search {
-        padding: 8px;
-        font-size: 0.9rem;
-    }
-    
-    #professor-list {
-        max-height: 180px;
-    }
-    
-    /* Improve empty cell appearance */
-    .empty-cell button svg {
-        width: 18px;
-        height: 18px;
     }
 </style>
 </head>
@@ -867,12 +673,22 @@ $groupsByYear[$currentYear][0] : 'G1');
 <div class="card">
     <div class="p-6 flex justify-between items-center header-admin">
         <h1 class="text-2xl font-bold">Gestion des Emplois du Temps - Admin</h1>
-        <a href="../admin/index.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Retour au Tableau de Bord
-        </a>
+        <div class="flex space-x-3">
+            <?php if ($role === 'admin' && isset($_GET['professor_id'])): ?>
+            <a href="../views/professor.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour à la Sélection
+            </a>
+            <?php endif; ?>
+            <a href="../admin/index.php" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded-md hover:bg-white/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour au Tableau de Bord
+            </a>
+        </div>
     </div>
 
     <div class="p-6">
@@ -953,8 +769,8 @@ $groupsByYear[$currentYear][0] : 'G1');
             <button id="publish-btn" class="btn px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700">
                 Publier
             </button>
-            <button id="publish-all-btn" class="btn px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700">
-                Tout Publier
+            <button id="delete-timetable-btn" class="btn px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700">
+                Supprimer
             </button>
         </div>
 
@@ -975,7 +791,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                 <input type="hidden" id="edit-day" />
                 <input type="hidden" id="edit-time" />
                 <input type="hidden" id="edit-id" />
-                <input type="hidden" id="edit-color" value="#3b82f6" />
+                <input type="hidden" id="edit-color" />
 
                 <div class="mb-4">
                     <label for="professor-select" class="block text-sm font-medium text-gray-700 mb-1">Professeur</label>
@@ -1063,7 +879,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                         Annuler
                     </button>
                     <button type="submit" id="save-class-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
-                        Enregistrer
+                        Ajouter
                     </button>
                 </div>
             </form>
@@ -1096,25 +912,73 @@ $groupsByYear[$currentYear][0] : 'G1');
     </div>
 </div>
 
-<!-- Modal pour Publier Tous les Emplois du Temps -->
-<div id="publish-all-modal" class="modal">
+<!-- Modal pour Supprimer l'Emploi du Temps -->
+<div id="delete-timetable-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 class="text-xl font-bold text-purple-600">Publier Tous les Emplois du Temps</h2>
-            <span class="close" id="publish-all-close">&times;</span>
+            <h2 class="text-xl font-bold text-red-600">Supprimer l'Emploi du Temps</h2>
+            <span class="close" id="delete-timetable-close">&times;</span>
         </div>
         <div class="modal-body">
             <div class="mb-4">
-                <p class="mb-2">Ceci va publier TOUS les emplois du temps pour TOUTES les années et groupes.</p>
-                <p>Les emplois du temps publiés seront visibles par tous les étudiants et professeurs. Êtes-vous sûr ?</p>
+                <p class="mb-2">Voulez-vous vraiment supprimer l'emploi du temps pour <span id="delete-year-group" class="font-semibold"></span> ?</p>
+                <p>Cette action supprimera définitivement toutes les données d'emploi du temps pour cette année et ce groupe.</p>
             </div>
 
             <div class="flex justify-end space-x-3">
-                <button type="button" id="publish-all-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <button type="button" id="delete-timetable-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Annuler
                 </button>
-                <button type="button" id="publish-all-confirm" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">
-                    Oui, Tout Publier
+                <button type="button" id="delete-timetable-confirm" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                    Oui, Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Professor Availability Conflicts -->
+<div id="professor-conflict-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="text-xl font-bold text-red-600">Conflit d'Horaire Professeur</h2>
+            <span class="close" id="professor-conflict-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="mb-4">
+                <p class="mb-2 font-medium text-red-600">Ce professeur ne peut pas être assigné à ce créneau horaire car il est déjà occupé :</p>
+                <div id="conflict-details" class="mt-3 p-3 bg-transparent border border-red-600 rounded-md">
+                    <!-- Conflict details will be inserted here -->
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+                <button type="button" id="conflict-cancel" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Room Availability Conflicts -->
+<div id="room-conflict-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="text-xl font-bold text-red-600">Conflit de Salle</h2>
+            <span class="close" id="room-conflict-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="mb-4">
+                <p class="mb-2 font-medium text-red-600">Cette salle ne peut pas être réservée à ce créneau horaire car elle est déjà occupée :</p>
+                <div id="room-conflict-details" class="mt-3 p-3 bg-transparent border border-red-600 rounded-md">
+                    <!-- Room conflict details will be inserted here -->
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+                <button type="button" id="room-conflict-cancel" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                    Fermer
                 </button>
             </div>
         </div>
@@ -1146,56 +1010,41 @@ $groupsByYear[$currentYear][0] : 'G1');
     </div>
 </div>
 
-<!-- Modal for Professor Availability Conflicts -->
-<div id="professor-conflict-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="text-xl font-bold text-red-600">Conflit d'Horaire</h2>
-            <span class="close" id="professor-conflict-close">&times;</span>
-        </div>
-        <div class="modal-body">
-            <div class="mb-4">
-                <p class="mb-2 font-medium text-red-600">Ce professeur ne peut pas être assigné à ce créneau horaire car il est déjà occupé :</p>
-                <div id="conflict-details" class="mt-3 p-3 bg-transparent border border-red-600 rounded-md">
-                    <!-- Conflict details will be inserted here -->
-                </div>
-            </div>
-
-            <div class="flex justify-end mt-4">
-                <button type="button" id="conflict-cancel" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                    Fermer
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Additional global functions for modal animation
+        // Global variables and utility functions
+        let timetableData = {};
+        let currentYear = "<?php echo $currentYear; ?>";
+        let currentGroup = "<?php echo $currentGroup; ?>";
+        let groupsByYear = <?php echo json_encode($groupsByYear); ?>;
+        let hasUnsavedChanges = false;
+        let isCurrentlyPublished = false;
+        let hasDraftChanges = false; 
+        let pendingDestination = null;
+        let deleteClassDay = null;
+        let deleteClassTime = null;
+        
+        const timeSlots = <?php echo json_encode($timeSlots); ?>;
+        const days = <?php echo json_encode($days); ?>;
+
+        // Consolidated modal animation functions
         window.showModalWithAnimation = function(modalId) {
             const modal = document.getElementById(modalId);
             modal.style.display = 'block';
-            
-            // Force reflow to ensure transitions work
-            void modal.offsetWidth;
-            
+            void modal.offsetWidth; // Force reflow
             modal.classList.add('show');
         };
         
         window.closeModalWithAnimation = function(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.remove('show');
-            
-            // Wait for animation to complete before hiding
             setTimeout(function() {
                 modal.style.display = 'none';
             }, 300);
         };
         
-        // Apply animations to existing modals
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
+        // Apply animations to all modals
+        document.querySelectorAll('.modal').forEach(modal => {
             const closeBtn = modal.querySelector('.close');
             if (closeBtn) {
                 closeBtn.addEventListener('click', function() {
@@ -1211,88 +1060,38 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         });
         
-        // Replace existing event listeners for modal specific buttons
+        // Replace modal button handlers with consolidated approach
         document.getElementById("cancel-btn").addEventListener("click", function() {
             closeModalWithAnimation("class-modal");
         });
         
-        // Publish all modal buttons
-        document.getElementById("publish-all-btn").addEventListener("click", function() {
-            showModalWithAnimation("publish-all-modal");
-        });
-        
-        document.getElementById("publish-all-close").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-        });
-        
-        document.getElementById("publish-all-cancel").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-        });
-        
-        document.getElementById("publish-all-confirm").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-            setTimeout(performPublishAllTimetables, 300);
-        });
-        
-        // Delete class modal buttons
-        document.getElementById("delete-class-close").addEventListener("click", function() {
-            closeModalWithAnimation("delete-class-modal");
-        });
-        
-        document.getElementById("delete-class-cancel").addEventListener("click", function() {
-            closeModalWithAnimation("delete-class-modal");
-        });
-        
-        // Variables for storing class to be deleted
-        let deleteClassDay = null;
-        let deleteClassTime = null;
-        
-        // Timetable data
-        let timetableData = {};
-        let currentYear = "<?php echo $currentYear; ?>";
-        let currentGroup = "<?php echo $currentGroup; ?>";
-        let groupsByYear = <?php echo json_encode($groupsByYear); ?>;
-        // Track changes
-        let hasUnsavedChanges = false;
-        let isCurrentlyPublished = false; // True if the current version is published
-        let hasDraftChanges = false; // True if there are saved changes that haven't been published yet
-        
-        // Track destination for when changing sections
-        let pendingDestination = null;
-
-        const timeSlots = <?php echo json_encode($timeSlots); ?>;
-        const days = <?php echo json_encode($days); ?>;
-
-        // Function to toggle dropdown state and arrow rotation
+        // Consolidated dropdown handling function
         function toggleDropdown(dropdownButton, dropdownMenu) {
+            if (dropdownButton.hasAttribute("disabled")) return false;
+            
             if (dropdownMenu.classList.contains("open")) {
                 // Closing the dropdown
                 dropdownButton.classList.remove("active");
                 dropdownMenu.classList.remove("open");
                 dropdownMenu.classList.add("closing");
                 
-                // After animation completes, hide the dropdown completely
                 setTimeout(() => {
                     dropdownMenu.classList.remove("closing");
                     dropdownMenu.style.display = "none";
-                }, 300); // Match the animation duration
+                }, 300);
                 
                 return false;
             } else {
                 // Opening the dropdown
                 closeAllDropdowns(); // Close any other open dropdowns
                 dropdownButton.classList.add("active");
-                dropdownMenu.style.display = "block"; // Make it visible first
-                
-                // Trigger reflow/repaint to ensure the animation runs
-                void dropdownMenu.offsetWidth;
-                
+                dropdownMenu.style.display = "block";
+                void dropdownMenu.offsetWidth; // Force reflow
                 dropdownMenu.classList.add("open");
                 return true;
             }
         }
         
-        // Function to close all dropdowns
         function closeAllDropdowns() {
             document.querySelectorAll(".dropdown-menu.open").forEach(menu => {
                 const button = menu.parentElement.querySelector(".dropdown-button");
@@ -1307,21 +1106,25 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
 
-        // Initialize empty timetable data
+        // Core data management functions
         function initTimetableData() {
+            // Create a fresh object
             timetableData = {};
+            
+            // Initialize each day and time slot
             days.forEach(day => {
                 timetableData[day] = {};
                 timeSlots.forEach(time => {
                     timetableData[day][time] = null;
                 });
             });
+            
             hasUnsavedChanges = false;
             isCurrentlyPublished = false;
             hasDraftChanges = false;
         }
         
-        // Display the publish status on the page
+        // Status management functions
         function updatePublishStatus() {
             const statusDiv = document.getElementById("status-message");
             statusDiv.classList.remove("hidden", "bg-green-100", "bg-yellow-100", "bg-blue-100", "text-green-800", "text-yellow-800", "text-blue-800");
@@ -1345,32 +1148,27 @@ $groupsByYear[$currentYear][0] : 'G1');
             }
             
             if (hasUnsavedChanges) {
-                // Always show unsaved changes first regardless of publish state
                 statusDiv.classList.add("bg-yellow-100", "text-yellow-800");
                 statusDiv.textContent = "Vous avez des modifications non enregistrées. N'oubliez pas d'enregistrer avant de quitter !";
                 statusDiv.classList.remove("hidden");
             } else if (hasDraftChanges && isCurrentlyPublished) {
-                // Show when we have saved changes that differ from the published version
                 statusDiv.classList.add("bg-blue-100", "text-blue-800");
                 statusDiv.textContent = "Vous avez des modifications enregistrées qui ne sont pas encore publiées. Les étudiants et professeurs voient toujours la version précédemment publiée.";
                 statusDiv.classList.remove("hidden");
             } else if (isCurrentlyPublished) {
-                // If saved and published with no draft changes
                 statusDiv.classList.add("bg-green-100", "text-green-800");
                 statusDiv.textContent = "Cet emploi du temps est publié et visible par les étudiants et professeurs.";
                 statusDiv.classList.remove("hidden");
             } else if (!isEmptyTimetable) {
-                // If saved but not published
                 statusDiv.classList.add("bg-yellow-100", "text-yellow-800");
                 statusDiv.textContent = "Cet emploi du temps est enregistré mais pas encore publié. Visible uniquement par les admins jusqu'à la publication.";
                 statusDiv.classList.remove("hidden");
             } else {
-                // Empty timetable, hide status
                 statusDiv.classList.add("hidden");
             }
         }
 
-        // Function to show unsaved changes warning
+        // Show warning for unsaved changes
         function showUnsavedChangesWarning(callback) {
             const modal = document.getElementById("unsaved-changes-modal");
             showModalWithAnimation("unsaved-changes-modal");
@@ -1379,7 +1177,7 @@ $groupsByYear[$currentYear][0] : 'G1');
             const discardBtn = document.getElementById("discard-btn");
             const saveBtn = document.getElementById("save-continue-btn");
             
-            // Clear previous event listeners
+            // Clone and replace buttons to remove old event listeners
             const newCloseBtn = closeBtn.cloneNode(true);
             closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
             
@@ -1409,7 +1207,7 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
 
-        // Generate empty timetable
+        // Initialize and display the timetable
         function generateEmptyTimetable() {
             const tbody = document.getElementById("timetable-body");
             tbody.innerHTML = "";
@@ -1434,14 +1232,45 @@ $groupsByYear[$currentYear][0] : 'G1');
 
                         const classBlock = document.createElement("div");
                         classBlock.className = "class-block";
-                        // Use the color from data if available, otherwise use default grey
-                        const color = data.color || "#6b7280";
+                        
+                        // Determine color based on class_type if available
+                        let color;
+                        if (data.class_type) {
+                            switch(data.class_type) {
+                                case "CM": color = "#6b7280"; break;
+                                case "TD": color = "#10b981"; break;
+                                case "TP": color = "#3b82f6"; break;
+                                case "DE": color = "#f59e0b"; break;
+                                case "CO": color = "#ef4444"; break;
+                                default: color = data.color || "#6b7280"; // Fallback to data.color or default grey
+                            }
+                        } else {
+                            // Use the color from data if available, otherwise use default grey
+                            color = data.color || "#6b7280";
+                        }
+                        
                         classBlock.style.borderLeftColor = color;
+                        
+                        // Apply visual indicators if class is canceled or rescheduled
+                        if (data.is_canceled == 1) {
+                            classBlock.style.backgroundColor = "#FEE2E2"; // Light red background
+                        } else if (data.is_reschedule == 1) {
+                            classBlock.style.backgroundColor = "#DBEAFE"; // Light blue background
+                        }
 
                         const subjectDiv = document.createElement("div");
                         subjectDiv.className = "text-sm font-semibold";
                         subjectDiv.textContent = data.subject;
                         subjectDiv.style.color = color; // Make subject name same color as course type
+                        
+                        // Add a small indicator for the class type if available
+                        if (data.class_type) {
+                            const typeSpan = document.createElement("span");
+                            typeSpan.className = "ml-2 text-xs font-normal";
+                            typeSpan.textContent = `(${data.class_type})`;
+                            typeSpan.style.color = color;
+                            subjectDiv.appendChild(typeSpan);
+                        }
 
                         const professorDiv = document.createElement("div");
                         professorDiv.className = "text-xs text-black mt-1 font-semibold";
@@ -1482,6 +1311,20 @@ $groupsByYear[$currentYear][0] : 'G1');
                         classBlock.appendChild(subjectDiv);
                         classBlock.appendChild(professorDiv);
                         classBlock.appendChild(roomDiv);
+                        
+                        // Add status indicators if class is canceled or rescheduled
+                        if (data.is_canceled == 1 || data.is_reschedule == 1) {
+                            const statusDiv = document.createElement("div");
+                            if (data.is_canceled == 1) {
+                                statusDiv.className = "text-xs font-medium text-red-700 mt-1";
+                                statusDiv.textContent = "ANNULÉ PAR LE PROFESSEUR";
+                            } else if (data.is_reschedule == 1) {
+                                statusDiv.className = "text-xs font-medium text-blue-700 mt-1";
+                                statusDiv.textContent = "DEMANDE DE REPORT";
+                            }
+                            classBlock.appendChild(statusDiv);
+                        }
+                        
                         classBlock.appendChild(actionDiv);
 
                         cell.appendChild(classBlock);
@@ -1510,29 +1353,70 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
 
-        // Initialize
+        // Set up initial state
         initTimetableData();
         generateEmptyTimetable();
 
-        // Dropdown handling
-        const yearDropdown = document.getElementById("year-dropdown");
-        const yearMenu = document.getElementById("year-menu");
-        const groupDropdown = document.getElementById("group-dropdown");
-        const groupMenu = document.getElementById("group-menu");
+        // Toast notification handling
+        function createToastElement() {
+            if (document.getElementById("toast-notification")) return;
 
-        yearDropdown.addEventListener("click", function(e) {
+            const toast = document.createElement("div");
+            toast.id = "toast-notification";
+            toast.className = "toast";
+            document.body.appendChild(toast);
+        }
+        createToastElement();
+
+        function showToast(type, message) {
+            const toast = document.getElementById("toast-notification");
+            toast.textContent = message;
+            toast.className = "toast";
+
+            if (type === "success") {
+                toast.classList.add("toast-success");
+            } else if (type === "error") {
+                toast.classList.add("toast-error");
+            } else {
+                toast.classList.add("bg-blue-500", "text-white");
+            }
+
+            toast.classList.add("show");
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+        
+        // Setup event listeners for all dropdowns
+        const dropdowns = [
+            {button: "year-dropdown", menu: "year-menu"},
+            {button: "group-dropdown", menu: "group-menu"},
+            {button: "professor-dropdown", menu: "professor-menu"},
+            {button: "subject-dropdown", menu: "subject-menu"},
+            {button: "room-dropdown", menu: "room-menu"},
+            {button: "course-type-dropdown", menu: "course-type-menu"}
+        ];
+        
+        dropdowns.forEach(dropdown => {
+            const button = document.getElementById(dropdown.button);
+            const menu = document.getElementById(dropdown.menu);
+            
+            if (button && menu) {
+                button.addEventListener("click", function(e) {
             e.preventDefault();
             e.stopPropagation();
-            toggleDropdown(yearDropdown, yearMenu);
+                    toggleDropdown(this, menu);
+                });
+            }
         });
-
-        groupDropdown.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleDropdown(groupDropdown, groupMenu);
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener("click", function(event) {
+            closeAllDropdowns();
         });
-
-        // Professor search functionality
+        
+        // Handle professor search
         const professorSearch = document.getElementById("professor-search");
         if (professorSearch) {
             professorSearch.addEventListener("input", function(e) {
@@ -1556,10 +1440,146 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
 
-        // Close dropdowns when clicking outside
-        document.addEventListener("click", function(event) {
-            closeAllDropdowns();
-        });
+        // Setup handlers for dropdown items
+        function setupDropdownItemHandlers() {
+            // Year selection
+            document.querySelectorAll("#year-menu .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    const year = this.getAttribute("data-value");
+                    
+                    // Skip if selecting the same year
+                    if (year === currentYear) {
+                        document.getElementById("year-menu").classList.remove("open");
+                        document.getElementById("year-dropdown").classList.remove("active");
+                        return;
+                    }
+                    
+                    // Store the destination
+                    pendingDestination = { type: 'year', year: year };
+                    
+                    // If there are unsaved changes, show warning
+                    if (hasUnsavedChanges) {
+                        showUnsavedChangesWarning(function(saved) {
+                            // After user's decision, switch to the year
+                            document.getElementById("selected-year").textContent = year;
+                            currentYear = year;
+                            document.getElementById("year-menu").classList.remove("open");
+                            document.getElementById("year-dropdown").classList.remove("active");
+                            
+                            // Update the group dropdown with year-specific groups
+                            updateGroupDropdown(year);
+                            
+                            // Reset to first group in the list
+                            if (groupsByYear[year] && groupsByYear[year].length > 0) {
+                                currentGroup = groupsByYear[year][0];
+                                document.getElementById("selected-group").textContent = currentGroup;
+                            }
+
+                            // Load timetable for this year/group
+                            loadSavedData();
+                            showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
+                        });
+                    } else {
+                        // No changes, just update and load
+                        document.getElementById("selected-year").textContent = year;
+                        currentYear = year;
+                        document.getElementById("year-menu").classList.remove("open");
+                        document.getElementById("year-dropdown").classList.remove("active");
+                        
+                        // Update the group dropdown with year-specific groups
+                        updateGroupDropdown(year);
+                        
+                        // Reset to first group in the list
+                        if (groupsByYear[year] && groupsByYear[year].length > 0) {
+                            currentGroup = groupsByYear[year][0];
+                            document.getElementById("selected-group").textContent = currentGroup;
+                        }
+
+                        // Load timetable for this year/group
+                        loadSavedData();
+                        showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
+                    }
+                });
+            });
+            
+            // Setup professor dropdown items
+            document.querySelectorAll("#professor-list .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    const professorName = this.getAttribute("data-value");
+                    const professorId = this.getAttribute("data-id");
+                    
+                    document.getElementById("selected-professor").textContent = professorName;
+                    document.getElementById("selected-professor").setAttribute("data-id", professorId);
+                    document.getElementById("professor-menu").classList.remove("open");
+                    document.getElementById("professor-dropdown").classList.remove("active");
+                    
+                    // Enable subject dropdown now that a professor is selected
+                    document.getElementById("subject-dropdown").removeAttribute("disabled");
+                    document.getElementById("subject-dropdown").style.backgroundColor = "#ffffff";
+                    document.getElementById("subject-dropdown").style.cursor = "pointer";
+                    document.getElementById("selected-subject").textContent = "Chargement des matières...";
+                    
+                    // Filter subjects based on selected professor
+                    filterSubjectsByProfessor(professorId);
+                });
+            });
+            
+            // Setup subject dropdown items
+            document.querySelectorAll("#subject-menu .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    const subject = this.getAttribute("data-value");
+                    const subjectId = this.getAttribute("data-id") || null;
+                    const color = this.getAttribute("data-color");
+                    
+                    document.getElementById("selected-subject").textContent = subject;
+                    document.getElementById("selected-subject").setAttribute("data-id", subjectId);
+                    document.getElementById("edit-color").value = color;
+                    document.getElementById("subject-menu").classList.remove("open");
+                    document.getElementById("subject-dropdown").classList.remove("active");
+                });
+            });
+            
+            // Setup room dropdown items
+            document.querySelectorAll("#room-menu .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    // Get the current course type and its corresponding color
+                    const courseType = document.getElementById("selected-course-type").textContent;
+                    let color;
+                    
+                    // Map course types to their colors
+                    switch(courseType) {
+                        case "CM": color = "#6b7280"; break;
+                        case "TD": color = "#10b981"; break;
+                        case "TP": color = "#3b82f6"; break;
+                        case "DE": color = "#f59e0b"; break;
+                        case "CO": color = "#ef4444"; break;
+                        default: color = "#6b7280"; // Default to CM color
+                    }
+                    
+                    document.getElementById("selected-room").textContent = this.getAttribute("data-value");
+                    document.getElementById("room-menu").classList.remove("open");
+                    document.getElementById("room-dropdown").classList.remove("active");
+                    
+                    // Set the color based on the current course type
+                    document.getElementById("edit-color").value = color;
+                });
+            });
+            
+            // Setup course type dropdown items
+            document.querySelectorAll("#course-type-menu .dropdown-item").forEach(item => {
+                item.addEventListener("click", function() {
+                    const courseType = this.getAttribute("data-value");
+                    const color = this.getAttribute("data-color");
+                    
+                    document.getElementById("selected-course-type").textContent = courseType;
+                    document.getElementById("edit-color").value = color;
+                    document.getElementById("course-type-menu").classList.remove("open");
+                    document.getElementById("course-type-dropdown").classList.remove("active");
+                });
+            });
+        }
+        
+        setupDropdownItemHandlers();
         
         // Function to update group dropdown based on selected year
         function updateGroupDropdown(year) {
@@ -1578,7 +1598,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                         // Skip if selecting the same group
                         if (selectedGroup === currentGroup) {
                             groupMenu.classList.remove("open");
-                            groupDropdown.classList.remove("active"); // Retirer la classe active
+                            document.getElementById("group-dropdown").classList.remove("active");
                             return;
                         }
                         
@@ -1596,7 +1616,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                                 document.getElementById("selected-group").textContent = selectedGroup;
                                 currentGroup = selectedGroup;
                                 groupMenu.classList.remove("open");
-                                groupDropdown.classList.remove("active"); // Retirer la classe active
+                                document.getElementById("group-dropdown").classList.remove("active");
                                 
                                 // Load timetable for this year/group
                                 loadSavedData();
@@ -1607,7 +1627,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                             document.getElementById("selected-group").textContent = selectedGroup;
                             currentGroup = selectedGroup;
                             groupMenu.classList.remove("open");
-                            groupDropdown.classList.remove("active"); // Retirer la classe active
+                            document.getElementById("group-dropdown").classList.remove("active");
                             
                             // Load timetable for this year/group
                             loadSavedData();
@@ -1619,98 +1639,107 @@ $groupsByYear[$currentYear][0] : 'G1');
             }
         }
 
-        // Year selection
-        document.querySelectorAll("#year-menu .dropdown-item").forEach(item => {
-            item.addEventListener("click", function() {
-                const year = this.getAttribute("data-value");
-                
-                // Skip if selecting the same year
-                if (year === currentYear) {
-                    yearMenu.classList.remove("open");
-                    yearDropdown.classList.remove("active"); // Retirer la classe active
-                    return;
-                }
-                
-                // Store the destination
-                pendingDestination = {
-                    type: 'year',
-                    year: year
-                };
-                
-                // If there are unsaved changes, show warning
-                if (hasUnsavedChanges) {
-                    showUnsavedChangesWarning(function(saved) {
-                        // After user's decision, switch to the year
-                        document.getElementById("selected-year").textContent = year;
-                        currentYear = year;
-                        yearMenu.classList.remove("open");
-                        yearDropdown.classList.remove("active"); // Retirer la classe active
-                        
-                        // Update the group dropdown with year-specific groups
-                        updateGroupDropdown(year);
-                        
-                        // Reset to first group in the list
-                        if (groupsByYear[year] && groupsByYear[year].length > 0) {
-                            currentGroup = groupsByYear[year][0];
-                            document.getElementById("selected-group").textContent = currentGroup;
-                        }
-
-                        // Load timetable for this year/group
-                        loadSavedData();
-                        showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
-                    });
-                } else {
-                    // No changes, just update and load
-                    document.getElementById("selected-year").textContent = year;
-                    currentYear = year;
-                    yearMenu.classList.remove("open");
-                    yearDropdown.classList.remove("active"); // Retirer la classe active
-                    
-                    // Update the group dropdown with year-specific groups
-                    updateGroupDropdown(year);
-                    
-                    // Reset to first group in the list
-                    if (groupsByYear[year] && groupsByYear[year].length > 0) {
-                        currentGroup = groupsByYear[year][0];
-                        document.getElementById("selected-group").textContent = currentGroup;
-                    }
-
-                    // Load timetable for this year/group
-                    loadSavedData();
-                    showToast("info", `Affichage de l'emploi du temps pour ${currentYear}-${currentGroup}`);
-                }
-            });
-        });
-        
         // Initialize group dropdown with current year's groups on page load
         updateGroupDropdown(currentYear);
         
+        // Setup handlers for all action buttons
+        document.getElementById("save-btn").addEventListener("click", function() {
+            saveCurrentTimetable();
+        });
+
+        document.getElementById("publish-btn").addEventListener("click", function() {
+            publishCurrentTimetable();
+        });
+        
+        document.getElementById("delete-timetable-btn").addEventListener("click", function() {
+            // Show confirmation modal with current year and group
+            document.getElementById("delete-year-group").textContent = currentYear + " - " + currentGroup;
+            showModalWithAnimation("delete-timetable-modal");
+        });
+
+        // Delete timetable modal handlers
+        document.getElementById("delete-timetable-close").addEventListener("click", function() {
+            closeModalWithAnimation("delete-timetable-modal");
+        });
+        
+        document.getElementById("delete-timetable-cancel").addEventListener("click", function() {
+            closeModalWithAnimation("delete-timetable-modal");
+        });
+        
+        document.getElementById("delete-timetable-confirm").addEventListener("click", function() {
+            // Create payload for delete operation
+            const payload = {
+                year: currentYear,
+                group: currentGroup
+            };
+
+            // Send delete request to server
+            fetch('../api/delete_timetable.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                closeModalWithAnimation("delete-timetable-modal");
+                if (data.success) {
+                    // Reset timetable
+                    initTimetableData();
+                    generateEmptyTimetable();
+                    hasUnsavedChanges = false;
+                    isCurrentlyPublished = false;
+                    hasDraftChanges = false;
+                    updatePublishStatus();
+                    showToast("success", `Emploi du temps supprimé pour ${currentYear}-${currentGroup}`);
+                } else {
+                    showToast("error", data.message || "Erreur lors de la suppression de l'emploi du temps");
+                }
+            })
+            .catch(error => {
+                closeModalWithAnimation("delete-timetable-modal");
+                console.error('Error deleting timetable:', error);
+                showToast("error", "Erreur lors de la suppression de l'emploi du temps");
+            });
+        });
+        
+        // ...Remove the publish-all-btn event listener and function...
+
         // Function to save current timetable
         function saveCurrentTimetable(callback) {
+            // Create a deep copy of the timetable data to avoid reference issues
+            const timetableDataCopy = JSON.parse(JSON.stringify(timetableData || {}));
+            
             // Create a payload for server - excluding any publish flags
             const payload = {
                 year: currentYear,
                 group: currentGroup,
-                data: timetableData,
+                data: timetableDataCopy,
                 action: "save_only" // Explicit action
             };
-
-            console.log('Saving timetable with payload:', JSON.stringify(payload).substring(0, 100) + '...');
+            
+            console.log("Saving timetable with payload:", payload);
+            
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/save_timetable.php`;
+            
+            console.log("Using API URL:", apiUrl);
 
             // Send data to PHP backend
-            fetch('../api/save_timetable.php', {
+            fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(response => {
-                console.log('Save response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 return response.json();
             })
             .then(data => {
-                console.log('Save response data:', data);
+                console.log("Server response:", data);
                 if (data.success) {
                     // Update URL with current year and group to prevent redirection issues
                     updateUrlWithYearAndGroup(currentYear, currentGroup);
@@ -1721,7 +1750,6 @@ $groupsByYear[$currentYear][0] : 'G1');
                     // Check if the server tells us this is already published elsewhere
                     if (data.is_published) {
                         isCurrentlyPublished = true;
-                        // If we saved after publishing, we have draft changes
                         hasDraftChanges = true;
                     } else {
                         isCurrentlyPublished = false;
@@ -1731,7 +1759,9 @@ $groupsByYear[$currentYear][0] : 'G1');
                     updatePublishStatus();
                     if (callback) callback();
                 } else {
-                    showToast("error", "Échec de l'enregistrement de l'emploi du temps");
+                    console.error("Save failed:", data);
+                    showToast("error", data.message || "Échec de l'enregistrement de l'emploi du temps");
+                    if (callback) callback();
                 }
             })
             .catch(error => {
@@ -1741,68 +1771,43 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
         
-        // Update file paths for AJAX requests
-        document.getElementById("save-btn").addEventListener("click", function() {
-            console.log('Save button clicked');
-            saveCurrentTimetable();
-        });
-
-        document.getElementById("publish-btn").addEventListener("click", function() {
-            console.log('Publish button clicked');
-            // Publish is a separate action
-            publishCurrentTimetable();
-        });
-        
-        document.getElementById("publish-all-btn").addEventListener("click", function() {
-            console.log('Publish All button clicked');
-            // Show the modal instead of confirm dialog
-            showModalWithAnimation("publish-all-modal");
-        });
-        
-        // Close publish all modal when clicking X
-        document.getElementById("publish-all-close").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-        });
-        
-        // Cancel publish all action
-        document.getElementById("publish-all-cancel").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-        });
-        
-        // Confirm publish all action
-        document.getElementById("publish-all-confirm").addEventListener("click", function() {
-            closeModalWithAnimation("publish-all-modal");
-            setTimeout(performPublishAllTimetables, 300);
-        });
-        
-        // Function to publish current timetable - separated from save functionality
+        // Function to publish current timetable
         function publishCurrentTimetable() {
             // Create a payload specifically for publishing
+            const timetableDataCopy = JSON.parse(JSON.stringify(timetableData || {}));
+            
             const payload = {
                 year: currentYear,
                 group: currentGroup,
-                data: timetableData,
+                data: timetableDataCopy,
                 action: "publish" // Explicit action
             };
+            
+            console.log("Publishing timetable with payload:", payload);
+            
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/publish_timetable.php`;
+            
+            console.log("Using API URL:", apiUrl);
 
-            console.log('Publishing timetable with payload:', JSON.stringify(payload).substring(0, 100) + '...');
-
-            // Send data to PHP backend - different endpoint
-            fetch('../api/publish_timetable.php', {
+            // Send data to PHP backend
+            fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(response => {
-                console.log('Publish response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 return response.json();
             })
             .then(data => {
-                console.log('Publish response data:', data);
+                console.log("Server response:", data);
                 if (data.success) {
-                    // Update URL with current year and group to prevent redirection issues
+                    // Update URL with current year and group
                     updateUrlWithYearAndGroup(currentYear, currentGroup);
                     
                     showToast("success", `Emploi du temps publié pour ${currentYear}-${currentGroup}`);
@@ -1811,7 +1816,8 @@ $groupsByYear[$currentYear][0] : 'G1');
                     hasDraftChanges = false; // Reset draft changes flag since we just published
                     updatePublishStatus();
                 } else {
-                    showToast("error", "Échec de la publication de l'emploi du temps");
+                    console.error("Publish failed:", data);
+                    showToast("error", data.message || "Échec de la publication de l'emploi du temps");
                 }
             })
             .catch(error => {
@@ -1821,26 +1827,14 @@ $groupsByYear[$currentYear][0] : 'G1');
         }
 
         // Function to publish all timetables
-        function publishAllTimetables() {
-            // Show modal instead of confirm dialog
-            document.getElementById("publish-all-modal").style.display = "block";
-        }
-        
-        // Actual implementation of publish all timetables
         function performPublishAllTimetables() {
             // Send request to publish all timetables
             fetch('../api/publish_all_timetables.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: { 'Content-Type': 'application/json' }
             })
-            .then(response => {
-                console.log('Publish all response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Publish all response data:', data);
                 if (data.success) {
                     showToast("success", data.message);
                     // If current timetable was in the published list, update its status
@@ -1859,92 +1853,195 @@ $groupsByYear[$currentYear][0] : 'G1');
             });
         }
 
-        // Modal handling
-        const modal = document.getElementById("class-modal");
-        const closeBtn = document.querySelector(".close");
-        const cancelBtn = document.getElementById("cancel-btn");
-        const classForm = document.getElementById("class-form");
+        // Modal handling for class add/edit
+        function openAddModal(day, time) {
+            document.getElementById("modal-title").textContent = "Ajouter un Cours";
+            document.getElementById("edit-day").value = day;
+            document.getElementById("edit-time").value = time;
+            document.getElementById("edit-id").value = ""; // New class
 
-        // Professor dropdown handling
-        const professorDropdown = document.getElementById("professor-dropdown");
-        const professorMenu = document.getElementById("professor-menu");
-        const subjectDropdown = document.getElementById("subject-dropdown");
-        const subjectMenu = document.getElementById("subject-menu");
-
-        professorDropdown.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleDropdown(professorDropdown, professorMenu);
+            // Reset dropdowns
+            document.getElementById("selected-professor").textContent = "Sélectionner un professeur";
+            document.getElementById("selected-professor").removeAttribute("data-id");
+            document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
+            document.getElementById("selected-room").textContent = "Sélectionner une salle";
+            document.getElementById("selected-course-type").textContent = "CM";
+            document.getElementById("edit-color").value = "#6b7280"; // Default grey color for CM
             
-            // Reset search when opening dropdown
-            if (professorMenu.classList.contains("open")) {
-                const searchInput = document.getElementById("professor-search");
-                if (searchInput) {
-                    searchInput.value = "";
-                    // Reset visibility of all items
-                    document.querySelectorAll("#professor-list .dropdown-item").forEach(item => {
-                        item.style.display = "block";
-                    });
-                    // Focus the search input for immediate typing
-                    setTimeout(() => searchInput.focus(), 100);
-                }
-            }
-        });
+            // Disable subject dropdown until professor is selected
+            const subjectDropdown = document.getElementById("subject-dropdown");
+            subjectDropdown.setAttribute("disabled", "disabled");
+            subjectDropdown.style.backgroundColor = "#f1f5f9";
+            subjectDropdown.style.cursor = "not-allowed";
 
-        document.querySelectorAll("#professor-list .dropdown-item").forEach(item => {
-            item.addEventListener("click", function() {
-                const professorName = this.getAttribute("data-value"); // Get name from data-value
-                const professorId = this.getAttribute("data-id");
-                
-                console.log("Selected professor:", professorName, "ID:", professorId); // Log name and ID
-                
-                document.getElementById("selected-professor").textContent = professorName; // Display name
-                document.getElementById("selected-professor").setAttribute("data-id", professorId);
-                professorMenu.classList.remove("open");
-                professorDropdown.classList.remove("active"); // Retirer la classe active
-                
-                // Enable subject dropdown now that a professor is selected
-                subjectDropdown.removeAttribute("disabled");
-                subjectDropdown.style.backgroundColor = "#ffffff"; // White background
-                subjectDropdown.style.cursor = "pointer";
-                document.getElementById("selected-subject").textContent = "Chargement des matières...";
-                
-                // Filter subjects based on selected professor
-                filterSubjectsByProfessor(professorId);
+            showModalWithAnimation("class-modal");
+        }
+
+        function openEditModal(day, time) {
+            const data = timetableData[day][time];
+            if (!data) return;
+
+            document.getElementById("modal-title").textContent = "Modifier un Cours";
+            document.getElementById("edit-day").value = day;
+            document.getElementById("edit-time").value = time;
+            document.getElementById("edit-id").value = data.id || "";
+            document.getElementById("edit-color").value = data.color;
+
+            // Fill form with existing data
+            document.getElementById("selected-professor").textContent = data.professor || "Sélectionner un professeur";
+            if (data.professor_id) {
+                document.getElementById("selected-professor").setAttribute("data-id", data.professor_id);
+            }
+            
+            // Enable subject dropdown since we have a professor
+            document.getElementById("subject-dropdown").removeAttribute("disabled");
+            document.getElementById("selected-subject").textContent = data.subject || "Sélectionner une matière";
+            if (data.subject_id) {
+                document.getElementById("selected-subject").setAttribute("data-id", data.subject_id);
+            }
+            
+            document.getElementById("selected-room").textContent = data.room || "Sélectionner une salle";
+            
+            // Set course type if available
+            if (data.class_type) {
+                document.getElementById("selected-course-type").textContent = data.class_type;
+            }
+
+            showModalWithAnimation("class-modal");
+        }
+
+        // Load saved timetable data
+        function loadSavedData() {
+            // First initialize with empty timetable
+            initTimetableData();
+            
+            // Construct the correct API URL using window.location
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/get_timetable.php`;
+            
+            // Add query parameters
+            const params = new URLSearchParams({
+                year: currentYear,
+                group: currentGroup,
+                admin: 'true'
             });
-        });
-
-        function filterSubjectsByProfessor(professorId) {
-            // Fetch subjects assigned to this professor from the database
-            if (!professorId) {
-                document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
-                subjectDropdown.setAttribute("disabled", "disabled");
-                return;
-            }
             
-            console.log('Fetching subjects for professor ID:', professorId);
+            console.log("Loading timetable data from:", `${apiUrl}?${params.toString()}`);
             
-            // Clear existing subject menu items
-            const subjectMenu = document.getElementById("subject-menu");
-            subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Chargement...</div>';
-            
-            // Make an AJAX call to get the subjects for this professor
-            // Use a full URL path to test
-            const baseUrl = window.location.protocol + '//' + window.location.hostname;
-            const apiUrl = baseUrl + '/PI-php/src/api/get_professor_subjects.php?professor_id=' + professorId;
-            console.log('Requesting API URL:', apiUrl);
-            /*kaber*/
-            fetch(apiUrl)
+            // Try to load from server
+            fetch(`${apiUrl}?${params.toString()}`)
             .then(response => {
-                console.log('API response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('API response data:', data);
+                console.log("Server response for timetable data:", data);
                 
+                if (data && data.success !== false && data.data) {
+                    // We found saved data, load it
+                    console.log("Received timetable data:", data.data);
+                    
+                    // Make sure we have a properly structured timetableData object
+                    timetableData = {};
+                    
+                    // Initialize the structure for all days and time slots
+                    days.forEach(day => {
+                        timetableData[day] = {};
+                        timeSlots.forEach(time => {
+                            timetableData[day][time] = null;
+                        });
+                    });
+                    
+                    // Now populate with the received data
+                    for (const day in data.data) {
+                        if (!timetableData[day]) {
+                            timetableData[day] = {};
+                        }
+                        
+                        for (const time in data.data[day]) {
+                            timetableData[day][time] = data.data[day][time];
+                        }
+                    }
+                    
+                    console.log("Processed timetable data:", timetableData);
+                    
+                    generateEmptyTimetable(); // This will actually display the loaded data
+                    showToast("success", `Emploi du temps chargé pour ${currentYear}-${currentGroup}`);
+                    
+                    // Update URL with current year and group
+                    updateUrlWithYearAndGroup(currentYear, currentGroup);
+                    
+                    // Set published flag based on the server response
+                    isCurrentlyPublished = data.is_published || false;
+                    hasDraftChanges = data.has_draft_changes || false;
+                    hasUnsavedChanges = false;
+                    updatePublishStatus();
+                } else {
+                    // No saved data found, keep the empty timetable
+                    console.log("No timetable data found or invalid response");
+                    generateEmptyTimetable();
+                    showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
+                    
+                    // Update URL with current year and group
+                    updateUrlWithYearAndGroup(currentYear, currentGroup);
+                    
+                    isCurrentlyPublished = false;
+                    hasDraftChanges = false;
+                    hasUnsavedChanges = false;
+                    updatePublishStatus();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading timetable data:', error);
+                showToast("error", "Erreur lors du chargement des données. Vérifiez votre connexion et le chemin du projet.");
+                generateEmptyTimetable();
+                isCurrentlyPublished = false;
+                hasDraftChanges = false;
+                hasUnsavedChanges = false;
+                updatePublishStatus();
+            });
+        }
+
+        // Function to update URL with current year and group without reloading the page
+        function updateUrlWithYearAndGroup(year, group) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('year', year);
+            url.searchParams.set('group', group);
+            window.history.replaceState({}, '', url);
+        }
+
+        // Filter subjects based on professor ID
+        function filterSubjectsByProfessor(professorId) {
+            // Fetch subjects assigned to this professor from the database
+            if (!professorId) {
+                document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
+                document.getElementById("subject-dropdown").setAttribute("disabled", "disabled");
+                return;
+            }
+            
+            // Clear existing subject menu items
+            const subjectMenu = document.getElementById("subject-menu");
+            subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Chargement...</div>';
+            
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/get_professor_subjects.php?professor_id=${professorId}`;
+            
+            console.log("Fetching professor subjects from:", apiUrl);
+            
+            fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Professor subjects response:", data);
                 if (data.success && data.subjects && data.subjects.length > 0) {
                     // Clear current menu
                     subjectMenu.innerHTML = '';
@@ -1955,7 +2052,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                         item.className = "dropdown-item";
                         item.setAttribute("data-value", subject.name);
                         item.setAttribute("data-id", subject.id);
-                        item.setAttribute("data-color", subject.color || "#3b82f6");
+                        item.setAttribute("data-color", subject.color);
                         
                         // Show subject name and code if available
                         const displayText = subject.code ? 
@@ -1973,7 +2070,7 @@ $groupsByYear[$currentYear][0] : 'G1');
                             document.getElementById("selected-subject").setAttribute("data-id", subjectId);
                             document.getElementById("edit-color").value = color;
                             subjectMenu.classList.remove("open");
-                            subjectDropdown.classList.remove("active"); // Retirer la classe active
+                            document.getElementById("subject-dropdown").classList.remove("active");
                         });
                         
                         subjectMenu.appendChild(item);
@@ -1996,446 +2093,37 @@ $groupsByYear[$currentYear][0] : 'G1');
                 subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Erreur lors du chargement des matières</div>';
             });
         }
-
-        // Subject dropdown handling
-        subjectDropdown.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Only allow opening if not disabled
-            if (!this.hasAttribute("disabled")) {
-                toggleDropdown(subjectDropdown, subjectMenu);
-            }
-        });
-
-        document.querySelectorAll("#subject-menu .dropdown-item").forEach(item => {
-            item.addEventListener("click", function() {
-                const subject = this.getAttribute("data-value");
-                const subjectId = this.getAttribute("data-id") || null;
-                const color = this.getAttribute("data-color") || "#3b82f6";
-                
-                document.getElementById("selected-subject").textContent = subject;
-                document.getElementById("selected-subject").setAttribute("data-id", subjectId);
-                document.getElementById("edit-color").value = color;
-                subjectMenu.classList.remove("open");
-                subjectDropdown.classList.remove("active"); // Retirer la classe active
-            });
-        });
-
-        // Room dropdown handling
-        const roomDropdown = document.getElementById("room-dropdown");
-        const roomMenu = document.getElementById("room-menu");
-
-        roomDropdown.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleDropdown(roomDropdown, roomMenu);
-        });
-
-        document.querySelectorAll("#room-menu .dropdown-item").forEach(item => {
-            item.addEventListener("click", function() {
-                document.getElementById("selected-room").textContent = this.getAttribute("data-value");
-                roomMenu.classList.remove("open");
-                roomDropdown.classList.remove("active"); // Retirer la classe active
-            });
-        });
-
-        // Course type dropdown handling
-        const courseTypeDropdown = document.getElementById("course-type-dropdown");
-        const courseTypeMenu = document.getElementById("course-type-menu");
-
-        courseTypeDropdown.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleDropdown(courseTypeDropdown, courseTypeMenu);
-        });
-
-        document.querySelectorAll("#course-type-menu .dropdown-item").forEach(item => {
-            item.addEventListener("click", function() {
-                const courseType = this.getAttribute("data-value");
-                const color = this.getAttribute("data-color");
-                
-                document.getElementById("selected-course-type").textContent = courseType;
-                document.getElementById("edit-color").value = color;
-                courseTypeMenu.classList.remove("open");
-                courseTypeDropdown.classList.remove("active");
-            });
-        });
-
-        function openAddModal(day, time) {
-            document.getElementById("modal-title").textContent = "Ajouter un Cours";
-            document.getElementById("edit-day").value = day;
-            document.getElementById("edit-time").value = time;
-            document.getElementById("edit-id").value = ""; // New class
-
-            // Reset dropdowns
-            document.getElementById("selected-professor").textContent = "Sélectionner un professeur";
-            document.getElementById("selected-professor").removeAttribute("data-id");
-            document.getElementById("selected-subject").textContent = "Sélectionner un professeur d'abord";
-            document.getElementById("selected-room").textContent = "Sélectionner une salle";
-            document.getElementById("selected-course-type").textContent = "CM";
-            document.getElementById("edit-color").value = "#6b7280"; // Default grey color for CM
-            
-            // Disable subject dropdown until professor is selected
-            const subjectDropdown = document.getElementById("subject-dropdown");
-            subjectDropdown.setAttribute("disabled", "disabled");
-            subjectDropdown.style.backgroundColor = "#f1f5f9"; // Light grey background
-            subjectDropdown.style.cursor = "not-allowed";
-
-            showModalWithAnimation("class-modal");
-        }
-
-        function openEditModal(day, time) {
-            const data = timetableData[day][time];
-            if (!data) return;
-
-            document.getElementById("modal-title").textContent = "Modifier un Cours";
-            document.getElementById("edit-day").value = day;
-            document.getElementById("edit-time").value = time;
-            document.getElementById("edit-id").value = data.id || "";
-            document.getElementById("edit-color").value = data.color || "#3b82f6";
-
-            // Fill form with existing data - use professor name
-            document.getElementById("selected-professor").textContent = data.professor || "Sélectionner un professeur";
-            if (data.professor_id) {
-                document.getElementById("selected-professor").setAttribute("data-id", data.professor_id);
-            }
-            
-            // Enable subject dropdown since we have a professor
-            document.getElementById("subject-dropdown").removeAttribute("disabled");
-            document.getElementById("selected-subject").textContent = data.subject || "Sélectionner une matière";
-            if (data.subject_id) {
-                document.getElementById("selected-subject").setAttribute("data-id", data.subject_id);
-            }
-            
-            document.getElementById("selected-room").textContent = data.room || "Sélectionner une salle";
-
-            showModalWithAnimation("class-modal");
-        }
-
-        closeBtn.addEventListener("click", function() {
-            closeModalWithAnimation("class-modal");
-        });
-
-        cancelBtn.addEventListener("click", function() {
-            closeModalWithAnimation("class-modal");
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener("click", function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeModalWithAnimation(event.target.id);
-            }
-        });
-
-        // Form submission
-        classForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const day = document.getElementById("edit-day").value;
-            const time = document.getElementById("edit-time").value;
-            const id = document.getElementById("edit-id").value || new Date().getTime().toString();
-            const color = document.getElementById("edit-color").value || "#3b82f6";
-
-            const professorElement = document.getElementById("selected-professor");
-            const subjectElement = document.getElementById("selected-subject");
-            const roomElement = document.getElementById("selected-room");
-            
-            const professor = professorElement.textContent;
-            const professorId = professorElement.getAttribute("data-id");
-            const subject = subjectElement.textContent;
-            const subjectId = subjectElement.getAttribute("data-id");
-            const room = roomElement.textContent;
-
-            // Validate professor first
-            if (professor === "Sélectionner un professeur") {
-                showToast("error", "Veuillez sélectionner un professeur");
-                return;
-            }
-            
-            // Then validate subject - make it mandatory
-            if (subject === "Sélectionner une matière" || 
-                subject === "Aucune matière disponible" ||
-                subject === "Erreur lors du chargement des matières" ||
-                subject === "Chargement des matières...") {
-                showToast("error", "Veuillez sélectionner une matière");
-                return;
-            }
-            
-            // Finally validate room
-            if (room === "Sélectionner une salle") {
-                showToast("error", "Veuillez sélectionner une salle");
-                return;
-            }
-
-            // Save data with IDs for database storage
-            timetableData[day][time] = {
-                id: id,
-                subject: subject,
-                subject_id: subjectId,
-                professor: professor,
-                professor_id: professorId,
-                room: room,
-                color: color,
-                year: currentYear,
-                group: currentGroup
-            };
-
-            // Mark that we have unsaved changes
-            hasUnsavedChanges = true;
-            updatePublishStatus();
-            
-            // Regenerate table
-            generateEmptyTimetable();
-
-            // Close modal
-            closeModalWithAnimation("class-modal");
-
-            showToast("success", "Cours enregistré ! N'oubliez pas d'utiliser le bouton Enregistrer pour sauvegarder les modifications");
-        });
-
-        // Create toast notification element
-        function createToastElement() {
-            if (document.getElementById("toast-notification")) return;
-
-            const toast = document.createElement("div");
-            toast.id = "toast-notification";
-            toast.className = "toast";
-            document.body.appendChild(toast);
-        }
-        createToastElement();
-
-        // Show toast message
-        function showToast(type, message) {
-            const toast = document.getElementById("toast-notification");
-            toast.textContent = message;
-            toast.className = "toast";
-
-            if (type === "success") {
-                toast.classList.add("toast-success");
-            } else if (type === "error") {
-                toast.classList.add("toast-error");
-            } else {
-                toast.classList.add("bg-blue-500", "text-white");
-            }
-
-            toast.classList.add("show");
-
-            setTimeout(() => {
-                toast.classList.remove("show");
-            }, 3000);
-        }
-
-        // Load saved timetable data
-        function loadSavedData() {
-            // First initialize with empty timetable
-            initTimetableData();
-            
-            // Try to load from server
-            fetch(`../api/get_timetable.php?year=${encodeURIComponent(currentYear)}&group=${encodeURIComponent(currentGroup)}&admin=true`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.success !== false && data.data) {
-                    // We found saved data, load it
-                    timetableData = data.data;
-                    generateEmptyTimetable(); // This will actually display the loaded data
-                    showToast("success", `Emploi du temps chargé pour ${currentYear}-${currentGroup}`);
-                    
-                    // Update URL with current year and group
-                    updateUrlWithYearAndGroup(currentYear, currentGroup);
-                    
-                    // Set published flag based on the server response
-                    isCurrentlyPublished = data.is_published || false;
-                    hasDraftChanges = data.has_draft_changes || false;
-                    hasUnsavedChanges = false;
-                    updatePublishStatus();
-                    console.log('Loaded timetable with published status:', isCurrentlyPublished, 'draft changes:', hasDraftChanges);
-                } else {
-                    // No saved data found, keep the empty timetable
-                    generateEmptyTimetable();
-                    showToast("info", `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`);
-                    
-                    // Update URL with current year and group
-                    updateUrlWithYearAndGroup(currentYear, currentGroup);
-                    
-                    isCurrentlyPublished = false;
-                    hasDraftChanges = false;
-                    hasUnsavedChanges = false;
-                    updatePublishStatus();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading timetable data:', error);
-                // Show error toast
-                showToast("error", "Erreur lors du chargement des données");
-                // Just use empty timetable
-                generateEmptyTimetable();
-                isCurrentlyPublished = false;
-                hasDraftChanges = false;
-                hasUnsavedChanges = false;
-                updatePublishStatus();
-            });
-        }
-
-        // Function to update URL with current year and group without reloading the page
-        function updateUrlWithYearAndGroup(year, group) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('year', year);
-            url.searchParams.set('group', group);
-            window.history.replaceState({}, '', url);
-        }
-
-        // Warn user when leaving with unsaved changes using custom modal
-        window.addEventListener('beforeunload', function(e) {
-            if (hasUnsavedChanges) {
-                e.preventDefault();
-                e.returnValue = '';
-                return '';
-            }
-        });
         
-        // Add navigation handling for back button
-        document.querySelector('a[href="../admin/index.php"]').addEventListener('click', function(e) {
-            if (hasUnsavedChanges) {
-                e.preventDefault();
-                const href = this.getAttribute('href');
-                showUnsavedChangesWarning(function() {
-                    window.location.href = href;
-                });
-            }
-        });
-        
-        // Load any saved data on initial load
-        loadSavedData(); // Actually load data instead of just initializing empty
-        
-        // Set up the delete confirmation button
-        document.getElementById("delete-class-confirm").addEventListener("click", function() {
-            if (deleteClassDay && deleteClassTime) {
-                // Delete the class
-                timetableData[deleteClassDay][deleteClassTime] = null;
-                
-                // Mark as unsaved changes
-                hasUnsavedChanges = true;
-                updatePublishStatus();
-                
-                // Regenerate timetable
-                generateEmptyTimetable();
-                
-                // Show success message
-                showToast("success", "Cours supprimé! N'oubliez pas de sauvegarder vos modifications.");
-                
-                // Close modal
-                closeModalWithAnimation("delete-class-modal");
-                
-                // Reset variables
-                deleteClassDay = null;
-                deleteClassTime = null;
-            }
-        });
-
-        // Modal handling for professor conflict
-        document.getElementById("professor-conflict-close").addEventListener("click", function() {
-            closeModalWithAnimation("professor-conflict-modal");
-        });
-        
-        document.getElementById("conflict-cancel").addEventListener("click", function() {
-            closeModalWithAnimation("professor-conflict-modal");
-        });
-
-        // Form submission
-        classForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const day = document.getElementById("edit-day").value;
-            const time = document.getElementById("edit-time").value;
-            const id = document.getElementById("edit-id").value || new Date().getTime().toString();
-            const color = document.getElementById("edit-color").value || "#3b82f6";
-
-            const professorElement = document.getElementById("selected-professor");
-            const subjectElement = document.getElementById("selected-subject");
-            const roomElement = document.getElementById("selected-room");
-            
-            const professor = professorElement.textContent;
-            const professorId = professorElement.getAttribute("data-id");
-            const subject = subjectElement.textContent;
-            const subjectId = subjectElement.getAttribute("data-id");
-            const room = roomElement.textContent;
-
-            // Validate professor first
-            if (professor === "Sélectionner un professeur") {
-                showToast("error", "Veuillez sélectionner un professeur");
-                return;
-            }
-            
-            // Then validate subject - make it mandatory
-            if (subject === "Sélectionner une matière" || 
-                subject === "Aucune matière disponible" ||
-                subject === "Erreur lors du chargement des matières" ||
-                subject === "Chargement des matières...") {
-                showToast("error", "Veuillez sélectionner une matière");
-                return;
-            }
-            
-            // Finally validate room
-            if (room === "Sélectionner une salle") {
-                showToast("error", "Veuillez sélectionner une salle");
-                return;
-            }
-            
-            // Create class data object
-            const classData = {
-                id: id,
-                subject: subject,
-                subject_id: subjectId,
-                professor: professor,
-                professor_id: professorId,
-                room: room,
-                color: color,
-                year: currentYear,
-                group: currentGroup
-            };
-            
-            // Check professor availability
-            checkProfessorAvailability(professorId, day, time, currentYear, currentGroup, function(isAvailable, conflicts) {
-                if (isAvailable) {
-                    // No conflicts, save the class
-                    saveClassData(classData, day, time);
-                } else {
-                    // Remove any data from this time slot to ensure conflicts aren't saved
-                    if (timetableData[day] && timetableData[day][time]) {
-                        timetableData[day][time] = null;
-                    }
-                    
-                    // Show conflict modal and do NOT save the class
-                    showProfessorConflict(conflicts, classData);
-                    
-                    // Close the class modal
-                    closeModalWithAnimation("class-modal");
-                }
-            });
-        });
-        
-        // Function to check professor availability
+        // Check professor availability to avoid conflicts
         function checkProfessorAvailability(professorId, day, time, year, group, callback) {
-            // Prepare data for the API call
             const data = {
                 professor_id: professorId,
                 day: day,
-                time: time,
+                time_slot: time,
                 year: year,
                 group: group
             };
             
-            // Make API call to check availability
-            fetch('../api/check_professor_availability.php', {
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/check_professor_availability.php`;
+            
+            console.log("Checking professor availability with data:", data);
+            
+            fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log("Professor availability response:", data);
                 if (data.success) {
                     callback(data.available, data.conflicts);
                 } else {
@@ -2446,12 +2134,61 @@ $groupsByYear[$currentYear][0] : 'G1');
             })
             .catch(error => {
                 console.error('Error checking professor availability:', error);
-                // Network error, assume available to prevent blocking
                 callback(true, []);
             });
         }
         
-        // Function to display professor conflict
+        // Check room availability to avoid conflicts
+        function checkRoomAvailability(roomId, day, time, year, group, callback) {
+            const data = {
+                room: roomId,
+                day: day,
+                time_slot: time,
+                year: year,
+                group: group
+            };
+            
+            // If professor_id is provided, include it
+            const professorElement = document.getElementById("selected-professor");
+            if (professorElement && professorElement.getAttribute("data-id")) {
+                data.professor_id = professorElement.getAttribute("data-id");
+            }
+            
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/check_room_availability.php`;
+            
+            console.log("Checking room availability with data:", data);
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Room availability response:", data);
+                if (data.success) {
+                    callback(data.available, data.conflicts);
+                } else {
+                    // API error, assume available to prevent blocking
+                    console.error('Error checking room availability:', data.message);
+                    callback(true, []);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking room availability:', error);
+                callback(true, []);
+            });
+        }
+        
+        // Display professor conflict in modal
         function showProfessorConflict(conflicts, classData) {
             // Generate conflict details HTML
             const conflictDetailsElement = document.getElementById('conflict-details');
@@ -2459,43 +2196,284 @@ $groupsByYear[$currentYear][0] : 'G1');
             
             conflicts.forEach(conflict => {
                 conflictHtml += `
-                    <div>
-                        <p><span class="font-semibold">Professeur:</span> ${classData.professor}</p>
+                    <div class="mb-4 p-2">
+                        <p><span class="font-semibold">Professeur:</span> ${conflict.professor || classData.professor}</p>
                         <p><span class="font-semibold">Jour:</span> ${conflict.day}</p>
                         <p><span class="font-semibold">Heure:</span> ${conflict.time}</p>
                         <p><span class="font-semibold">Année:</span> ${conflict.year}</p>
                         <p><span class="font-semibold">Groupe:</span> ${conflict.group}</p>
                         <p><span class="font-semibold">Matière:</span> ${conflict.subject}</p>
+                        <p><span class="font-semibold">Salle:</span> ${conflict.room}</p>
                     </div>
                 `;
             });
             
             conflictDetailsElement.innerHTML = conflictHtml;
-            
-            // Show the conflict modal
             showModalWithAnimation("professor-conflict-modal");
-            
-            // Refresh the timetable to ensure any temporary changes are removed
-            generateEmptyTimetable();
         }
         
-        // Function to save class data
+        // Display room conflict in modal
+        function showRoomConflict(conflicts, classData) {
+            // Generate conflict details HTML
+            const conflictDetailsElement = document.getElementById('room-conflict-details');
+            let conflictHtml = '';
+            
+            conflicts.forEach(conflict => {
+                conflictHtml += `
+                    <div class="mb-4 p-2">
+                        <p><span class="font-semibold">Salle:</span> ${conflict.room || classData.room}</p>
+                        <p><span class="font-semibold">Jour:</span> ${conflict.day}</p>
+                        <p><span class="font-semibold">Heure:</span> ${conflict.time}</p>
+                        <p><span class="font-semibold">Année:</span> ${conflict.year}</p>
+                        <p><span class="font-semibold">Groupe:</span> ${conflict.group}</p>
+                        <p><span class="font-semibold">Matière:</span> ${conflict.subject}</p>
+                        <p><span class="font-semibold">Professeur:</span> ${conflict.professor}</p>
+                    </div>
+                `;
+            });
+            
+            conflictDetailsElement.innerHTML = conflictHtml;
+            showModalWithAnimation("room-conflict-modal");
+        }
+        
+        // Function to save class data after validations
         function saveClassData(classData, day, time) {
-            // Save to timetable data
+            console.log("Saving class data:", { classData, day, time });
+            
+            // Ensure the day object exists
+            if (!timetableData[day]) {
+                timetableData[day] = {};
+            }
+            
+            // Now we can safely set the time slot
             timetableData[day][time] = classData;
             
-            // Mark that we have unsaved changes
             hasUnsavedChanges = true;
             updatePublishStatus();
-            
-            // Regenerate table
             generateEmptyTimetable();
-            
-            // Close modal
             closeModalWithAnimation("class-modal");
-            
             showToast("success", "Cours enregistré ! N'oubliez pas d'utiliser le bouton Enregistrer pour sauvegarder les modifications");
         }
+        
+        // Form submission handler
+        document.getElementById("class-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const day = document.getElementById("edit-day").value;
+            const time = document.getElementById("edit-time").value;
+            const id = document.getElementById("edit-id").value || new Date().getTime().toString();
+            const color = document.getElementById("edit-color").value;
+
+            const professorElement = document.getElementById("selected-professor");
+            const subjectElement = document.getElementById("selected-subject");
+            const roomElement = document.getElementById("selected-room");
+            
+            const professor = professorElement.textContent;
+            const professorId = professorElement.getAttribute("data-id");
+            const subject = subjectElement.textContent;
+            const subjectId = subjectElement.getAttribute("data-id");
+            const room = roomElement.textContent;
+            const roomId = room; // For now, use room name as ID
+            
+            console.log("Form submission values:", {
+                day, time, id, color, professor, professorId, subject, subjectId, room, roomId
+            });
+
+            // Validate inputs
+            if (professor === "Sélectionner un professeur") {
+                showToast("error", "Veuillez sélectionner un professeur");
+                return;
+            }
+            
+            if (subject === "Sélectionner une matière" || 
+                subject === "Aucune matière disponible" ||
+                subject === "Erreur lors du chargement des matières" ||
+                subject === "Chargement des matières..." ||
+                subject === "Sélectionner un professeur d'abord") {
+                showToast("error", "Veuillez sélectionner une matière");
+                return;
+            }
+            
+            if (room === "Sélectionner une salle") {
+                showToast("error", "Veuillez sélectionner une salle");
+                return;
+            }
+            
+            // Get the current course type
+            const courseTypeElement = document.getElementById("selected-course-type");
+            const courseType = courseTypeElement.textContent;
+            
+            // Create class data object
+            const classData = {
+                id: id,
+                subject: subject,
+                subject_id: subjectId,
+                professor: professor,
+                professor_id: professorId,
+                room: room,
+                room_id: roomId, // Add room_id to data
+                color: color,
+                class_type: courseType, // Add class_type to data
+                year: currentYear,
+                group: currentGroup
+            };
+            
+            console.log("Class data prepared:", classData);
+            
+            // Make sure timetableData is properly initialized
+            if (!timetableData) {
+                console.log("timetableData was null, initializing");
+                initTimetableData();
+            }
+            
+            // Ensure the day object exists
+            if (!timetableData[day]) {
+                console.log(`Day ${day} not found in timetableData, creating it`);
+                timetableData[day] = {};
+            }
+            
+            // Check professor availability first
+            checkProfessorAvailability(professorId, day, time, currentYear, currentGroup, function(isProfessorAvailable, professorConflicts) {
+                if (isProfessorAvailable) {
+                    // No professor conflicts, now check room availability
+                    checkRoomAvailability(roomId, day, time, currentYear, currentGroup, function(isRoomAvailable, roomConflicts) {
+                        if (isRoomAvailable) {
+                            // No conflicts, save the class
+                            console.log("No conflicts found, saving class data");
+                            saveClassData(classData, day, time);
+                        } else {
+                            // Room conflict found
+                            console.log("Room conflict found:", roomConflicts);
+                            // Remove any data from this time slot to ensure conflicts aren't saved
+                            if (timetableData[day] && timetableData[day][time]) {
+                                timetableData[day][time] = null;
+                            }
+                            
+                            // Show room conflict modal
+                            showRoomConflict(roomConflicts, classData);
+                            closeModalWithAnimation("class-modal");
+                        }
+                    });
+                } else {
+                    // Professor conflict found
+                    console.log("Professor conflict found:", professorConflicts);
+                    // Remove any data from this time slot to ensure conflicts aren't saved
+                    if (timetableData[day] && timetableData[day][time]) {
+                        timetableData[day][time] = null;
+                    }
+                    
+                    // Show conflict modal
+                    showProfessorConflict(professorConflicts, classData);
+                    closeModalWithAnimation("class-modal");
+                }
+            });
+        });
+        
+        // Warn user when leaving page with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
+        
+        // Handle back button navigation
+        document.querySelector('a[href="../admin/index.php"]').addEventListener('click', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                showUnsavedChangesWarning(function() {
+                    window.location.href = href;
+                });
+            }
+        });
+        
+        // Load saved data on initial page load
+        loadSavedData();
+
+        // Delete class confirmation handler
+        document.getElementById("delete-class-confirm").addEventListener("click", function() {
+            if (deleteClassDay && deleteClassTime) {
+                // Get the class data before deleting it
+                const classToDelete = timetableData[deleteClassDay][deleteClassTime];
+                
+                console.log("Deleting class:", { day: deleteClassDay, time: deleteClassTime, class: classToDelete });
+                
+                // Delete from in-memory timetable
+                timetableData[deleteClassDay][deleteClassTime] = null;
+                
+                // Since we're deleting directly from the database, don't mark as unsaved changes
+                // hasUnsavedChanges = true; - REMOVED THIS LINE
+                updatePublishStatus();
+                
+                // Also delete from database to make it permanent
+                const baseUrl = window.location.origin;
+                const projectPath = '/PI-php';
+                const apiUrl = `${baseUrl}${projectPath}/src/api/delete_class.php`;
+                
+                const deleteData = {
+                    year: currentYear,
+                    group: currentGroup,
+                    day: deleteClassDay,
+                    time_slot: deleteClassTime
+                };
+                
+                console.log("Sending delete request with data:", deleteData);
+                
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(deleteData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Delete response:", data);
+                    if (data.success) {
+                        // Show success message
+                        showToast("success", "Cours supprimé avec succès");
+                    } else {
+                        showToast("error", data.message || "Erreur lors de la suppression du cours");
+                        console.error("Delete error:", data);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting class:", error);
+                    showToast("error", "Erreur lors de la suppression du cours");
+                });
+                
+                // Regenerate timetable
+                generateEmptyTimetable();
+                
+                // Close modal
+                closeModalWithAnimation("delete-class-modal");
+                
+                // Reset variables
+                deleteClassDay = null;
+                deleteClassTime = null;
+            }
+        });
+
+        // Professor conflict modal handlers
+        document.getElementById("conflict-cancel").addEventListener("click", function() {
+            closeModalWithAnimation("professor-conflict-modal");
+        });
+        
+        // Room conflict modal handlers
+        document.getElementById("room-conflict-cancel").addEventListener("click", function() {
+            closeModalWithAnimation("room-conflict-modal");
+        });
+        
+        document.getElementById("room-conflict-close").addEventListener("click", function() {
+            closeModalWithAnimation("room-conflict-modal");
+        });
+        
+        // No longer needed - removed resetClassStatus function
     });
 </script>
 </body>

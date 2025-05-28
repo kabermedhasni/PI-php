@@ -2,10 +2,6 @@
 session_start();
 require_once '../includes/db.php';
 
-// Basic error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     // Not logged in, redirect to login page
@@ -30,13 +26,19 @@ if ($_SESSION['role'] === 'professor') {
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Sélection Professeur - Mode Debug</h1>
-            <a href="../admin/index.php" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                Retour au Tableau de Bord
-            </a>
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="w-full bg-gradient-to-tr from-purple-800 to-purple-600 p-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-white">Sélection Professeur - Mode Debug</h1>
+                <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center border border-white/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour au Tableau de Bord
+                </a>
+            </div>
         </div>
+        <div class="p-6">
         
         <p class="mb-6 text-gray-600">
             Sélectionnez un professeur pour visualiser son emploi du temps.
@@ -62,6 +64,7 @@ if ($_SESSION['role'] === 'professor') {
                 echo '<p class="col-span-full text-red-500">Erreur: ' . $e->getMessage() . '</p>';
             }
             ?>
+        </div>
         </div>
     </div>
 </body>

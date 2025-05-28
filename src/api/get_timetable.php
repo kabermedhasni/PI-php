@@ -1,7 +1,5 @@
 <?php
-// Allow cross-origin requests (if needed)
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
+require_once '../includes/db.php';
 
 // Get parameters from query parameters
 $year = isset($_GET['year']) ? urldecode($_GET['year']) : null;
@@ -15,195 +13,184 @@ if (!$professor_id && (!$year || !$group)) {
     exit;
 }
 
-// Define data directory
-$dir = '../timetable_data';
-
 // Helper function to get subject name from ID
 function getSubjectName($subject_id) {
-    try {
-        require_once '../includes/db.php';
-        global $pdo;
-        
-        $stmt = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
-        $stmt->execute([$subject_id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        return $result ? $result['name'] : 'Unknown Subject';
-    } catch (Exception $e) {
-        return 'Subject #' . $subject_id;
-    }
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT name FROM `subjects` WHERE id = ?");
+    $stmt->execute([$subject_id]);
+    return $stmt->fetchColumn() ?? 'Unknown Subject';
 }
 
 // Helper function to get professor name from ID
 function getProfessorName($professor_id) {
-    try {
-        require_once '../includes/db.php';
-        global $pdo;
-        
-        $stmt = $pdo->prepare("SELECT name FROM users WHERE id = ? AND role = 'professor'");
-        $stmt->execute([$professor_id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        return $result ? $result['name'] : 'Unknown Professor';
-    } catch (Exception $e) {
-        return 'Professor #' . $professor_id;
-    }
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT name FROM `users` WHERE id = ? AND role = 'professor'");
+    $stmt->execute([$professor_id]);
+    return $stmt->fetchColumn() ?? 'Unknown Professor';
 }
 
-// Define file paths based on request type
-if ($professor_id) {
-    // Professor view - we'll need to aggregate data from multiple files
-    $timetable_files = glob($dir . '/timetable_*_published.json');
-    $all_timetable_data = [];
-    
-    // Process each file to extract courses for this professor
-    foreach ($timetable_files as $file) {
-        if (file_exists($file)) {
-            $json = file_get_contents($file);
-            $data = json_decode($json, true);
+try {
+    if ($professor_id) {
+        // PROFESSOR VIEW - Get all timetable entries for this professor
+        $stmt = $pdo->prepare("
+            SELECT t.*, y.name as year_name, g.name as group_name
+            FROM `timetables` t
+            JOIN `years` y ON t.year_id = y.id
+            JOIN `groups` g ON t.group_id = g.id
+            WHERE t.professor_id = ? AND t.is_published = 1
+            ORDER BY t.day, t.time_slot
+        ");
+        $stmt->execute([$professor_id]);
+        $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Organize data by day and time slot
+        $all_timetable_data = [];
+        
+        foreach ($entries as $entry) {
+            $entry['subject'] = $entry['subject_id'] ? getSubjectName($entry['subject_id']) : null;
+            $entry['professor'] = $entry['professor_id'] ? getProfessorName($entry['professor_id']) : null;
+            $entry['year'] = $entry['year_name'];
+            $entry['group'] = $entry['group_name'];
             
-            if ($data && isset($data['data'])) {
-                // Extract year and group from filename
-                $filename = basename($file);
-                preg_match('/timetable_(.+)_(.+)_published\.json/', $filename, $matches);
-                
-                if (count($matches) === 3) {
-                    $file_year = $matches[1];
-                    $file_group = $matches[2];
-                    
-                    // Scan through each day and time slot
-                    foreach ($data['data'] as $day => $times) {
-                        foreach ($times as $time => $course) {
-                            if ($course && isset($course['professor_id']) && $course['professor_id'] == $professor_id) {
-                                // This course belongs to the requested professor
-                                // Add year and group information if not already set
-                                if (!isset($course['year'])) {
-                                    $course['year'] = $file_year;
-                                }
-                                if (!isset($course['group'])) {
-                                    $course['group'] = $file_group;
-                                }
-                                
-                                // Make sure subject and other required fields are included
-                                if (!isset($course['subject']) && isset($course['subject_id'])) {
-                                    $course['subject'] = getSubjectName($course['subject_id']);
-                                }
-                                
-                                // Make sure professor name is set
-                                if (!isset($course['professor']) && isset($course['professor_id'])) {
-                                    $course['professor'] = getProfessorName($course['professor_id']);
-                                }
-                                
-                                // Add to the results
-                                if (!isset($all_timetable_data[$day])) {
-                                    $all_timetable_data[$day] = [];
-                                }
-                                
-                                if (!isset($all_timetable_data[$day][$time])) {
-                                    $all_timetable_data[$day][$time] = [];
-                                }
-                                
-                                // Add course to the array for this time slot
-                                $all_timetable_data[$day][$time][] = $course;
-                            }
-                        }
-                    }
-                }
+            if (!isset($all_timetable_data[$entry['day']])) {
+                $all_timetable_data[$entry['day']] = [];
             }
+            if (!isset($all_timetable_data[$entry['day']][$entry['time_slot']])) {
+                $all_timetable_data[$entry['day']][$entry['time_slot']] = [];
+            }
+            
+            $all_timetable_data[$entry['day']][$entry['time_slot']][] = $entry;
         }
-    }
-    
-    // Return combined data for the professor
-    if (!empty($all_timetable_data)) {
-        echo json_encode([
-            'success' => true,
-            'data' => $all_timetable_data
-        ]);
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No timetable entries found for this professor'
-        ]);
-    }
-} else {
-    // Regular year/group request - original logic
-    $published_file = $dir . '/timetable_' . $year . '_' . $group . '_published.json';
-    $admin_file = $dir . '/timetable_' . $year . '_' . $group . '.json';
-
-    // For admins, try to load the admin draft file first
-    if ($admin) {
-        if (file_exists($admin_file)) {
-            // Admin version exists
-            $json = file_get_contents($admin_file);
-            $data = json_decode($json, true);
-            
-            // Check if published version also exists
-            $has_published = file_exists($published_file);
-            
-            // Update flags
-            $data['is_published'] = $has_published;
-            
-            // If published version exists, determine if there are draft changes
-            if ($has_published && !isset($data['has_draft_changes'])) {
-                // Compare data with published version if the flag isn't already set
-                $published_json = file_get_contents($published_file);
-                $published_data = json_decode($published_json, true);
-                
-                if ($published_data && isset($published_data['data']) && isset($data['data'])) {
-                    $has_draft_changes = json_encode($data['data']) !== json_encode($published_data['data']);
-                    $data['has_draft_changes'] = $has_draft_changes;
-                } else {
-                    $data['has_draft_changes'] = true; // Cannot compare, assume changes
-                }
-            }
-            
-            echo json_encode($data);
-        } elseif (file_exists($published_file)) {
-            // Only published version exists
-            $json = file_get_contents($published_file);
-            $data = json_decode($json, true);
-            $data['is_published'] = true;
-            $data['has_draft_changes'] = false; // No draft changes if using published version
-            echo json_encode($data);
-        } else {
-            // No data found
+        
+        if (!empty($all_timetable_data)) {
             echo json_encode([
-                'success' => false, 
-                'message' => 'No timetable found for ' . $year . '-' . $group
+                'success' => true,
+                'data' => $all_timetable_data
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'No timetable entries found for this professor'
             ]);
         }
     } else {
-        // For students and professors, only show published timetables
-        if (file_exists($published_file)) {
-            $json = file_get_contents($published_file);
-            $data = json_decode($json, true);
+        // Get year_id and group_id
+        $yearStmt = $pdo->prepare("SELECT id FROM `years` WHERE name = ?");
+        $yearStmt->execute([$year]);
+        $year_id = $yearStmt->fetchColumn();
+        
+        $groupStmt = $pdo->prepare("SELECT id FROM `groups` WHERE name = ? AND year_id = ?");
+        $groupStmt->execute([$group, $year_id]);
+        $group_id = $groupStmt->fetchColumn();
+        
+        if (!$year_id || !$group_id) {
+            echo json_encode(['success' => false, 'message' => 'Invalid year or group']);
+            exit;
+        }
+        
+        // For admin view, get both published and unpublished entries
+        // For regular view, get only published entries
+        if ($admin) {
+            // Get all entries - both published and unpublished
+            $stmt = $pdo->prepare("
+                SELECT * FROM `timetables` 
+                WHERE year_id = ? AND group_id = ?
+                ORDER BY day, time_slot, is_published ASC
+            ");
+            $stmt->execute([$year_id, $group_id]);
+            $allEntries = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Ensure data structure has all required fields for proper rendering
-            if (isset($data['data'])) {
-                foreach ($data['data'] as $day => $times) {
-                    foreach ($times as $time => $course) {
-                        if ($course) {
-                            // Make sure subject and other required fields are included
-                            if (!isset($course['subject']) && isset($course['subject_id'])) {
-                                // If we have subject_id but not subject name, try to get it
-                                $data['data'][$day][$time]['subject'] = getSubjectName($course['subject_id']);
-                            }
-                            // Make sure professor name is set
-                            if (!isset($course['professor']) && isset($course['professor_id'])) {
-                                $data['data'][$day][$time]['professor'] = getProfessorName($course['professor_id']);
-                            }
-                        }
-                    }
+            // Process entries to prioritize unpublished versions over published ones
+            $entries = [];
+            $processedSlots = [];
+            
+            // First add all unpublished entries
+            foreach ($allEntries as $entry) {
+                $key = $entry['day'] . '_' . $entry['time_slot'];
+                if ($entry['is_published'] == 0) {
+                    $entries[] = $entry;
+                    $processedSlots[$key] = true;
                 }
             }
             
-            echo json_encode($data);
+            // Then add published entries that don't have an unpublished version
+            foreach ($allEntries as $entry) {
+                $key = $entry['day'] . '_' . $entry['time_slot'];
+                if ($entry['is_published'] == 1 && !isset($processedSlots[$key])) {
+                    $entries[] = $entry;
+                }
+            }
         } else {
-            // No published data found
+            // Non-admin view - only show published entries
+            $stmt = $pdo->prepare("
+                SELECT * FROM `timetables` 
+                WHERE year_id = ? AND group_id = ? AND is_published = 1
+                ORDER BY day, time_slot
+            ");
+            $stmt->execute([$year_id, $group_id]);
+            $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        // Check for published entries
+        $publishedCheckStmt = $pdo->prepare("
+            SELECT COUNT(*) FROM `timetables` 
+            WHERE year_id = ? AND group_id = ? AND is_published = 1
+        ");
+        $publishedCheckStmt->execute([$year_id, $group_id]);
+        $has_published = $publishedCheckStmt->fetchColumn() > 0;
+        
+        // Check for draft changes
+        $has_draft_changes = false;
+        if ($admin && $has_published) {
+            $draftCheckStmt = $pdo->prepare("
+                SELECT COUNT(*) FROM `timetables` 
+                WHERE year_id = ? AND group_id = ? AND is_published = 0
+            ");
+            $draftCheckStmt->execute([$year_id, $group_id]);
+            $has_draft_changes = $draftCheckStmt->fetchColumn() > 0;
+        }
+        
+        if (!empty($entries)) {
+            // Organize data by day and time slot
+            $timetable_data = [];
+            
+            foreach ($entries as $entry) {
+                if (!isset($timetable_data[$entry['day']])) {
+                    $timetable_data[$entry['day']] = [];
+                }
+                
+                // Add subject and professor names
+                $entry['subject'] = $entry['subject_id'] ? getSubjectName($entry['subject_id']) : null;
+                $entry['professor'] = $entry['professor_id'] ? getProfessorName($entry['professor_id']) : null;
+                
+                // Store entry in the appropriate time slot
+                $timetable_data[$entry['day']][$entry['time_slot']] = $entry;
+            }
+            
             echo json_encode([
-                'success' => false, 
-                'message' => 'No published timetable found for ' . $year . '-' . $group
+                'success' => true,
+                'year' => $year,
+                'group' => $group,
+                'data' => $timetable_data,
+                'is_published' => $has_published,
+                'has_draft_changes' => $has_draft_changes,
+                'last_modified' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'year' => $year,
+                'group' => $group,
+                'data' => [],
+                'is_published' => $has_published,
+                'has_draft_changes' => $has_draft_changes,
+                'message' => 'No timetable entries found'
             ]);
         }
     }
+} catch (PDOException $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error: ' . $e->getMessage()
+    ]);
 } 

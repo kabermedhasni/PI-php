@@ -20,7 +20,6 @@ function resetAutoIncrement($pdo) {
 
 // Verify admin authorization
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit;
 }
@@ -31,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'])) {
     
     // Don't allow deleting self
     if ($user_id == $_SESSION['user_id']) {
-        header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Vous ne pouvez pas supprimer votre propre compte']);
         exit;
     }
@@ -66,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'])) {
             // Reset auto-increment after successful deletion
             resetAutoIncrement($pdo);
             
-            header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'Utilisateur supprimé avec succès']);
         } else {
             throw new PDOException("Échec de la suppression de l'utilisateur");
@@ -77,11 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'])) {
             $pdo->rollBack();
         }
         
-        header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
     }
 } else {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Requête invalide']);
-}
-?> 
+} 

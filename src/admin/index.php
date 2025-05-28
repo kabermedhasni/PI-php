@@ -29,6 +29,20 @@ try {
         header("Location: ../views/login.php");
         exit;
     }
+    
+    // Récupérer le nombre de cours annulés ou reportés
+    $notificationStmt = $pdo->prepare("
+        SELECT COUNT(*) as count
+        FROM timetables t
+        JOIN users u ON t.professor_id = u.id
+        JOIN years y ON t.year_id = y.id
+        JOIN `groups` g ON t.group_id = g.id
+        JOIN subjects s ON t.subject_id = s.id
+        WHERE (t.is_canceled = 1 OR t.is_reschedule = 1)
+    ");
+    $notificationStmt->execute();
+    $notificationCount = $notificationStmt->fetchColumn();
+    
 } catch (PDOException $e) {
     error_log("Erreur de base de données dans admin.php: " . $e->getMessage());
 }
@@ -119,6 +133,54 @@ try {
                 opacity: 0;
             }
         }
+        
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .toast-error {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
         @media (max-width: 768px){
             #clear-icon-default{
                 width:35px;
@@ -143,16 +205,6 @@ try {
     </header>
     
     <main class="container mx-auto px-4 py-8">
-        <!-- Afficher un message de succès si l'opération a été effectuée -->
-        <?php if (isset($_GET['status'])): ?>
-            <?php if ($_GET['status'] === 'cleared'): ?>
-            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8" role="alert">
-                <p class="font-bold">Succès !</p>
-                <p>Toutes les données d'emploi du temps ont été effacées avec succès.</p>
-            </div>
-            <?php endif; ?>
-        <?php endif; ?>
-        
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 class="text-xl font-semibold mb-4">Bienvenue, <?php echo htmlspecialchars($admin['email']); ?> !</h2>
             <p class="text-gray-600">Utilisez les outils ci-dessous pour gérer le système d'emploi du temps.</p>
@@ -161,17 +213,21 @@ try {
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Gestion des Emplois du Temps</h2>
             <div class="flex space-x-3">
-                <form action="../utils/clear_timetables.php" method="POST" id="clear-form" class="m-0">
-                    <button type="button" id="clear-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm flex items-center">
-                        <svg id="clear-icon-default" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <svg id="clear-icon-loading" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 animate-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span id="clear-text">Effacer Tous les Emplois du Temps</span>
-                    </button>
-                </form>
+                <button type="button" id="publish-all-button" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Publier Tous les Emplois du Temps</span>
+                </button>
+                <button type="button" id="clear-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm flex items-center">
+                    <svg id="clear-icon-default" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <svg id="clear-icon-loading" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 animate-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span id="clear-text">Effacer Tous les Emplois du Temps</span>
+                </button>
             </div>
         </div>
         
@@ -186,6 +242,22 @@ try {
                     </button>
                     <button id="clear-confirm" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
                         Oui, Effacer Toutes les Données
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de confirmation pour Publier Tous les Emplois du Temps -->
+        <div id="publish-all-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-purple-600 mb-2">Confirmer la Publication</h3>
+                <p class="text-gray-700 mb-4">Êtes-vous sûr de vouloir publier TOUS les emplois du temps pour TOUTES les années et groupes ? Les emplois du temps publiés seront visibles par tous les étudiants et professeurs.</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="publish-all-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                        Annuler
+                    </button>
+                    <button id="publish-all-confirm" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                        Oui, Tout Publier
                     </button>
                 </div>
             </div>
@@ -216,6 +288,39 @@ try {
             }, 300);
         }
         
+        // Toast notification handling
+        function createToastElement() {
+            if (document.getElementById("toast-notification")) return;
+
+            const toast = document.createElement("div");
+            toast.id = "toast-notification";
+            toast.className = "toast";
+            document.body.appendChild(toast);
+        }
+        
+        function showToast(type, message) {
+            // Create toast element if it doesn't exist
+            createToastElement();
+            
+            const toast = document.getElementById("toast-notification");
+            toast.textContent = message;
+            toast.className = "toast";
+
+            if (type === "success") {
+                toast.classList.add("toast-success");
+            } else if (type === "error") {
+                toast.classList.add("toast-error");
+            } else {
+                toast.classList.add("bg-blue-500", "text-white");
+            }
+
+            toast.classList.add("show");
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+        
         // Show the modal when clicking the clear button
         document.getElementById('clear-button').addEventListener('click', function() {
             showModalWithAnimation('clear-modal');
@@ -228,7 +333,6 @@ try {
         
         // Submit the form when confirming
         document.getElementById('clear-confirm').addEventListener('click', function() {
-            const form = document.getElementById('clear-form');
             const button = document.getElementById('clear-button');
             const defaultIcon = document.getElementById('clear-icon-default');
             const loadingIcon = document.getElementById('clear-icon-loading');
@@ -246,8 +350,41 @@ try {
                 loadingIcon.classList.remove('hidden');
                 clearText.textContent = 'Suppression en cours...';
                 
-                // Submit the form
-                form.submit();
+                // Use fetch instead of form submission
+                fetch('../api/clear_timetables.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable the button and restore its appearance
+                    button.disabled = false;
+                    button.classList.remove('opacity-75');
+                    defaultIcon.classList.remove('hidden');
+                    loadingIcon.classList.add('hidden');
+                    clearText.textContent = 'Effacer Tous les Emplois du Temps';
+                    
+                    if (data.success) {
+                        showToast("success", data.message || "Tous les emplois du temps ont été effacés avec succès !");
+                        // Optionally refresh the page to show emptied timetable lists
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast("error", data.message || "Échec de l'effacement des emplois du temps.");
+                    }
+                })
+                .catch(error => {
+                    // Re-enable the button and restore its appearance
+                    button.disabled = false;
+                    button.classList.remove('opacity-75');
+                    defaultIcon.classList.remove('hidden');
+                    loadingIcon.classList.add('hidden');
+                    clearText.textContent = 'Effacer Tous les Emplois du Temps';
+                    
+                    console.error('Error clearing timetables:', error);
+                    showToast("error", "Erreur lors de l'effacement des emplois du temps.");
+                });
             }, 300);
         });
         
@@ -257,6 +394,54 @@ try {
                 closeModalWithAnimation('clear-modal');
             }
         });
+        
+        // Show the publish all modal when clicking the publish all button
+        document.getElementById('publish-all-button').addEventListener('click', function() {
+            showModalWithAnimation('publish-all-modal');
+        });
+        
+        // Hide the publish all modal when clicking cancel
+        document.getElementById('publish-all-cancel').addEventListener('click', function() {
+            closeModalWithAnimation('publish-all-modal');
+        });
+        
+        // Handle the publish all confirmation
+        document.getElementById('publish-all-confirm').addEventListener('click', function() {
+            // Hide the modal with animation
+            closeModalWithAnimation('publish-all-modal');
+            
+            // Send request to publish all timetables
+            fetch('../api/publish_all_timetables.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("success", data.message || "Tous les emplois du temps ont été publiés avec succès !");
+                    // Reload the page to refresh notifications
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showToast("error", data.message || "Échec de la publication de tous les emplois du temps.");
+                }
+            })
+            .catch(error => {
+                console.error('Error publishing all timetables:', error);
+                showToast("error", "Erreur lors de la publication de tous les emplois du temps.");
+            });
+        });
+        
+        // Close the publish all modal if clicking outside of it
+        document.getElementById('publish-all-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModalWithAnimation('publish-all-modal');
+            }
+        });
+        
+        // Create toast element on page load
+        createToastElement();
         </script>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -270,6 +455,23 @@ try {
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">Gérer les Emplois du Temps</h3>
                         <p class="mt-1 text-sm text-gray-500">Créer et modifier les emplois du temps pour toutes les années et groupes</p>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="../views/notifications.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50 relative">
+                <?php if ($notificationCount > 0): ?>
+                <div class="notification-badge"><?php echo $notificationCount > 99 ? '99+' : $notificationCount; ?></div>
+                <?php endif; ?>
+                <div class="flex items-start">
+                    <div class="bg-red-100 p-3 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">Notifications</h3>
+                        <p class="mt-1 text-sm text-gray-500">Voir les cours annulés ou reportés par les professeurs</p>
                     </div>
                 </div>
             </a>
@@ -314,25 +516,12 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Vérifier les Utilisateurs</h3>
-                        <p class="mt-1 text-sm text-gray-500">Gérer les comptes utilisateurs et les permissions</p>
+                        <h3 class="text-lg font-medium text-gray-900">Gestion des Utilisateurs</h3>
+                        <p class="mt-1 text-sm text-gray-500">Gérer les comptes et les permissions des utilisateurs ou ajouter un nouveau utilisateur</p>
                     </div>
                 </div>
             </a>
             
-            <a href="../views/manage_users.php" class="card bg-white rounded-lg shadow-md p-6 hover:bg-gray-50">
-                <div class="flex items-start">
-                    <div class="bg-green-100 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Gestion des Utilisateurs</h3>
-                        <p class="mt-1 text-sm text-gray-500">Créer et gérer les comptes utilisateurs et leurs rôles</p>
-                    </div>
-                </div>
-            </a>
         </div>
     </main>
 </body>
