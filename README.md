@@ -4,39 +4,38 @@ A PHP-based system for managing university course timetables. The application al
 
 ## Project Structure
 
-The project has been reorganized into a more structured directory layout:
+The project has the following directory layout:
 
 ```
 /src
-  /admin          - Admin-related files
+  /admin          - Admin dashboard and management interface
   /api            - API endpoints for AJAX requests
   /assets         - Static files (CSS, JS, images)
     /css          - CSS stylesheets
     /js           - JavaScript files
-    /images       - Image files
-  /core           - Core system files
-  /includes       - Shared includes (e.g., db.php)
-  /models         - Data models
-  /utils          - Utility scripts
-  /views          - User interface files
-  index.php       - Main entry point
+    /images       - Image files (including logos and icons)
+  /includes       - Shared includes (e.g., db.php for database connection)
+  /views          - User interface files for different roles
+  index.php       - Main entry point (redirects to login)
 ```
 
 ## Directory Purposes
 
-- **admin**: Contains administrative interfaces and functionality
-- **api**: Endpoints for AJAX requests (e.g., save_timetable.php, get_timetable.php)
-- **assets**: Static files like CSS, JavaScript, and images
-- **core**: Core system files, including database schema
-- **includes**: Shared files like the database connection
-- **models**: Data models and business logic
-- **utils**: Utility scripts for maintenance and special operations
-- **views**: User interface files for different user roles
+- **admin**: Contains the administrative dashboard with timetable management features
+- **api**: Endpoints for AJAX requests (e.g., save_timetable.php, get_timetable.php, publish_timetable.php)
+- **assets**: Static files like CSS, JavaScript, and images including the SupNum logo
+- **includes**: Shared files like the database connection (db.php)
+- **views**: User interface files for different user roles including:
+  - login.php - Authentication system
+  - admin_timetable.php - Main timetable management interface
+  - timetable_view.php - Timetable display for students and professors
+  - professor.php - Professor selection interface for admins
+  - notifications.php - System for managing class cancellations and reschedules
 
 ## Getting Started
 
 1. Set up a PHP environment with MySQL support
-2. Import the database schema from `src/core/timetable_schema.sql`
+2. Import the database schema
 3. Configure the database connection in `src/includes/db.php`
 4. Access the application through your web server
 
@@ -50,16 +49,17 @@ The project has been reorganized into a more structured directory layout:
 
 The database includes these main tables:
 
-- `users`: User accounts and authentication
+- `users`: User accounts with email, password (hashed), and role (admin, professor, student)
 - `years`: Academic years
 - `groups`: Student groups within each year
 - `subjects`: Academic subjects
-- `professors`: Professor information
-- `timetables`: Timetable entries with published/draft status
-
-## Notes About Reorganization
-
-The application previously had a flat structure with files in the root directory. It has been reorganized into a more maintainable directory structure with proper separation of concerns. An .htaccess file has been added to maintain compatibility with any direct links to old file locations.
+- `timetables`: Timetable entries with fields for:
+  - year_id and group_id
+  - day and time_slot
+  - subject_id and professor_id
+  - room
+  - is_published status
+  - is_canceled and is_reschedule flags for class status
 
 ## Features
 
@@ -67,41 +67,46 @@ The application previously had a flat structure with files in the root directory
 - Year and group selection to manage multiple timetables
 - Add, edit, and delete classes in real-time
 - Save and publish timetables
+- Class cancellation and rescheduling system
+- Role-based access control (admin, professor, student)
 - Responsive design that works on desktop and mobile devices
+- Authentication system with password hashing
 
 ## Setup Instructions
 
 1. Ensure you have PHP installed on your server (version 7.0 or higher recommended)
 2. Upload all files to your web server
-3. Create a MySQL database and import the schema
+3. Create a MySQL database named 'PI'
 4. Configure the database connection in `src/includes/db.php`
 5. Access the system via your web browser
 
 ## File Structure
 
+- `src/views/login.php` - Authentication system
 - `src/views/admin_timetable.php` - The main timetable interface for administrators
-- `src/views/timetable_view.php` - The timetable view for students
-- `src/views/professor.php` - The timetable view for professors
+- `src/views/timetable_view.php` - The timetable view for students and professors
+- `src/views/professor.php` - Professor selection interface for admins
 - `src/api/save_timetable.php` - Handles saving timetable data to the database
 - `src/api/publish_timetable.php` - Handles publishing timetable data
 - `src/api/get_timetable.php` - Retrieves timetable data for a specific year/group
 
 ## Usage
 
-1. Select a year and group to view/edit the corresponding timetable
-2. Click the "+" button in any cell to add a new class
-3. Fill in the class details (subject, professor, room)
-4. Click "Save" to save the class to the timetable
-5. Use the "Save Timetable" button to persist changes to the server
-6. Use the "Publish Timetable" button to make the timetable publicly available
+1. Log in with your credentials (email and password)
+2. For administrators:
+   - Select a year and group to view/edit the corresponding timetable
+   - Click the "+" button in any cell to add a new class
+   - Fill in the class details (subject, professor, room)
+   - Use the "Save Timetable" button to persist changes
+   - Use the "Publish Timetable" button to make the timetable publicly available
+3. For professors:
+   - View your teaching schedule automatically
+4. For students:
+   - View the timetable for your assigned group automatically
 
 ## Data Storage
 
-Timetable data is stored in the MySQL database in the `timetables` table with the following structure:
-
-- Each entry contains year_id, group_id, day, time_slot, subject_id, professor_id, room
-- The is_published flag indicates whether an entry is a draft (0) or published (1)
-- The system maintains both draft and published versions for change management
+Timetable data is stored in the MySQL database in the `timetables` table with fields for year_id, group_id, day, time_slot, subject_id, professor_id, room, and flags for published status, cancellations, and reschedules.
 
 ## Browser Compatibility
 
