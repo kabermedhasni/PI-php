@@ -5,6 +5,11 @@ require_once '../includes/db.php'; // Fixed path to database connection
 // Initialize an error message variable
 $error_message = "";
 
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Check if there's an error parameter in the URL
 if (isset($_GET['error'])) {
     switch ($_GET['error']) {
@@ -20,44 +25,54 @@ if (isset($_GET['error'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    
-    // Log login attempt for debugging
-    error_log("Login attempt for email: $email");
-    
-    // Validate inputs
-    if (empty($email) || empty($password)) {
-        $error_message = "Email and password are required.";
-    } 
-    else {
-        try {
-            // Fetch user data from the database with better error handling
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$user) {
-                // User not found
-                error_log("Login failed: No user found with email $email");
-                $error_message = "Invalid email.";
-            } else {
-                // Check if the password is properly hashed
-                if (password_verify($password, $user['password'])) {
-                    error_log("Login successful for user: $email");
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['role'] = $user['role'];
-                    $_SESSION['group_id'] = $user['group_id'] ?? null;
-                    redirectUserByRole($user['role']);
+    // Verify CSRF token
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $error_message = "Session expirée. Veuillez réessayer.";
+    } else {
+        // Sanitize and validate inputs
+        $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+        $password = isset($_POST['password']) ? $_POST['password'] : '';
+        
+        // Log login attempt for debugging
+        error_log("Login attempt for email: $email");
+        
+        // Validate inputs
+        if (empty($email) || empty($password) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error_message = "Email valide et mot de passe sont requis.";
+        } 
+        else {
+            try {
+                // Fetch user data from the database with better error handling
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$user) {
+                    // User not found
+                    error_log("Login failed: No user found with email $email");
+                    $error_message = "Invalid email.";
                 } else {
-                    // Password doesn't match
-                    error_log("Login failed: Incorrect password for user $email");
-                    $error_message = "Mot de passe incorrect.";
+                    // Check if the password is properly hashed
+                    if (password_verify($password, $user['password'])) {
+                        error_log("Login successful for user: $email");
+                        
+                        // Regenerate session ID to prevent session fixation
+                        session_regenerate_id(true);
+                        
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['role'] = $user['role'];
+                        $_SESSION['group_id'] = $user['group_id'] ?? null;
+                        redirectUserByRole($user['role']);
+                    } else {
+                        // Password doesn't match
+                        error_log("Login failed: Incorrect password for user $email");
+                        $error_message = "Mot de passe incorrect.";
+                    }
                 }
+            } catch (PDOException $e) {
+                error_log("Database error during login: " . $e->getMessage());
+                $error_message = "A system error occurred. Please try again later.";
             }
-        } catch (PDOException $e) {
-            error_log("Database error during login: " . $e->getMessage());
-            $error_message = "A system error occurred. Please try again later.";
         }
     }
 }
@@ -137,6 +152,9 @@ function redirectUserByRole($role) {
               />
             </div>
             
+            <!-- CSRF Protection -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>" />
+            
             <p class="subtitle">
               Connectez-vous pour consulter votre emploi du temps
             </p>
@@ -178,7 +196,7 @@ function redirectUserByRole($role) {
             </div>
             <button type="submit">Connexion</button>
             <div class="error" style="color: red;font-size: 12px;min-height: 20px; margin-top: 10px; text-align: center; margin: -15px;position: relative;top: 5px;">
-              <?php echo !empty($error_message) ? $error_message : ''; ?>
+              <?php echo !empty($error_message) ? htmlspecialchars($error_message) : ''; ?>
             </div>
             <p class="terms-notice">
               En vous connectant, vous acceptez notre

@@ -37,10 +37,10 @@ try {
             FROM `timetables` t
             JOIN `years` y ON t.year_id = y.id
             JOIN `groups` g ON t.group_id = g.id
-            WHERE t.professor_id = ? AND t.is_published = 1
+            WHERE (t.professor_id = ? OR t.professor2_id = ?) AND t.is_published = 1
             ORDER BY t.day, t.time_slot
         ");
-        $stmt->execute([$professor_id]);
+        $stmt->execute([$professor_id, $professor_id]);
         $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Organize data by day and time slot
@@ -51,6 +51,14 @@ try {
             $entry['professor'] = $entry['professor_id'] ? getProfessorName($entry['professor_id']) : null;
             $entry['year'] = $entry['year_name'];
             $entry['group'] = $entry['group_name'];
+            
+            // Add second subject and professor names if available
+            if ($entry['professor2_id']) {
+                $entry['professor2'] = getProfessorName($entry['professor2_id']);
+            }
+            if ($entry['subject2_id']) {
+                $entry['subject2'] = getSubjectName($entry['subject2_id']);
+            }
             
             if (!isset($all_timetable_data[$entry['day']])) {
                 $all_timetable_data[$entry['day']] = [];
@@ -162,6 +170,14 @@ try {
                 // Add subject and professor names
                 $entry['subject'] = $entry['subject_id'] ? getSubjectName($entry['subject_id']) : null;
                 $entry['professor'] = $entry['professor_id'] ? getProfessorName($entry['professor_id']) : null;
+                
+                // Add second subject and professor names if available
+                if ($entry['professor2_id']) {
+                    $entry['professor2'] = getProfessorName($entry['professor2_id']);
+                }
+                if ($entry['subject2_id']) {
+                    $entry['subject2'] = getSubjectName($entry['subject2_id']);
+                }
                 
                 // Store entry in the appropriate time slot
                 $timetable_data[$entry['day']][$entry['time_slot']] = $entry;

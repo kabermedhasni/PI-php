@@ -103,13 +103,22 @@ try {
                 // If there are changes, create a draft version
                 if ($existing['subject_id'] != ($course['subject_id'] ?? null) ||
                     $existing['professor_id'] != ($course['professor_id'] ?? null) ||
-                    $existing['room'] != ($course['room'] ?? null)) {
+                    $existing['room'] != ($course['room'] ?? null) ||
+                    $existing['is_split'] != ($course['is_split'] ?? 0) ||
+                    $existing['split_type'] != ($course['split_type'] ?? null) ||
+                    $existing['professor2_id'] != ($course['professor2_id'] ?? null) ||
+                    $existing['subject2_id'] != ($course['subject2_id'] ?? null) ||
+                    $existing['room2'] != ($course['room2'] ?? null) ||
+                    $existing['subgroup1'] != ($course['subgroup1'] ?? null) ||
+                    $existing['subgroup2'] != ($course['subgroup2'] ?? null) ||
+                    $existing['subgroup'] != ($course['subgroup'] ?? null)) {
                     
                     // Insert a new unpublished version
                     $insertStmt = $pdo->prepare("
                         INSERT INTO `timetables` 
-                        (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                        (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published,
+                        is_split, split_type, professor2_id, subject2_id, room2, subgroup1, subgroup2, subgroup)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $insertStmt->execute([
                         $year_id,
@@ -119,15 +128,24 @@ try {
                         $course['subject_id'] ?? null,
                         $course['professor_id'] ?? null,
                         $course['room'] ?? null,
-                        $course['class_type'] ?? null
+                        $course['class_type'] ?? null,
+                        (int)($course['is_split'] ?? 0),
+                        $course['split_type'] ?? null,
+                        $course['professor2_id'] ?? null,
+                        $course['subject2_id'] ?? null,
+                        $course['room2'] ?? null,
+                        $course['subgroup1'] ?? null,
+                        $course['subgroup2'] ?? null,
+                        $course['subgroup'] ?? null
                     ]);
                 }
             } else {
                 // Insert new entry as unpublished
                 $insertStmt = $pdo->prepare("
                     INSERT INTO `timetables` 
-                    (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published,
+                    is_split, split_type, professor2_id, subject2_id, room2, subgroup1, subgroup2, subgroup)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $insertStmt->execute([
                     $year_id,
@@ -137,7 +155,15 @@ try {
                     $course['subject_id'] ?? null,
                     $course['professor_id'] ?? null,
                     $course['room'] ?? null,
-                    $course['class_type'] ?? null
+                    $course['class_type'] ?? null,
+                    (int)($course['is_split'] ?? 0),
+                    $course['split_type'] ?? null,
+                    $course['professor2_id'] ?? null,
+                    $course['subject2_id'] ?? null,
+                    $course['room2'] ?? null,
+                    $course['subgroup1'] ?? null,
+                    $course['subgroup2'] ?? null,
+                    $course['subgroup'] ?? null
                 ]);
             }
         }

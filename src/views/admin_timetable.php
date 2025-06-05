@@ -207,13 +207,13 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 8px 12px;
+    padding: 6px 10px;
     background-color: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 0.375rem;
     cursor: pointer;
     font-weight: 500;
-    height: 38px;
+    height: 34px;
     transition: all 0.3s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     
@@ -251,16 +251,16 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     border-radius: 0.375rem;
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
     z-index: 100;
-    max-height: 210px;
+    max-height: 180px;
     overflow-y: auto;
     opacity: 0;
-    transform: translateY(-10px) rotateX(-5deg);
     transform-origin: top center;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     visibility: hidden;
     display: none; /* Start with display none to prevent initial animation */
+    border: 1px solid #e2e8f0;
     }
 
     .dropdown-menu.open {
@@ -270,6 +270,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     transform: translateY(0) rotateX(0);
     pointer-events: auto;
     animation: menuAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
     
     .dropdown-menu.closing {
@@ -277,6 +278,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     animation: menuClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
+    /* Update animations to support both top and bottom positioning */
     @keyframes menuAppear {
     0% {
         opacity: 0;
@@ -304,7 +306,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     }
 
     .dropdown-item {
-    padding: 8px 12px;
+    padding: 6px 10px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
     }
@@ -357,13 +359,15 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     .modal-content {
     background-color: white;
     max-width: 500px;
-    margin: 100px auto;
-    padding: 20px;
+    margin: 20px auto;
+    padding: 15px;
     border-radius: 0.5rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     transform: translateY(-20px);
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease;
+    max-height: 95vh;
+    /* overflow-y: auto; */
     }
     
     .modal.show .modal-content {
@@ -375,7 +379,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     }
 
     .close {
@@ -421,7 +425,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     /* Custom select styling */
     .custom-select {
     width: 100%;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border: 1px solid #e2e8f0;
     border-radius: 0.375rem;
     font-size: 0.875rem;
@@ -667,6 +671,78 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     }
     }
     }
+
+    /* Specific fix for second subgroup room dropdown */
+    #room-menu-2, #professor-menu-2, #subject-menu-2 {
+        z-index: 110; /* Higher z-index to appear above other dropdowns */
+    }
+    
+    #second-subgroup-options {
+        padding-bottom: 30px; /* Add more padding at the bottom */
+        margin-bottom: 20px; /* Add margin at the bottom */
+    }
+    
+    /* Add spacing between form sections */
+    .modal-body .mb-4:last-child {
+        margin-bottom: 30px;
+    }
+    
+    /* Radio button animation */
+    input[type="radio"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #cbd5e0;
+        border-radius: 50%;
+        outline: none;
+        position: relative;
+        margin-right: 8px;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+        vertical-align: -4px;
+    }
+    
+    input[type="radio"]:checked {
+        border-color: #4f46e5;
+        animation: radio-pulse 0.3s ease;
+    }
+    
+    @keyframes radio-pulse {
+        0% { transform: scale(0.9); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    input[type="radio"]:after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #4f46e5;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    input[type="radio"]:checked:after {
+        transform: translate(-50%, -50%) scale(1);
+        animation: radio-dot 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes radio-dot {
+        0% {
+            transform: translate(-50%, -50%) scale(0);
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
 </style>
 </head>
 <body>
@@ -793,8 +869,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 <input type="hidden" id="edit-id" />
                 <input type="hidden" id="edit-color" />
 
-                <div class="mb-4">
-                    <label for="professor-select" class="block text-sm font-medium text-gray-700 mb-1">Professeur</label>
+                <div class="mb-3">
+                    <label for="professor-select" class="block text-sm font-medium text-gray-700 mb-0.5">Professeur</label>
                     <div class="dropdown-container">
                         <button type="button" class="dropdown-button" id="professor-dropdown">
                             <span id="selected-professor">Sélectionner un professeur</span>
@@ -803,8 +879,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                             </svg>
                         </button>
                         <div class="dropdown-menu" id="professor-menu">
-                            <div class="p-2 sticky top-0 bg-white z-10">
-                                <input type="text" id="professor-search" placeholder="Rechercher un professeur..." class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            <div class="p-1.5 sticky top-0 bg-white z-10">
+                                <input type="text" id="professor-search" placeholder="Rechercher un professeur..." class="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                             </div>
                             <div id="professor-list">
                                 <?php foreach ($professorsData as $professor): ?>
@@ -817,8 +893,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="subject-select" class="block text-sm font-medium text-gray-700 mb-1">Matière</label>
+                <div class="mb-3">
+                    <label for="subject-select" class="block text-sm font-medium text-gray-700 mb-0.5">Matière</label>
                     <div class="dropdown-container">
                         <button type="button" class="dropdown-button" id="subject-dropdown" disabled>
                             <span id="selected-subject">Sélectionner un professeur d'abord</span>
@@ -836,8 +912,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="room-select" class="block text-sm font-medium text-gray-700 mb-1">Salle</label>
+                <div class="mb-3">
+                    <label for="room-select" class="block text-sm font-medium text-gray-700 mb-0.5">Salle</label>
                     <div class="dropdown-container">
                         <button type="button" class="dropdown-button" id="room-dropdown">
                             <span id="selected-room">Sélectionner une salle</span>
@@ -855,8 +931,8 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="course-type-select" class="block text-sm font-medium text-gray-700 mb-1">Type de Cours</label>
+                <div class="mb-3">
+                    <label for="course-type-select" class="block text-sm font-medium text-gray-700 mb-0.5">Type de Cours</label>
                     <div class="dropdown-container">
                         <button type="button" class="dropdown-button" id="course-type-dropdown">
                             <span id="selected-course-type">CM</span>
@@ -874,11 +950,123 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                     </div>
                 </div>
 
+                <!-- Subgroup options - initially hidden -->
+                <div id="subgroup-options" class="mb-3 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-0.5">Options de sous-groupe</label>
+                    <div class="flex items-center mb-1">
+                        <input type="radio" id="subgroup-single" name="subgroup-option" value="single" checked class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                        <label for="subgroup-single" class="ml-1.5 block text-sm text-gray-700 cursor-pointer">Classe entière</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="subgroup-split" name="subgroup-option" value="split" class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                        <label for="subgroup-split" class="ml-1.5 block text-sm text-gray-700 cursor-pointer">Diviser en sous-groupes</label>
+                    </div>
+                </div>
+
+                <!-- Subgroup split options - initially hidden -->
+                <div id="subgroup-split-options" class="mb-3 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-0.5">Options de division</label>
+                    <div class="flex items-center mb-1">
+                        <input type="radio" id="subgroup-same-time" name="subgroup-split-option" value="same-time" checked class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 border-gray-300 ">
+                        <label for="subgroup-same-time" class="ml-1.5 block text-sm text-gray-700 cursor-pointer">Même créneau horaire</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="subgroup-single-group" name="subgroup-split-option" value="single-group" class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                        <label for="subgroup-single-group" class="ml-1.5 block text-sm text-gray-700 cursor-pointer">Un seul sous-groupe</label>
+                    </div>
+                </div>
+
+                <!-- Second professor and room for same-time subgroups - initially hidden -->
+                <div id="second-subgroup-options" class="mb-3 hidden">
+                    <div class="border-t border-gray-300 my-2 pt-2">
+                        <h3 class="text-sm font-medium text-gray-700 mb-1.5">Informations pour le deuxième sous-groupe</h3>
+                        
+                        <div class="mb-2">
+                            <label for="professor-select-2" class="block text-sm font-medium text-gray-700 mb-0.5">Professeur (2ème sous-groupe)</label>
+                            <div class="dropdown-container">
+                                <button type="button" class="dropdown-button" id="professor-dropdown-2">
+                                    <span id="selected-professor-2">Sélectionner un professeur</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu" id="professor-menu-2">
+                                    <div class="p-1.5 sticky top-0 bg-white z-10">
+                                        <input type="text" id="professor-search-2" placeholder="Rechercher un professeur..." class="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                    </div>
+                                    <div id="professor-list-2">
+                                        <?php foreach ($professorsData as $professor): ?>
+                                        <div class="dropdown-item" data-value="<?php echo htmlspecialchars($professor['name']); ?>" data-id="<?php echo $professor['id']; ?>">
+                                            <?php echo htmlspecialchars($professor['name']); ?>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="subject-select-2" class="block text-sm font-medium text-gray-700 mb-0.5">Matière (2ème sous-groupe)</label>
+                            <div class="dropdown-container">
+                                <button type="button" class="dropdown-button" id="subject-dropdown-2" disabled>
+                                    <span id="selected-subject-2">Sélectionner un professeur d'abord</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu" id="subject-menu-2">
+                                    <?php foreach ($subjectsData as $subject): ?>
+                                    <div class="dropdown-item" data-value="<?php echo htmlspecialchars($subject['name']); ?>" data-id="<?php echo $subject['id']; ?>" data-color="<?php echo $subject['color']; ?>">
+                                        <?php echo htmlspecialchars($subject['name']); ?> (<?php echo htmlspecialchars($subject['code']); ?>)
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="room-select-2" class="block text-sm font-medium text-gray-700 mb-0.5">Salle (2ème sous-groupe)</label>
+                            <div class="dropdown-container">
+                                <button type="button" class="dropdown-button" id="room-dropdown-2">
+                                    <span id="selected-room-2">Sélectionner une salle</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu" id="room-menu-2">
+                                    <?php foreach ($rooms as $room): ?>
+                                    <div class="dropdown-item" data-value="<?php echo htmlspecialchars($room); ?>">
+                                        <?php echo htmlspecialchars($room); ?>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single subgroup selection - initially hidden -->
+                <div id="single-subgroup-selector" class="mb-3 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-0.5">Sélectionner le sous-groupe</label>
+                    <div class="dropdown-container">
+                        <button type="button" class="dropdown-button" id="subgroup-dropdown">
+                            <span id="selected-subgroup">Sous-groupe 1</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu" id="subgroup-menu">
+                            <div class="dropdown-item" data-value="1">Sous-groupe 1</div>
+                            <div class="dropdown-item" data-value="2">Sous-groupe 2</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-3">
-                    <button type="button" id="cancel-btn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <button type="button" id="cancel-btn" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                         Annuler
                     </button>
-                    <button type="submit" id="save-class-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                    <button type="submit" id="save-class-btn" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
                         Ajouter
                     </button>
                 </div>
@@ -1012,6 +1200,15 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Setup radio button animations - reset animation on each click
+        document.addEventListener('click', function(e) {
+            if (e.target.type === 'radio') {
+                e.target.style.animation = 'none';
+                e.target.offsetHeight; // Force reflow
+                e.target.style.animation = '';
+            }
+        });
+        
         // Global variables and utility functions
         let timetableData = {};
         let currentYear = "<?php echo $currentYear; ?>";
@@ -1086,9 +1283,40 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 closeAllDropdowns(); // Close any other open dropdowns
                 dropdownButton.classList.add("active");
                 dropdownMenu.style.display = "block";
+                
+                // Always position dropdown below the button
+                dropdownMenu.style.top = 'calc(100% + 4px)';
+                dropdownMenu.style.bottom = 'auto';
+                
                 void dropdownMenu.offsetWidth; // Force reflow
                 dropdownMenu.classList.add("open");
+                
+                // Ensure dropdown is visible within modal
+                setTimeout(() => {
+                    ensureDropdownVisible(dropdownButton, dropdownMenu);
+                }, 50);
+                
                 return true;
+            }
+        }
+        
+        // Function to ensure dropdown is visible within modal by scrolling if necessary
+        function ensureDropdownVisible(button, dropdown) {
+            const modalContent = document.querySelector('.modal-content');
+            if (!modalContent) return;
+            
+            const modalRect = modalContent.getBoundingClientRect();
+            const buttonRect = button.getBoundingClientRect();
+            const dropdownHeight = dropdown.offsetHeight;
+            
+            // Calculate if dropdown would extend beyond modal bottom
+            const dropdownBottom = buttonRect.bottom + dropdownHeight - modalRect.top;
+            const modalHeight = modalContent.offsetHeight;
+            
+            if (dropdownBottom > modalHeight) {
+                // Dropdown extends beyond modal bottom, scroll to make it visible
+                const scrollAmount = dropdownBottom - modalHeight + 20; // Add 20px padding
+                modalContent.scrollTop += scrollAmount;
             }
         }
         
@@ -1308,9 +1536,67 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                         actionDiv.appendChild(editBtn);
                         actionDiv.appendChild(deleteBtn);
 
-                        classBlock.appendChild(subjectDiv);
-                        classBlock.appendChild(professorDiv);
-                        classBlock.appendChild(roomDiv);
+                        // Handle subgroup display if applicable
+                        if ((data.class_type === "TD" || data.class_type === "TP") && data.is_split) {
+                            // Add a split class indicator
+                            classBlock.style.borderTop = "2px dashed " + color;
+                            
+                            if (data.split_type === "same_time") {
+                                // Display both subgroups in same time slot
+                                const subgroupDiv = document.createElement("div");
+                                subgroupDiv.className = "text-xs text-black mt-1 font-semibold";
+                                subgroupDiv.textContent = `${data.subgroup1}/${data.subgroup2}`;
+                                
+                                // Update subject display to show both subjects if they're different
+                                if (data.subject2 && data.subject !== data.subject2) {
+                                    subjectDiv.textContent = `${data.subject}/${data.subject2}`;
+                                    
+                                    // Add a tooltip to show full subject names
+                                    subjectDiv.title = `${data.subject} / ${data.subject2}`;
+                                }
+                                
+                                // Update professor display to show both professors
+                                professorDiv.textContent = `${data.professor}/${data.professor2}`;
+                                professorDiv.title = `${data.professor} / ${data.professor2}`;
+                                
+                                // Update room display to show both rooms
+                                roomDiv.textContent = `Salle: ${data.room}/${data.room2}`;
+                                roomDiv.title = `${data.room} / ${data.room2}`;
+                                
+                                // Add subgroup div after subject
+                                classBlock.appendChild(subjectDiv);
+                                classBlock.appendChild(subgroupDiv);
+                                classBlock.appendChild(professorDiv);
+                                classBlock.appendChild(roomDiv);
+                            } else if (data.split_type === "single_group") {
+                                // Display single subgroup
+                                const subgroupDiv = document.createElement("div");
+                                subgroupDiv.className = "text-xs text-black mt-1 font-semibold";
+                                
+                                // Make sure we're using the correct subgroup property and provide a fallback
+                                if (data.subgroup) {
+                                    subgroupDiv.textContent = data.subgroup;
+                                } else {
+                                    // Recreate subgroup name from group if missing
+                                    const groupNumber = currentGroup.replace("G", "");
+                                    const subgroupNumber = (parseInt(groupNumber) * 2) - 1; // Default to first subgroup
+                                    subgroupDiv.textContent = data.class_type + subgroupNumber;
+                                    
+                                    console.log("Recreated missing subgroup name:", subgroupDiv.textContent);
+                                }
+                                
+                                // Add subgroup div after subject
+                                classBlock.appendChild(subjectDiv);
+                                classBlock.appendChild(subgroupDiv);
+                                classBlock.appendChild(professorDiv);
+                                classBlock.appendChild(roomDiv);
+                            }
+                        } else {
+                            // Standard display without subgroups
+                            classBlock.appendChild(subjectDiv);
+                            classBlock.appendChild(professorDiv);
+                            classBlock.appendChild(roomDiv);
+                        }
                         
                         // Add status indicators if class is canceled or rescheduled
                         if (data.is_canceled == 1 || data.is_reschedule == 1) {
@@ -1395,7 +1681,11 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             {button: "professor-dropdown", menu: "professor-menu"},
             {button: "subject-dropdown", menu: "subject-menu"},
             {button: "room-dropdown", menu: "room-menu"},
-            {button: "course-type-dropdown", menu: "course-type-menu"}
+            {button: "course-type-dropdown", menu: "course-type-menu"},
+            {button: "professor-dropdown-2", menu: "professor-menu-2"},
+            {button: "subject-dropdown-2", menu: "subject-menu-2"},
+            {button: "room-dropdown-2", menu: "room-menu-2"},
+            {button: "subgroup-dropdown", menu: "subgroup-menu"}
         ];
         
         dropdowns.forEach(dropdown => {
@@ -1573,8 +1863,20 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                     
                     document.getElementById("selected-course-type").textContent = courseType;
                     document.getElementById("edit-color").value = color;
+                    
                     document.getElementById("course-type-menu").classList.remove("open");
                     document.getElementById("course-type-dropdown").classList.remove("active");
+                    
+                    // Show/hide subgroup options based on course type
+                    const subgroupOptions = document.getElementById("subgroup-options");
+                    if (courseType === "TD" || courseType === "TP") {
+                        subgroupOptions.classList.remove("hidden");
+                    } else {
+                        subgroupOptions.classList.add("hidden");
+                        document.getElementById("subgroup-split-options").classList.add("hidden");
+                        document.getElementById("second-subgroup-options").classList.add("hidden");
+                        document.getElementById("single-subgroup-selector").classList.add("hidden");
+                    }
                 });
             });
         }
@@ -1868,6 +2170,30 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             document.getElementById("selected-course-type").textContent = "CM";
             document.getElementById("edit-color").value = "#6b7280"; // Default grey color for CM
             
+            // Reset subgroup options
+            document.getElementById("subgroup-options").classList.add("hidden");
+            document.getElementById("subgroup-split-options").classList.add("hidden");
+            document.getElementById("second-subgroup-options").classList.add("hidden");
+            document.getElementById("single-subgroup-selector").classList.add("hidden");
+            document.getElementById("subgroup-single").checked = true;
+            
+            // Reset second professor dropdown
+            document.getElementById("selected-professor-2").textContent = "Sélectionner un professeur";
+            document.getElementById("selected-professor-2").removeAttribute("data-id");
+            
+            // Reset second subject dropdown
+            document.getElementById("selected-subject-2").textContent = "Sélectionner un professeur d'abord";
+            document.getElementById("subject-dropdown-2").setAttribute("disabled", "disabled");
+            document.getElementById("subject-dropdown-2").style.backgroundColor = "#f1f5f9";
+            document.getElementById("subject-dropdown-2").style.cursor = "not-allowed";
+            document.getElementById("selected-subject-2").removeAttribute("data-id");
+            
+            // Reset second room dropdown
+            document.getElementById("selected-room-2").textContent = "Sélectionner une salle";
+            
+            // Reset subgroup selector
+            document.getElementById("selected-subgroup").textContent = "Sous-groupe 1";
+            
             // Disable subject dropdown until professor is selected
             const subjectDropdown = document.getElementById("subject-dropdown");
             subjectDropdown.setAttribute("disabled", "disabled");
@@ -1905,6 +2231,63 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             // Set course type if available
             if (data.class_type) {
                 document.getElementById("selected-course-type").textContent = data.class_type;
+                
+                // Handle subgroup options for TD and TP
+                if ((data.class_type === "TD" || data.class_type === "TP") && data.is_split) {
+                    // Show subgroup options
+                    document.getElementById("subgroup-options").classList.remove("hidden");
+                    document.getElementById("subgroup-split").checked = true;
+                    
+                    // Check split type and show appropriate options
+                    if (data.split_type === "same_time") {
+                        document.getElementById("subgroup-split-options").classList.remove("hidden");
+                        document.getElementById("subgroup-same-time").checked = true;
+                        document.getElementById("second-subgroup-options").classList.remove("hidden");
+                        document.getElementById("single-subgroup-selector").classList.add("hidden");
+                        
+                        // Set second professor and room
+                        if (data.professor2) {
+                            document.getElementById("selected-professor-2").textContent = data.professor2;
+                            if (data.professor2_id) {
+                                document.getElementById("selected-professor-2").setAttribute("data-id", data.professor2_id);
+                            }
+                        }
+                        
+                        // Set second subject if available
+                        if (data.subject2) {
+                            document.getElementById("subject-dropdown-2").removeAttribute("disabled");
+                            document.getElementById("subject-dropdown-2").style.backgroundColor = "#ffffff";
+                            document.getElementById("subject-dropdown-2").style.cursor = "pointer";
+                            document.getElementById("selected-subject-2").textContent = data.subject2;
+                            if (data.subject2_id) {
+                                document.getElementById("selected-subject-2").setAttribute("data-id", data.subject2_id);
+                            }
+                        }
+                        
+                        if (data.room2) {
+                            document.getElementById("selected-room-2").textContent = data.room2;
+                        }
+                        
+                    } else if (data.split_type === "single_group") {
+                        document.getElementById("subgroup-split-options").classList.remove("hidden");
+                        document.getElementById("subgroup-single-group").checked = true;
+                        document.getElementById("second-subgroup-options").classList.add("hidden");
+                        document.getElementById("single-subgroup-selector").classList.remove("hidden");
+                        
+                        // Set selected subgroup
+                        if (data.subgroup) {
+                            const subgroupNum = data.subgroup.slice(-1);
+                            document.getElementById("selected-subgroup").textContent = "Sous-groupe " + subgroupNum;
+                        }
+                    }
+                } else {
+                    // Hide subgroup options for non-TD/TP or non-split classes
+                    document.getElementById("subgroup-options").classList.add("hidden");
+                    document.getElementById("subgroup-split-options").classList.add("hidden");
+                    document.getElementById("second-subgroup-options").classList.add("hidden");
+                    document.getElementById("single-subgroup-selector").classList.add("hidden");
+                    document.getElementById("subgroup-single").checked = true;
+                }
             }
 
             showModalWithAnimation("class-modal");
@@ -1963,6 +2346,19 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                         
                         for (const time in data.data[day]) {
                             timetableData[day][time] = data.data[day][time];
+                            
+                            // Debug logging for split classes
+                            const entry = data.data[day][time];
+                            if (entry && entry.is_split) {
+                                console.log(`Split class found at ${day} ${time}:`, {
+                                    split_type: entry.split_type,
+                                    subgroup: entry.subgroup,
+                                    subgroup1: entry.subgroup1,
+                                    subgroup2: entry.subgroup2,
+                                    subject2: entry.subject2,
+                                    professor2: entry.professor2
+                                });
+                            }
                         }
                     }
                     
@@ -2094,100 +2490,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             });
         }
         
-        // Check professor availability to avoid conflicts
-        function checkProfessorAvailability(professorId, day, time, year, group, callback) {
-            const data = {
-                professor_id: professorId,
-                day: day,
-                time_slot: time,
-                year: year,
-                group: group
-            };
-            
-            // Construct the correct API URL
-            const baseUrl = window.location.origin;
-            const projectPath = '/PI-php'; // Update this to match your actual project folder name
-            const apiUrl = `${baseUrl}${projectPath}/src/api/check_professor_availability.php`;
-            
-            console.log("Checking professor availability with data:", data);
-            
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Professor availability response:", data);
-                if (data.success) {
-                    callback(data.available, data.conflicts);
-                } else {
-                    // API error, assume available to prevent blocking
-                    console.error('Error checking professor availability:', data.message);
-                    callback(true, []);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking professor availability:', error);
-                callback(true, []);
-            });
-        }
-        
-        // Check room availability to avoid conflicts
-        function checkRoomAvailability(roomId, day, time, year, group, callback) {
-            const data = {
-                room: roomId,
-                day: day,
-                time_slot: time,
-                year: year,
-                group: group
-            };
-            
-            // If professor_id is provided, include it
-            const professorElement = document.getElementById("selected-professor");
-            if (professorElement && professorElement.getAttribute("data-id")) {
-                data.professor_id = professorElement.getAttribute("data-id");
-            }
-            
-            // Construct the correct API URL
-            const baseUrl = window.location.origin;
-            const projectPath = '/PI-php'; // Update this to match your actual project folder name
-            const apiUrl = `${baseUrl}${projectPath}/src/api/check_room_availability.php`;
-            
-            console.log("Checking room availability with data:", data);
-            
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Room availability response:", data);
-                if (data.success) {
-                    callback(data.available, data.conflicts);
-                } else {
-                    // API error, assume available to prevent blocking
-                    console.error('Error checking room availability:', data.message);
-                    callback(true, []);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking room availability:', error);
-                callback(true, []);
-            });
-        }
-        
         // Display professor conflict in modal
         function showProfessorConflict(conflicts, classData) {
             // Generate conflict details HTML
@@ -2195,17 +2497,44 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             let conflictHtml = '';
             
             conflicts.forEach(conflict => {
+                // Determine which professor has the conflict
+                const isProfessor2Conflict = conflict.is_professor2_conflict === true;
+                const professorTitle = isProfessor2Conflict ? 
+                    "Conflit avec le deuxième professeur:" : 
+                    "Conflit avec le professeur:";
+                
                 conflictHtml += `
-                    <div class="mb-4 p-2">
+                    <div class="mb-4 p-2 border-b border-gray-200 pb-4">
+                        <p class="font-medium text-red-600">${professorTitle}</p>
                         <p><span class="font-semibold">Professeur:</span> ${conflict.professor || classData.professor}</p>
                         <p><span class="font-semibold">Jour:</span> ${conflict.day}</p>
                         <p><span class="font-semibold">Heure:</span> ${conflict.time}</p>
                         <p><span class="font-semibold">Année:</span> ${conflict.year}</p>
                         <p><span class="font-semibold">Groupe:</span> ${conflict.group}</p>
                         <p><span class="font-semibold">Matière:</span> ${conflict.subject}</p>
-                        <p><span class="font-semibold">Salle:</span> ${conflict.room}</p>
-                    </div>
-                `;
+                        <p><span class="font-semibold">Salle:</span> ${conflict.room}</p>`;
+                
+                // Add subgroup information if available
+                if (conflict.is_split) {
+                    if (conflict.split_type === 'same_time') {
+                        conflictHtml += `
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="font-medium text-blue-600">Cours avec sous-groupes :</p>
+                            <p><span class="font-semibold">Sous-groupe 1:</span> ${conflict.subgroup1 || ''}</p>
+                            <p><span class="font-semibold">Sous-groupe 2:</span> ${conflict.subgroup2 || ''}</p>
+                            <p><span class="font-semibold">Professeur 2:</span> ${conflict.professor2 || ''}</p>
+                            <p><span class="font-semibold">Salle 2:</span> ${conflict.room2 || ''}</p>
+                        </div>`;
+                    } else if (conflict.split_type === 'single_group') {
+                        conflictHtml += `
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="font-medium text-blue-600">Cours avec sous-groupe unique :</p>
+                            <p><span class="font-semibold">Sous-groupe:</span> ${conflict.subgroup || ''}</p>
+                        </div>`;
+                    }
+                }
+                
+                conflictHtml += `</div>`;
             });
             
             conflictDetailsElement.innerHTML = conflictHtml;
@@ -2220,16 +2549,37 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
             
             conflicts.forEach(conflict => {
                 conflictHtml += `
-                    <div class="mb-4 p-2">
+                    <div class="mb-4 p-2 border-b border-gray-200 pb-4">
                         <p><span class="font-semibold">Salle:</span> ${conflict.room || classData.room}</p>
                         <p><span class="font-semibold">Jour:</span> ${conflict.day}</p>
                         <p><span class="font-semibold">Heure:</span> ${conflict.time}</p>
                         <p><span class="font-semibold">Année:</span> ${conflict.year}</p>
                         <p><span class="font-semibold">Groupe:</span> ${conflict.group}</p>
                         <p><span class="font-semibold">Matière:</span> ${conflict.subject}</p>
-                        <p><span class="font-semibold">Professeur:</span> ${conflict.professor}</p>
-                    </div>
-                `;
+                        <p><span class="font-semibold">Professeur:</span> ${conflict.professor}</p>`;
+                
+                // Add subgroup information if available
+                if (conflict.is_split) {
+                    if (conflict.split_type === 'same_time') {
+                        conflictHtml += `
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="font-medium text-blue-600">Cours avec sous-groupes :</p>
+                            <p><span class="font-semibold">Sous-groupe 1:</span> ${conflict.subgroup1 || ''}</p>
+                            <p><span class="font-semibold">Sous-groupe 2:</span> ${conflict.subgroup2 || ''}</p>
+                            <p><span class="font-semibold">Matière 2:</span> ${conflict.subject2 || ''}</p>
+                            <p><span class="font-semibold">Professeur 2:</span> ${conflict.professor2 || ''}</p>
+                            <p><span class="font-semibold">Salle 2:</span> ${conflict.room2 || ''}</p>
+                        </div>`;
+                    } else if (conflict.split_type === 'single_group') {
+                        conflictHtml += `
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="font-medium text-blue-600">Cours avec sous-groupe unique :</p>
+                            <p><span class="font-semibold">Sous-groupe:</span> ${conflict.subgroup || ''}</p>
+                        </div>`;
+                    }
+                }
+                
+                conflictHtml += `</div>`;
             });
             
             conflictDetailsElement.innerHTML = conflictHtml;
@@ -2318,6 +2668,128 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 group: currentGroup
             };
             
+            // Subgroup information for availability checks
+            let is_split = false;
+            let split_type = null;
+            let subgroup = null;
+            let room2 = null;
+            let professor2_id = null;
+            
+            // Handle subgroup information if applicable
+            if (courseType === "TD" || courseType === "TP") {
+                // Check if split option is selected
+                if (document.getElementById("subgroup-split").checked) {
+                    classData.is_split = 1;
+                    is_split = true;
+                    
+                    // Check which split option is selected
+                    if (document.getElementById("subgroup-same-time").checked) {
+                        classData.split_type = "same_time";
+                        split_type = "same_time";
+                        
+                        // Get second professor and room information
+                        const professor2Element = document.getElementById("selected-professor-2");
+                        const subject2Element = document.getElementById("selected-subject-2");
+                        const room2Element = document.getElementById("selected-room-2");
+                        
+                        const professor2 = professor2Element.textContent;
+                        const professor2Id = professor2Element.getAttribute("data-id");
+                        const subject2 = subject2Element.textContent;
+                        const subject2Id = subject2Element.getAttribute("data-id");
+                        const room2Value = room2Element.textContent;
+                        
+                        // Validate second professor, subject and room
+                        if (professor2 === "Sélectionner un professeur") {
+                            showToast("error", "Veuillez sélectionner un professeur pour le deuxième sous-groupe");
+                            return;
+                        }
+                        
+                        if (subject2 === "Sélectionner une matière" || 
+                            subject2 === "Aucune matière disponible" ||
+                            subject2 === "Erreur lors du chargement des matières" ||
+                            subject2 === "Chargement des matières..." ||
+                            subject2 === "Sélectionner un professeur d'abord") {
+                            showToast("error", "Veuillez sélectionner une matière pour le deuxième sous-groupe");
+                            return;
+                        }
+                        
+                        if (room2Value === "Sélectionner une salle") {
+                            showToast("error", "Veuillez sélectionner une salle pour le deuxième sous-groupe");
+                            return;
+                        }
+                        
+                        // Add second professor, subject and room to class data
+                        classData.professor2 = professor2;
+                        classData.professor2_id = professor2Id;
+                        classData.subject2 = subject2;
+                        classData.subject2_id = subject2Id;
+                        classData.room2 = room2Value;
+                        
+                        // Save for conflict checks
+                        room2 = room2Value;
+                        professor2_id = professor2Id;
+                        
+                        // Check if same professor is selected for both subgroups
+                        if (professor2Id === professorId) {
+                            showToast("error", "Le même professeur ne peut pas enseigner à deux sous-groupes en même temps");
+                            return;
+                        }
+                        
+                        // Check if same room is selected for both subgroups
+                        if (room2Value === room) {
+                            showToast("error", "La même salle ne peut pas être utilisée par deux sous-groupes en même temps");
+                            return;
+                        }
+                        
+                        // Generate subgroup names based on group
+                        // Format: TD1/TD2 for G1, TD3/TD4 for G2, etc.
+                        const groupNumber = currentGroup.replace("G", "");
+                        const subgroupNumber1 = (parseInt(groupNumber) * 2) - 1;
+                        const subgroupNumber2 = parseInt(groupNumber) * 2;
+                        
+                        classData.subgroup1 = courseType + subgroupNumber1;
+                        classData.subgroup2 = courseType + subgroupNumber2;
+                        
+                        // Debug logging
+                        console.log("Split subgroups same time:", {
+                            subgroup1: classData.subgroup1,
+                            subgroup2: classData.subgroup2,
+                            professor2: professor2,
+                            room2: room2Value
+                        });
+                    } else if (document.getElementById("subgroup-single-group").checked) {
+                        classData.split_type = "single_group";
+                        split_type = "single_group";
+                        
+                        // Get selected subgroup
+                        const subgroupElement = document.getElementById("selected-subgroup");
+                        const subgroupNum = subgroupElement.textContent.includes("1") ? 1 : 2;
+                        
+                        // Generate subgroup name based on group
+                        const groupNumber = currentGroup.replace("G", "");
+                        const subgroupNumber = subgroupNum === 1 ? 
+                                              (parseInt(groupNumber) * 2) - 1 : 
+                                              parseInt(groupNumber) * 2;
+                        
+                        classData.subgroup = courseType + subgroupNumber;
+                        subgroup = classData.subgroup;
+                        
+                        // Debug logging
+                        console.log("Single subgroup selected:", {
+                            subgroupNum,
+                            groupNumber,
+                            subgroupNumber,
+                            subgroup: classData.subgroup
+                        });
+                    }
+                } else {
+                    classData.is_split = 0; // Explicitly set to integer 0 instead of boolean false
+                }
+            } else {
+                // For non-TD/TP courses, always set is_split to 0
+                classData.is_split = 0;
+            }
+            
             console.log("Class data prepared:", classData);
             
             // Make sure timetableData is properly initialized
@@ -2332,40 +2804,99 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 timetableData[day] = {};
             }
             
+            // Prepare data for professor availability check
+            const professorCheckData = {
+                professor_id: professorId,
+                day: day,
+                time_slot: time,
+                year: currentYear,
+                group: currentGroup,
+                is_split: is_split,
+                split_type: split_type,
+                subgroup: subgroup,
+                professor2_id: professor2_id
+            };
+            
+            // Prepare data for room availability check
+            const roomCheckData = {
+                room: room,
+                day: day,
+                time_slot: time,
+                year: currentYear,
+                group: currentGroup,
+                is_split: is_split,
+                split_type: split_type,
+                subgroup: subgroup,
+                room2: room2
+            };
+            
+            console.log("Checking professor availability with:", professorCheckData);
+            console.log("Checking room availability with:", roomCheckData);
+            
             // Check professor availability first
-            checkProfessorAvailability(professorId, day, time, currentYear, currentGroup, function(isProfessorAvailable, professorConflicts) {
-                if (isProfessorAvailable) {
+            fetch('../api/check_professor_availability.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(professorCheckData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.available) {
                     // No professor conflicts, now check room availability
-                    checkRoomAvailability(roomId, day, time, currentYear, currentGroup, function(isRoomAvailable, roomConflicts) {
-                        if (isRoomAvailable) {
+                    fetch('../api/check_room_availability.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(roomCheckData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(roomData => {
+                        if (roomData.available) {
                             // No conflicts, save the class
                             console.log("No conflicts found, saving class data");
                             saveClassData(classData, day, time);
                         } else {
                             // Room conflict found
-                            console.log("Room conflict found:", roomConflicts);
+                            console.log("Room conflict found:", roomData.conflicts);
                             // Remove any data from this time slot to ensure conflicts aren't saved
                             if (timetableData[day] && timetableData[day][time]) {
                                 timetableData[day][time] = null;
                             }
                             
                             // Show room conflict modal
-                            showRoomConflict(roomConflicts, classData);
+                            showRoomConflict(roomData.conflicts, classData);
                             closeModalWithAnimation("class-modal");
                         }
+                    })
+                    .catch(error => {
+                        console.error("Error checking room availability:", error);
+                        showToast("error", "Erreur lors de la vérification de la disponibilité de la salle");
                     });
                 } else {
                     // Professor conflict found
-                    console.log("Professor conflict found:", professorConflicts);
+                    console.log("Professor conflict found:", data.conflicts);
                     // Remove any data from this time slot to ensure conflicts aren't saved
                     if (timetableData[day] && timetableData[day][time]) {
                         timetableData[day][time] = null;
                     }
                     
                     // Show conflict modal
-                    showProfessorConflict(professorConflicts, classData);
+                    showProfessorConflict(data.conflicts, classData);
                     closeModalWithAnimation("class-modal");
                 }
+            })
+            .catch(error => {
+                console.error("Error checking professor availability:", error);
+                showToast("error", "Erreur lors de la vérification de la disponibilité du professeur");
             });
         });
         
@@ -2391,6 +2922,18 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
         
         // Load saved data on initial page load
         loadSavedData();
+        
+        // Add animation effect to radio buttons - simplified
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    // Force animation to replay
+                    this.style.animation = 'none';
+                    void this.offsetHeight; // Trigger reflow
+                    this.style.animation = '';
+                }
+            });
+        });
 
         // Delete class confirmation handler
         document.getElementById("delete-class-confirm").addEventListener("click", function() {
@@ -2474,6 +3017,216 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
         });
         
         // No longer needed - removed resetClassStatus function
+
+        // Handle subgroup option changes
+        document.getElementById("subgroup-single").addEventListener("change", function() {
+            document.getElementById("subgroup-split-options").classList.add("hidden");
+            document.getElementById("second-subgroup-options").classList.add("hidden");
+            document.getElementById("single-subgroup-selector").classList.add("hidden");
+        });
+        
+        document.getElementById("subgroup-split").addEventListener("change", function() {
+            document.getElementById("subgroup-split-options").classList.remove("hidden");
+            
+            // Check which split option is selected and show/hide accordingly
+            if (document.getElementById("subgroup-same-time").checked) {
+                document.getElementById("second-subgroup-options").classList.remove("hidden");
+                document.getElementById("single-subgroup-selector").classList.add("hidden");
+                
+                // Scroll to make second subgroup options visible
+                setTimeout(() => {
+                    const secondSubgroupOptions = document.getElementById("second-subgroup-options");
+                    if (secondSubgroupOptions) {
+                        secondSubgroupOptions.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }, 100);
+            } else {
+                document.getElementById("second-subgroup-options").classList.add("hidden");
+                document.getElementById("single-subgroup-selector").classList.remove("hidden");
+            }
+        });
+        
+        // Handle subgroup split option changes
+        document.getElementById("subgroup-same-time").addEventListener("change", function() {
+            document.getElementById("second-subgroup-options").classList.remove("hidden");
+            document.getElementById("single-subgroup-selector").classList.add("hidden");
+            
+            // Scroll to make second subgroup options visible
+            setTimeout(() => {
+                const secondSubgroupOptions = document.getElementById("second-subgroup-options");
+                if (secondSubgroupOptions) {
+                    secondSubgroupOptions.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 100);
+        });
+        
+        document.getElementById("subgroup-single-group").addEventListener("change", function() {
+            document.getElementById("second-subgroup-options").classList.add("hidden");
+            document.getElementById("single-subgroup-selector").classList.remove("hidden");
+        });
+        
+        // Setup subgroup dropdown items
+        document.querySelectorAll("#subgroup-menu .dropdown-item").forEach(item => {
+            item.addEventListener("click", function() {
+                const subgroupNum = this.getAttribute("data-value");
+                document.getElementById("selected-subgroup").textContent = "Sous-groupe " + subgroupNum;
+                document.getElementById("subgroup-menu").classList.remove("open");
+                document.getElementById("subgroup-dropdown").classList.remove("active");
+            });
+        });
+        
+        // Handle professor search for the second professor dropdown
+        const professorSearch2 = document.getElementById("professor-search-2");
+        if (professorSearch2) {
+            professorSearch2.addEventListener("input", function(e) {
+                e.stopPropagation();
+                const searchTerm = this.value.toLowerCase().trim();
+                const professorItems = document.querySelectorAll("#professor-list-2 .dropdown-item");
+                
+                professorItems.forEach(item => {
+                    const professorName = item.getAttribute("data-value").toLowerCase();
+                    if (searchTerm === "" || professorName.includes(searchTerm)) {
+                        item.style.display = "block";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            });
+            
+            // Prevent dropdown from closing when clicking in the search input
+            professorSearch2.addEventListener("click", function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        // Setup handlers for second professor dropdown items
+        document.querySelectorAll("#professor-list-2 .dropdown-item").forEach(item => {
+            item.addEventListener("click", function() {
+                const professorName = this.getAttribute("data-value");
+                const professorId = this.getAttribute("data-id");
+                
+                document.getElementById("selected-professor-2").textContent = professorName;
+                document.getElementById("selected-professor-2").setAttribute("data-id", professorId);
+                
+                document.getElementById("professor-menu-2").classList.remove("open");
+                document.getElementById("professor-dropdown-2").classList.remove("active");
+                
+                // Enable subject dropdown for second professor
+                document.getElementById("subject-dropdown-2").removeAttribute("disabled");
+                document.getElementById("subject-dropdown-2").style.backgroundColor = "#ffffff";
+                document.getElementById("subject-dropdown-2").style.cursor = "pointer";
+                document.getElementById("selected-subject-2").textContent = "Chargement des matières...";
+                
+                // Filter subjects based on selected professor
+                filterSubjectsByProfessor2(professorId);
+            });
+        });
+        
+        // Filter subjects based on second professor ID
+        function filterSubjectsByProfessor2(professorId) {
+            // Fetch subjects assigned to this professor from the database
+            if (!professorId) {
+                document.getElementById("selected-subject-2").textContent = "Sélectionner un professeur d'abord";
+                document.getElementById("subject-dropdown-2").setAttribute("disabled", "disabled");
+                return;
+            }
+            
+            // Clear existing subject menu items
+            const subjectMenu = document.getElementById("subject-menu-2");
+            subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Chargement...</div>';
+            
+            // Construct the correct API URL
+            const baseUrl = window.location.origin;
+            const projectPath = '/PI-php'; // Update this to match your actual project folder name
+            const apiUrl = `${baseUrl}${projectPath}/src/api/get_professor_subjects.php?professor_id=${professorId}`;
+            
+            console.log("Fetching professor subjects from:", apiUrl);
+            
+            fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Professor subjects response:", data);
+                if (data.success && data.subjects && data.subjects.length > 0) {
+                    // Clear current menu
+                    subjectMenu.innerHTML = '';
+                    
+                    // Add each subject to the dropdown
+                    data.subjects.forEach(subject => {
+                        const item = document.createElement("div");
+                        item.className = "dropdown-item";
+                        item.setAttribute("data-value", subject.name);
+                        item.setAttribute("data-id", subject.id);
+                        item.setAttribute("data-color", subject.color);
+                        
+                        // Show subject name and code if available
+                        const displayText = subject.code ? 
+                            `${subject.name} (${subject.code})` : 
+                            subject.name;
+                        
+                        item.textContent = displayText;
+                        
+                        item.addEventListener("click", function() {
+                            const subject = this.getAttribute("data-value");
+                            const subjectId = this.getAttribute("data-id");
+                            
+                            document.getElementById("selected-subject-2").textContent = subject;
+                            document.getElementById("selected-subject-2").setAttribute("data-id", subjectId);
+                            subjectMenu.classList.remove("open");
+                            document.getElementById("subject-dropdown-2").classList.remove("active");
+                        });
+                        
+                        subjectMenu.appendChild(item);
+                    });
+                    
+                    // Enable the dropdown
+                    document.getElementById("subject-dropdown-2").removeAttribute("disabled");
+                    document.getElementById("selected-subject-2").textContent = "Sélectionner une matière";
+                } else {
+                    // No subjects found for this professor
+                    subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Aucune matière assignée à ce professeur</div>';
+                    document.getElementById("selected-subject-2").textContent = "Aucune matière disponible";
+                    document.getElementById("subject-dropdown-2").setAttribute("disabled", "disabled");
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching professor subjects:', error);
+                document.getElementById("selected-subject-2").textContent = "Erreur lors du chargement des matières";
+                document.getElementById("subject-dropdown-2").setAttribute("disabled", "disabled");
+                subjectMenu.innerHTML = '<div class="dropdown-item" style="color: #888;">Erreur lors du chargement des matières</div>';
+            });
+        }
+        
+        // Setup handlers for second subject dropdown items
+        document.querySelectorAll("#subject-menu-2 .dropdown-item").forEach(item => {
+            item.addEventListener("click", function() {
+                const subject = this.getAttribute("data-value");
+                const subjectId = this.getAttribute("data-id");
+                
+                document.getElementById("selected-subject-2").textContent = subject;
+                document.getElementById("selected-subject-2").setAttribute("data-id", subjectId);
+                document.getElementById("subject-menu-2").classList.remove("open");
+                document.getElementById("subject-dropdown-2").classList.remove("active");
+            });
+        });
+        
+        // Setup handlers for second room dropdown items
+        document.querySelectorAll("#room-menu-2 .dropdown-item").forEach(item => {
+            item.addEventListener("click", function() {
+                const roomName = this.getAttribute("data-value");
+                
+                document.getElementById("selected-room-2").textContent = roomName;
+                document.getElementById("room-menu-2").classList.remove("open");
+                document.getElementById("room-dropdown-2").classList.remove("active");
+            });
+        });
+
+        // ... existing code ...
+        // Add animation effect to radio buttons
     });
 </script>
 </body>

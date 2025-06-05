@@ -68,8 +68,9 @@ try {
             // Insert all entries as published
             $insertStmt = $pdo->prepare("
                 INSERT INTO `timetables` 
-                (year_id, group_id, day, time_slot, subject_id, professor_id, room, is_published)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published,
+                is_split, split_type, professor2_id, subject2_id, room2, subgroup1, subgroup2, subgroup)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             foreach ($entriesMap as $entry) {
@@ -80,7 +81,16 @@ try {
                     $entry['time_slot'],
                     $entry['subject_id'],
                     $entry['professor_id'],
-                    $entry['room']
+                    $entry['room'],
+                    $entry['class_type'],
+                    $entry['is_split'] ?? 0,
+                    $entry['split_type'],
+                    $entry['professor2_id'],
+                    $entry['subject2_id'],
+                    $entry['room2'],
+                    $entry['subgroup1'],
+                    $entry['subgroup2'],
+                    $entry['subgroup']
                 ]);
             }
             

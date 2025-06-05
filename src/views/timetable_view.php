@@ -665,29 +665,156 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
                                     subjectDiv.appendChild(typeSpan);
                                 }
 
-                                // For professors, show group and year
-                                let detailsText = '';
-                                if (userRole === 'professor' || isProfessorDebug) {
-                                    detailsText = `${classData.year} - ${classData.group}`;
-                                } else {
-                                    detailsText = classData.professor;
+                                // Handle subgroup information
+                                if (classData.is_split) {
+                                    // For split classes with same time option
+                                    if (classData.split_type === "same_time") {
+                                        // For student view, show both subgroups
+                                        if (userRole === 'student') {
+                                            // Show both subgroups
+                                            const subgroupDiv = document.createElement("div");
+                                            subgroupDiv.className = "text-xs text-gray-700 font-medium";
+                                            subgroupDiv.textContent = `${classData.subgroup1}/${classData.subgroup2}`;
+                                            
+                                            // If subjects are different, show both
+                                            if (classData.subject2 && classData.subject !== classData.subject2) {
+                                                subjectDiv.textContent = `${classData.subject}/${classData.subject2}`;
+                                                // Add tooltip for full subject names
+                                                subjectDiv.title = `${classData.subject} / ${classData.subject2}`;
+                                                subjectDiv.style.cursor = "help";
+                                            }
+                                            
+                                            // Add professors for both subgroups
+                                            const detailsDiv = document.createElement("div");
+                                            detailsDiv.className = "text-sm text-gray-600";
+                                            detailsDiv.textContent = `${classData.professor}/${classData.professor2 || ''}`;
+                                            detailsDiv.title = `${classData.professor} / ${classData.professor2 || ''}`;
+                                            detailsDiv.style.cursor = "help";
+                                            
+                                            // Add rooms for both subgroups
+                                            const roomDiv = document.createElement("div");
+                                            roomDiv.className = "text-xs text-gray-500 mt-1";
+                                            roomDiv.textContent = `Salle: ${classData.room}/${classData.room2 || ''}`;
+                                            roomDiv.title = `${classData.room} / ${classData.room2 || ''}`;
+                                            roomDiv.style.cursor = "help";
+                                            
+                                            classBlock.appendChild(subjectDiv);
+                                            classBlock.appendChild(subgroupDiv);
+                                            classBlock.appendChild(detailsDiv);
+                                            classBlock.appendChild(roomDiv);
+                                        }
+                                        // For professor view, only show the subgroup they teach
+                                        else if (userRole === 'professor' || isProfessorDebug) {
+                                            // Determine if this professor teaches subgroup 1 or 2
+                                            const isProfessor1 = classData.professor_id == professorId;
+                                            const isProfessor2 = classData.professor2_id == professorId;
+                                            
+                                            // Only show the relevant subgroup
+                                            if (isProfessor1 || isProfessor2) {
+                                                const subgroupDiv = document.createElement("div");
+                                                subgroupDiv.className = "text-xs text-gray-700 font-medium";
+                                                
+                                                // Show which subgroup they teach
+                                                if (isProfessor1) {
+                                                    subgroupDiv.textContent = classData.subgroup1 || 'Sous-groupe 1';
+                                                    subjectDiv.textContent = classData.subject;
+                                                } else {
+                                                    subgroupDiv.textContent = classData.subgroup2 || 'Sous-groupe 2';
+                                                    subjectDiv.textContent = classData.subject2 || classData.subject;
+                                                }
+                                                
+                                                // For professors, show group and year
+                                                const detailsDiv = document.createElement("div");
+                                                detailsDiv.className = "text-sm text-gray-600";
+                                                detailsDiv.textContent = `${classData.year} - ${classData.group}`;
+                                                
+                                                // Room info
+                                                const roomDiv = document.createElement("div");
+                                                roomDiv.className = "text-xs text-gray-500 mt-1";
+                                                roomDiv.textContent = `Salle: ${isProfessor1 ? classData.room : classData.room2}`;
+                                                
+                                                classBlock.appendChild(subjectDiv);
+                                                classBlock.appendChild(subgroupDiv);
+                                                classBlock.appendChild(detailsDiv);
+                                                classBlock.appendChild(roomDiv);
+                                            }
+                                        }
+                                    }
+                                    // For split classes with single group option
+                                    else if (classData.split_type === "single_group") {
+                                        // For student view, show the subgroup
+                                        if (userRole === 'student') {
+                                            const subgroupDiv = document.createElement("div");
+                                            subgroupDiv.className = "text-xs text-gray-700 font-medium";
+                                            subgroupDiv.textContent = classData.subgroup || '';
+                                            
+                                            // Add professor info
+                                            const detailsDiv = document.createElement("div");
+                                            detailsDiv.className = "text-sm text-gray-600";
+                                            detailsDiv.textContent = classData.professor;
+                                            
+                                            // Add room info
+                                            const roomDiv = document.createElement("div");
+                                            roomDiv.className = "text-xs text-gray-500 mt-1";
+                                            roomDiv.textContent = `Salle: ${classData.room}`;
+                                            
+                                            classBlock.appendChild(subjectDiv);
+                                            classBlock.appendChild(subgroupDiv);
+                                            classBlock.appendChild(detailsDiv);
+                                            classBlock.appendChild(roomDiv);
+                                        }
+                                        // For professor view, only show if they teach this subgroup
+                                        else if (userRole === 'professor' || isProfessorDebug) {
+                                            // Only show if this professor teaches this subgroup
+                                            if (classData.professor_id == professorId) {
+                                                const subgroupDiv = document.createElement("div");
+                                                subgroupDiv.className = "text-xs text-gray-700 font-medium";
+                                                subgroupDiv.textContent = classData.subgroup || '';
+                                                
+                                                // For professors, show group and year
+                                                const detailsDiv = document.createElement("div");
+                                                detailsDiv.className = "text-sm text-gray-600";
+                                                detailsDiv.textContent = `${classData.year} - ${classData.group}`;
+                                                
+                                                // Room info
+                                                const roomDiv = document.createElement("div");
+                                                roomDiv.className = "text-xs text-gray-500 mt-1";
+                                                roomDiv.textContent = `Salle: ${classData.room}`;
+                                                
+                                                classBlock.appendChild(subjectDiv);
+                                                classBlock.appendChild(subgroupDiv);
+                                                classBlock.appendChild(detailsDiv);
+                                                classBlock.appendChild(roomDiv);
+                                            }
+                                        }
+                                    }
                                 }
-                                
-                                const detailsDiv = document.createElement("div");
-                                detailsDiv.className = "text-sm text-gray-600";
-                                detailsDiv.textContent = detailsText;
+                                else {
+                                    // Regular class without subgroups
+                                    // For professors, show group and year
+                                    let detailsText = '';
+                                    if (userRole === 'professor' || isProfessorDebug) {
+                                        detailsText = `${classData.year} - ${classData.group}`;
+                                    } else {
+                                        detailsText = classData.professor;
+                                    }
+                                    
+                                    const detailsDiv = document.createElement("div");
+                                    detailsDiv.className = "text-sm text-gray-600";
+                                    detailsDiv.textContent = detailsText;
 
-                                const roomDiv = document.createElement("div");
-                                roomDiv.className = "text-xs text-gray-500 mt-1";
-                                
-                                // Add class type to room info if available
-                                if (classData.class_type) {
-                                    roomDiv.textContent = `Salle: ${classData.room}`;
+                                    const roomDiv = document.createElement("div");
+                                    roomDiv.className = "text-xs text-gray-500 mt-1";
+                                    
+                                    // Add class type to room info if available
+                                    if (classData.class_type) {
+                                        roomDiv.textContent = `Salle: ${classData.room}`;
+                                    }
+
+                                    classBlock.appendChild(subjectDiv);
+                                    classBlock.appendChild(detailsDiv);
+                                    classBlock.appendChild(roomDiv);
                                 }
-
-                                classBlock.appendChild(subjectDiv);
-                                classBlock.appendChild(detailsDiv);
-                                classBlock.appendChild(roomDiv);
                                 
                                 // Add action buttons for professors (but not for admins in debug mode)
                                 if (userRole === 'professor') {

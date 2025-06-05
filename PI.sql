@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 28, 2025 at 05:48 PM
+-- Generation Time: Jun 01, 2025 at 02:09 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -124,7 +124,7 @@ CREATE TABLE `timetables` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_canceled` tinyint(1) NOT NULL DEFAULT '0',
   `is_reschedule` tinyint(1) NOT NULL DEFAULT '0',
-  `class_type` varchar(2) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `class_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

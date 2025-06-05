@@ -53,8 +53,9 @@ try {
     
     // Process each day and time slot from the data
     $insertStmt = $pdo->prepare(
-        "INSERT INTO `timetables` (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)"
+        "INSERT INTO `timetables` (year_id, group_id, day, time_slot, subject_id, professor_id, room, class_type, is_published,
+        is_split, split_type, professor2_id, subject2_id, room2, subgroup1, subgroup2, subgroup) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     
     foreach ($data['data'] as $day => $timeSlots) {
@@ -69,7 +70,15 @@ try {
                     $course['subject_id'] ?? null,
                     $course['professor_id'] ?? null,
                     $course['room'] ?? null,
-                    $course['class_type'] ?? null
+                    $course['class_type'] ?? null,
+                    (int)($course['is_split'] ?? 0),
+                    $course['split_type'] ?? null,
+                    $course['professor2_id'] ?? null,
+                    $course['subject2_id'] ?? null,
+                    $course['room2'] ?? null,
+                    $course['subgroup1'] ?? null,
+                    $course['subgroup2'] ?? null,
+                    $course['subgroup'] ?? null
                 ]);
             }
         }
