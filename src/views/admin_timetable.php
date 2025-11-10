@@ -251,7 +251,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     border-radius: 0.375rem;
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
     z-index: 100;
-    max-height: 180px;
+    max-height: 190px;
     overflow-y: auto;
     opacity: 0;
     transform-origin: top center;

@@ -5,30 +5,8 @@ require_once '../includes/db.php'; // Fixed path to database connection
 // Initialize an error message variable
 $error_message = "";
 
-// Generate CSRF token if not exists
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Check if there's an error parameter in the URL
-if (isset($_GET['error'])) {
-    switch ($_GET['error']) {
-        case 'invalid_role':
-            $error_message = "You don't have permission to access that page.";
-            break;
-        case 'invalid_access':
-            $error_message = "Invalid access attempt.";
-            break;
-        default:
-            $error_message = "An error occurred. Please try again.";
-    }
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Verify CSRF token
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $error_message = "Session expirée. Veuillez réessayer.";
-    } else {
+    
         // Sanitize and validate inputs
         $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
         $password = isset($_POST['password']) ? $_POST['password'] : '';
@@ -56,9 +34,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (password_verify($password, $user['password'])) {
                         error_log("Login successful for user: $email");
                         
-                        // Regenerate session ID to prevent session fixation
-                        session_regenerate_id(true);
-                        
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['role'] = $user['role'];
                         $_SESSION['group_id'] = $user['group_id'] ?? null;
@@ -75,7 +50,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-}
+
+
 
 // Function to redirect user based on role
 function redirectUserByRole($role) {
@@ -151,9 +127,6 @@ function redirectUserByRole($role) {
                 style="width: 80px; height: auto;"
               />
             </div>
-            
-            <!-- CSRF Protection -->
-            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>" />
             
             <p class="subtitle">
               Connectez-vous pour consulter votre emploi du temps

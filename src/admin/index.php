@@ -484,7 +484,7 @@ try {
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">Debug Vue Professeur</h3>
+                        <h3 class="text-lg font-medium text-gray-900">Vue Professeur</h3>
                         <p class="mt-1 text-sm text-gray-500">Voir les emplois du temps comme chaque professeur les voit</p>
                     </div>
                 </div>
