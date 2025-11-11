@@ -166,6 +166,8 @@ try {
     <title>Gestion des Utilisateurs</title>
     <link rel="stylesheet" href="../assets/css/pages/manage_users.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+    </style>
 </head>
 <body>
     <header>
@@ -258,12 +260,20 @@ try {
 
                 <div class="form-group">
                     <label for="role" class="form-label">Rôle</label>
-                    <select id="role" name="role" required onchange="toggleFields()">
-                        <option value="">Sélectionner un rôle</option>
-                        <option value="admin">Admin</option>
-                        <option value="professor">Professeur</option>
-                        <option value="student">Étudiant</option>
-                    </select>
+                    <input type="hidden" id="role" name="role" required>
+                    <div class="dropdown-container">
+                        <button type="button" class="dropdown-button" id="role-dropdown">
+                            <span id="selected-role">Sélectionner un rôle</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu" id="role-menu">
+                            <div class="dropdown-item" data-value="admin">Admin</div>
+                            <div class="dropdown-item" data-value="professor">Professeur</div>
+                            <div class="dropdown-item" data-value="student">Étudiant</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Professor fields (hidden by default) -->
@@ -274,9 +284,9 @@ try {
                             <?php foreach ($subjects as $subject): ?>
                                 <div class="custom-checkbox">
                                     <input type="checkbox" 
-                                           id="subject-<?php echo $subject['id']; ?>" 
-                                           name="subject_ids[]" 
-                                           value="<?php echo $subject['id']; ?>">
+                                        id="subject-<?php echo $subject['id']; ?>" 
+                                        name="subject_ids[]" 
+                                        value="<?php echo $subject['id']; ?>">
                                     <span class="checkbox-icon"></span>
                                     <label for="subject-<?php echo $subject['id']; ?>">
                                         <?php echo htmlspecialchars($subject['name']); ?>
@@ -324,7 +334,7 @@ try {
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.src = '../assets/images/eye-hide-svgrepo-com.svg';
+                toggleIcon.src = '../assets/images/eye-off-svgrepo-com.svg';
             } else {
                 passwordInput.type = 'password';
                 toggleIcon.src = '../assets/images/eye-show-svgrepo-com.svg';
@@ -348,6 +358,102 @@ try {
                 studentFields.classList.add('visible');
             }
         }
+
+        // Custom dropdown functionality
+        function toggleDropdown(dropdownButton, dropdownMenu) {
+            if (dropdownMenu.classList.contains("open")) {
+                // Closing the dropdown
+                dropdownButton.classList.remove("active");
+                dropdownMenu.classList.remove("open");
+                dropdownMenu.classList.add("closing");
+                
+                setTimeout(() => {
+                    dropdownMenu.classList.remove("closing");
+                    dropdownMenu.style.display = "none";
+                }, 300);
+                
+                return false;
+            } else {
+                // Opening the dropdown
+                closeAllDropdowns();
+                dropdownButton.classList.add("active");
+                dropdownMenu.style.display = "block";
+                
+                void dropdownMenu.offsetWidth; // Force reflow
+                dropdownMenu.classList.add("open");
+                
+                return true;
+            }
+        }
+        
+        function closeAllDropdowns() {
+            document.querySelectorAll(".dropdown-menu.open").forEach(menu => {
+                const button = menu.parentElement.querySelector(".dropdown-button");
+                button.classList.remove("active");
+                menu.classList.remove("open");
+                menu.classList.add("closing");
+                
+                setTimeout(() => {
+                    menu.classList.remove("closing");
+                    menu.style.display = "none";
+                }, 300);
+            });
+        }
+
+        // Setup role dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleButton = document.getElementById('role-dropdown');
+            const roleMenu = document.getElementById('role-menu');
+            const roleInput = document.getElementById('role');
+            const selectedRoleSpan = document.getElementById('selected-role');
+
+            // Toggle dropdown on button click
+            roleButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDropdown(this, roleMenu);
+            });
+
+            // Handle role selection
+            document.querySelectorAll('#role-menu .dropdown-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    const text = this.textContent;
+                    
+                    // Update hidden input and display
+                    roleInput.value = value;
+                    selectedRoleSpan.textContent = text;
+                    
+                    // Close dropdown
+                    roleMenu.classList.remove('open');
+                    roleButton.classList.remove('active');
+                    
+                    // Trigger field visibility toggle
+                    toggleFields();
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                closeAllDropdowns();
+            });
+        });
+
+        // Enable clicking the custom checkbox container/icon to toggle the checkbox
+        document.addEventListener('click', function(e) {
+            const wrapper = e.target.closest('.custom-checkbox');
+            if (!wrapper) return;
+
+            // If the click is on a label or on the input itself, let the native behavior handle it
+            if (e.target.closest('label') || e.target.tagName.toLowerCase() === 'input') return;
+
+            const input = wrapper.querySelector('input[type="checkbox"]');
+            if (!input) return;
+            input.checked = !input.checked;
+            // Trigger change event if any listeners rely on it
+            const changeEvent = new Event('change', { bubbles: true });
+            input.dispatchEvent(changeEvent);
+        });
     </script>
 </body>
 </html>
