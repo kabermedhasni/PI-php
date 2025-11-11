@@ -67,364 +67,21 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérifier les Utilisateurs</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" href="../assets/images/logo-supnum2.png" />
-    <style>
-        * {
-            transition: all 0.2s ease;
-            box-sizing: border-box;
-            font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-            border-radius: 0.5rem;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            background-color: #f3f4f6;
-            font-weight: 600;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        tr:hover {
-            background-color: #f9fafb;
-        }
-        
-        .badge-admin {
-            background-color: #ede9fe;
-            color: #5b21b6;
-        }
-        
-        .badge-professor {
-            background-color: #e0f2fe;
-            color: #0369a1;
-        }
-        
-        .badge-student {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .role-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        /* Search highlight */
-        .highlight {
-            background-color: #fef3c7;
-            font-weight: 500;
-        }
-        
-        /* Fade in animation for search results */
-        @keyframes fadeIn {
-            from { opacity: 0.2; }
-            to { opacity: 1; }
-        }
-        
-        tr.filtered-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        /* Input focus animation */
-        input {
-            transition: all 0.6s ease !important;
-        }
-        
-        .search-box:focus {
-            outline: none !important;
-            border: 1px solid #ef4444 !important;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
-        }
-        
-        /* Delete button and confirmation modal */
-        .delete-btn {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .delete-btn:hover {
-            background-color: #fecaca;
-            color: #991b1b;
-        }
-        
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-        }
-        
-        .modal-backdrop.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content {
-            background-color: white;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transform: scale(0.95);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        
-        .modal-backdrop.active .modal-content {
-            transform: scale(1);
-            opacity: 1;
-        }
-        
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            z-index: 2000;
-            max-width: 350px;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .toast-success {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .toast-error {
-            background-color: #ef4444;
-            color: white;
-        }
-        
-        /* Mobile responsive styles */
-        @media (max-width: 640px) {
-            /* Convert table to cards on mobile */
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            
-            .table-container {
-                border: none;
-                box-shadow: none;
-                overflow: visible;
-            }
-            
-            table {
-                border: none;
-                box-shadow: none;
-            }
-            
-            tbody tr {
-                margin-bottom: 1rem;
-                border-radius: 0.5rem;
-                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-                background: white;
-                position: relative;
-                border: 1px solid #e5e7eb;
-            }
-            
-            td {
-                border: none;
-                border-bottom: 1px solid #f3f4f6;
-                position: relative;
-                padding-left: 40%;
-                min-height: 45px;
-                display: flex;
-                align-items: center;
-            }
-            
-            td:last-child {
-                border-bottom: none;
-            }
-            
-            td:before {
-                position: absolute;
-                left: 1rem;
-                width: 35%;
-                font-weight: 600;
-                color: #4b5563;
-                content: attr(data-label);
-            }
-            
-            /* Fix role badges on mobile */
-            td .role-badge {
-                margin-left: auto;
-                margin-right: auto;
-            }
-            
-            /* Improve search box on mobile */
-            .search-box {
-                font-size: 16px; /* Prevent zoom on iOS */
-            }
-        }
-        
-        /* Clean up the custom checkbox styles */
-        .custom-checkbox {
-            display: flex;
-            align-items: center;
-            padding: 0.375rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .custom-checkbox input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .custom-checkbox .checkbox-icon {
-            position: relative;
-            display: inline-block;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid #d1d5db;
-            border-radius: 0.25rem;
-            margin-right: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        
-        .custom-checkbox input[type="checkbox"]:checked + .checkbox-icon {
-            background-color: #ef4444;
-            border-color: #ef4444;
-        }
-        
-        .custom-checkbox input[type="checkbox"]:checked + .checkbox-icon:after {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 3px;
-            width: 4px;
-            height: 9px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-        
-        th .custom-checkbox .checkbox-icon {
-            border-color: #ef4444;
-        }
-        
-        th .custom-checkbox:hover .checkbox-icon {
-            border-color: #dc2626;
-        }
-        
-        /* Simplify by combining the row and delete button styles */
-        .user-row, .checkbox-column, .delete-btn {
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        
-        .user-row:hover {
-            background-color: #f9fafb;
-        }
-        
-        .user-row.selected {
-            background-color: #f1f5f9;
-        }
-        
-        .delete-btn {
-            position: relative;
-            z-index: 10;
-            background-color: #fee2e2;
-            color: #b91c1c;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .delete-btn:hover {
-            background-color: #fecaca;
-            color: #991b1b;
-        }
-        
-        /* Combine bulk action button with delete button styles */
-        .bulk-delete-btn {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .bulk-delete-btn:hover {
-            background-color: #fecaca;
-            color: #991b1b;
-        }
-        
-        .bulk-delete-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/pages/check_users.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-gradient-to-r from-red-700 to-red-500 text-white shadow-md">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Vérifier les Utilisateurs</h1>
-                <div class="flex space-x-4">
-                    <a href="../views/manage_users.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm">
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-content">
+                <h1 class="header-title">Vérifier les Utilisateurs</h1>
+                <div class="header-actions">
+                    <a href="../views/manage_users.php" class="header-btn">
                         Créer un Utilisateur
                     </a>
-                    <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href="../admin/index.php" class="header-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Retour au Tableau de Bord
@@ -436,8 +93,8 @@ try {
     
     <!-- Toast Notification -->
     <div id="toast-notification" class="toast <?php echo !empty($success_message) ? 'toast-success' : (!empty($error_message) ? 'toast-error' : ''); ?>" style="display: none;">
-        <div class="flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <div style="display: flex; align-items: center;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <?php if (!empty($success_message)): ?>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 <?php else: ?>
@@ -451,61 +108,61 @@ try {
     <!-- Confirmation Modal -->
     <div id="delete-modal" class="modal-backdrop">
         <div class="modal-content">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Confirmation de suppression</h3>
-                <button type="button" id="close-modal" class="text-gray-400 hover:text-gray-500">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmation de suppression</h3>
+                <button type="button" id="close-modal" class="modal-close">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <div class="mb-4">
-                <p id="delete-message">Êtes-vous sûr de vouloir supprimer l'utilisateur <strong id="delete-user-email"></strong> ?</p>
-                <div id="delete-multiple-info" class="hidden">
-                    <p class="mt-2">Vous avez sélectionné <strong id="selected-count">0</strong> utilisateurs.</p>
-                    <ul id="selected-users-list" class="mt-2 max-h-32 overflow-y-auto text-sm text-gray-600 border border-gray-200 rounded-md p-2 bg-gray-50">
+            <div class="modal-body">
+                <p id="delete-message" class="modal-text">Êtes-vous sûr de vouloir supprimer l'utilisateur <strong id="delete-user-email"></strong> ?</p>
+                <div id="delete-multiple-info" class="modal-info hidden">
+                    <p>Vous avez sélectionné <strong id="selected-count">0</strong> utilisateurs.</p>
+                    <ul id="selected-users-list" class="selected-users-list">
                         <!-- Selected users will be listed here -->
                     </ul>
                 </div>
-                <p class="text-sm text-red-600 mt-2">Cette action est irréversible.</p>
+                <p class="modal-warning">Cette action est irréversible.</p>
             </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" id="cancel-delete" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded">
+            <div class="modal-actions">
+                <button type="button" id="cancel-delete" class="modal-btn modal-btn-cancel">
                     Annuler
                 </button>
-                <button type="button" id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
+                <button type="button" id="confirm-delete" class="modal-btn modal-btn-confirm">
                     Supprimer
                 </button>
             </div>
         </div>
     </div>
     
-    <main class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex items-center mb-4">
-                <div class="bg-red-100 p-3 rounded-lg mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <main>
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </div>
-                <h2 class="text-xl font-semibold">Utilisateurs dans la Base de Données</h2>
+                <h2 class="card-title">Utilisateurs dans la Base de Données</h2>
             </div>
             
             <!-- Search Box -->
-            <div class="mb-6">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <div class="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <input id="email-search" type="text" class="search-box block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:border-red-500 focus:ring-0 transition duration-150 ease-in-out" placeholder="Rechercher par email...">
+                    <input id="email-search" type="text" class="search-box" placeholder="Rechercher par email...">
                 </div>
-                <div class="flex justify-between items-center mt-2">
-                    <p id="search-results" class="text-sm text-gray-600">Affichage de <span id="count-display"><?php echo count($users); ?></span> utilisateurs</p>
+                <div class="search-info">
+                    <p id="search-results" class="search-results">Affichage de <span id="count-display"><?php echo count($users); ?></span> utilisateurs</p>
                     
-                    <button id="bulk-delete-btn" class="bulk-delete-btn py-2 px-4 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <button id="bulk-delete-btn" class="bulk-delete-btn" disabled>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                         Supprimer les sélectionnés (<span id="selected-counter">0</span>)
@@ -514,18 +171,18 @@ try {
             </div>
             
             <?php if (count($users) === 0): ?>
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <div class="alert alert-warning">
+                    <div style="display: flex;">
+                        <div class="alert-icon">
+                            <svg viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
+                        <div class="alert-content">
+                            <p class="alert-text">
                                 Aucun utilisateur trouvé dans la base de données.
                             </p>
-                            <p class="mt-2 text-sm text-yellow-700">
+                            <p class="alert-text" style="margin-top: 0.5rem;">
                                 Vous devrez peut-être ajouter des utilisateurs d'abord.
                             </p>
                         </div>
@@ -533,7 +190,7 @@ try {
                 </div>
             <?php else: ?>
                 <div class="table-container">
-                    <table class="min-w-full">
+                    <table>
                         <thead>
                             <tr>
                                 <th class="checkbox-column">
@@ -607,10 +264,10 @@ try {
                     </table>
                 </div>
                 
-                <div class="mt-6 bg-red-50 border-l-4 border-red-500 p-4">
-                    <p class="text-red-700">
+                <div class="alert alert-info" style="margin-top: 1.5rem;">
+                    <p class="alert-text">
                         Pour les problèmes de sécurité des mots de passe, utilisez l'utilitaire 
-                        <a href="fix_passwords.php" class="text-red-600 hover:text-red-800 font-medium underline">Changer les mots de passe</a>.
+                        <a href="fix_passwords.php" class="alert-link">Changer les mots de passe</a>.
                     </p>
                 </div>
             <?php endif; ?>

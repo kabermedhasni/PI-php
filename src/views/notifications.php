@@ -97,39 +97,16 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications - Cours Annulés ou Reportés</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        
-        .notification-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .notification-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .filter-pill {
-            transition: all 0.2s ease;
-        }
-        
-        .filter-pill:hover {
-            transform: translateY(-2px);
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/pages/notifications.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-gradient-to-r from-red-700 to-red-500 text-white shadow-md">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Notifications</h1>
-                <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-content">
+                <h1 class="header-title">Notifications</h1>
+                <a href="../admin/index.php" class="back-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Retour au Tableau de Bord
@@ -138,32 +115,32 @@ try {
         </div>
     </header>
     
-    <main class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Cours Annulés ou Reportés</h2>
+    <main>
+        <div class="content-card">
+            <h2 class="content-title">Cours Annulés ou Reportés</h2>
             
             <!-- Filter Pills -->
-            <div class="flex flex-wrap gap-3 mb-6">
-                <a href="?filter=all" class="filter-pill px-4 py-2 rounded-full border <?php echo $filter === 'all' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'; ?> font-medium text-sm">
+            <div class="filter-container">
+                <a href="?filter=all" class="filter-pill <?php echo $filter === 'all' ? 'active-all' : 'inactive'; ?>">
                     Tous (<?php echo $totalCanceledCount + $totalRescheduledCount; ?>)
                 </a>
-                <a href="?filter=canceled" class="filter-pill px-4 py-2 rounded-full border <?php echo $filter === 'canceled' ? 'bg-red-600 text-white border-red-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'; ?> font-medium text-sm">
-                    <span class="w-2 h-2 bg-red-500 rounded-full inline-block mr-1"></span>
+                <a href="?filter=canceled" class="filter-pill <?php echo $filter === 'canceled' ? 'active-canceled' : 'inactive'; ?>">
+                    <span class="status-dot status-dot-red"></span>
                     Cours annulés (<?php echo $totalCanceledCount; ?>)
                 </a>
-                <a href="?filter=rescheduled" class="filter-pill px-4 py-2 rounded-full border <?php echo $filter === 'rescheduled' ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'; ?> font-medium text-sm">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full inline-block mr-1"></span>
+                <a href="?filter=rescheduled" class="filter-pill <?php echo $filter === 'rescheduled' ? 'active-rescheduled' : 'inactive'; ?>">
+                    <span class="status-dot status-dot-blue"></span>
                     Demandes de report (<?php echo $totalRescheduledCount; ?>)
                 </a>
             </div>
             
             <?php if (empty($notifications)): ?>
-            <div class="text-center py-10">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                <h3 class="text-xl font-medium text-gray-500">Aucune notification</h3>
-                <p class="text-gray-400 mt-2">
+                <h3>Aucune notification</h3>
+                <p>
                     <?php 
                         if ($filter === 'canceled') {
                             echo "Il n'y a actuellement aucun cours annulé";
@@ -176,7 +153,7 @@ try {
                 </p>
             </div>
             <?php else: ?>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="notification-grid">
                 <?php 
                 // Create separate arrays for each type of notification
                 $canceledClasses = [];
@@ -211,47 +188,45 @@ try {
                 foreach ($displayNotifications as $notification): 
                     // Determine card styling based on status
                     if ($notification['is_reschedule'] == 1) {
-                        $bgColor = 'bg-blue-50';
-                        $borderColor = 'border-blue-200';
-                        $iconColor = 'text-blue-600';
+                        $cardColor = 'blue';
+                        $iconColor = 'blue';
                         $status = 'Report';
-                        $statusColor = 'bg-blue-100 text-blue-800';
+                        $statusColor = 'blue';
                     } else if ($notification['is_canceled'] == 1) {
-                        $bgColor = 'bg-red-50';
-                        $borderColor = 'border-red-200';
-                        $iconColor = 'text-red-600';
+                        $cardColor = 'red';
+                        $iconColor = 'red';
                         $status = 'Annulé';
-                        $statusColor = 'bg-red-100 text-red-800';
+                        $statusColor = 'red';
                     }
                     
                     $redirectUrl = "../views/admin_timetable.php?year=" . urlencode($notification['year']) . "&group=" . urlencode($notification['group_name']);
                 ?>
-                    <a href="<?php echo $redirectUrl; ?>" class="notification-card <?php echo $bgColor; ?> border <?php echo $borderColor; ?> rounded-lg p-4 block">
-                        <h3 class="font-semibold text-lg"><?php echo htmlspecialchars($notification['subject']); ?></h3>
-                        <div class="mt-2 space-y-1">
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 <?php echo $iconColor; ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href="<?php echo $redirectUrl; ?>" class="notification-card <?php echo $cardColor; ?>">
+                        <h3 class="notification-title"><?php echo htmlspecialchars($notification['subject']); ?></h3>
+                        <div class="notification-details">
+                            <div class="detail-row <?php echo $iconColor; ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                <span class="text-sm"><?php echo htmlspecialchars($notification['professor_name']); ?></span>
+                                <span><?php echo htmlspecialchars($notification['professor_name']); ?></span>
                             </div>
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 <?php echo $iconColor; ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="detail-row <?php echo $iconColor; ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span class="text-sm"><?php echo htmlspecialchars($notification['room']); ?></span>
+                                <span><?php echo htmlspecialchars($notification['room']); ?></span>
                             </div>
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 <?php echo $iconColor; ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="detail-row <?php echo $iconColor; ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
-                                <span class="text-sm"><?php echo htmlspecialchars($notification['year'] . ' - ' . $notification['group_name']); ?></span>
+                                <span><?php echo htmlspecialchars($notification['year'] . ' - ' . $notification['group_name']); ?></span>
                             </div>
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 <?php echo $iconColor; ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="detail-row <?php echo $iconColor; ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span class="text-sm">
+                                <span>
                                     <?php 
                                     // Make sure day and time_slot are integers and within valid range
                                     $dayIndex = (int)$notification['day'] - 1;
@@ -266,11 +241,9 @@ try {
                                 </span>
                             </div>
                             <!-- Add status badge to clearly show notification type -->
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusColor; ?>">
-                                    <?php echo $status; ?>
-                                </span>
-                            </div>
+                            <span class="status-badge <?php echo $statusColor; ?>">
+                                <?php echo $status; ?>
+                            </span>
                         </div>
                     </a>
                 <?php endforeach; ?>

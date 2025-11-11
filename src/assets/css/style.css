@@ -1,302 +1,57 @@
+/* Global Styles - Only application-wide styles should be here */
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
+/* Global Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Global Body Defaults */
 body {
   font-family: "Outfit", sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #111111;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.container {
-  display: flex;
-  width: 100%;
-  height: 100vh;
-}
-
-.description-section {
-  flex: 1;
-}
-
-.description-content {
-  max-width: 500px;
-  text-align: center;
-}
-
-.description-logo {
-  width: 100px;
-  height: 100px;
-}
-
-.description-section h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #3bb453;
-  font-weight: 700;
-}
-
-.description-section p {
-  font-size: 1rem;
-  line-height: 1;
-  margin-bottom: 30px;
-  color: #50a3f7;
-}
-
-/* Login Section Styles */
-.login-section {
-  flex: 1;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-form {
-  background-color: transparent;
-  padding: 30px;
-  border-radius: 15px;
-  width: 85%;
-  max-width: 320px;
-  padding: 25px 20px;
-  height: 420px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  z-index: 1;
-}
-
-.logo-placeholder {
-  height: 65px;
-  margin-bottom: -5px;
-  margin-top: -20px;
-  padding: 10px;
-}
-
-img {
-  display: block;
-  margin: 0 auto -20px;
-  width: 80px;
-  height: auto;
-}
-
-h5 {
-  text-align: center;
-  color: #3bb453;
-  font-size: 1.5rem;
-  margin: 15px 0 5px;
-  font-weight: 600;
-  font-size: 1.3rem;
-  margin: 10px 0 5px;
-}
-
-.subtitle {
-  text-align: center;
-  color: #999;
-  font-size: 0.75rem;
-  margin-bottom: 18px;
-  line-height: 1.4;
-}
-
-.input-container {
-  position: relative;
-  margin-bottom: 18px;
-}
-
-.input-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background-color: transparent;
-  padding: 0;
-  margin: 0;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background-color: transparent;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-}
-
-input {
-  display: block;
-  width: 100%;
-  height: 40px;
-  padding: 15px 15px 15px 45px;
-  border-radius: 5px;
-  border: 1px solid #111111;
-  background-color: #111111;
-  color: #999;
-  font-size: 0.85rem;
-  box-sizing: border-box;
-  transition: all 0.6s ease;
-}
-
-input:focus {
-  outline: none;
-  border: 1px solid #0a84ff;
-  box-shadow: 0 0 10px rgba(10, 132, 255, 0.3);
-}
-
-input::placeholder {
-  color: #999;
-  font-size: 0.9rem;
-}
-
-.forgot-password {
-  text-align: left;
-  line-height: 0;
-  margin-bottom: 20px;
-}
-
-.forgot-link {
-  color: #999;
-  font-size: 0.8rem;
+/* Global Link Styles */
+a {
   text-decoration: none;
-  transition: color 0.3s;
+  color: inherit;
 }
 
-.forgot-link:hover {
-  color: #60aefc;
-}
-
+/* Global Button Reset */
 button {
-  display: block;
-  width: 100%;
-  height: 40px;
-  border-radius: 5px;
-  border: none;
-  background-color: #0a84ff;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin: 0 0 15px;
+  font-family: inherit;
   cursor: pointer;
+}
+
+/* Global Image Styles */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Utility Classes */
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Global Transitions */
+.transition {
   transition: all 0.3s ease;
-  margin-top: 5px;
-}
-
-button:hover {
-  background-color: #0070e0;
-}
-
-button:active {
-  background-color: #005ac7;
-  transform: scale(0.98);
-}
-
-.terms-notice {
-  text-align: center;
-  color: #999;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  margin: 0;
-  margin-top: 15px;
-}
-
-.footer-link {
-  color: #999;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.footer-link:hover {
-  color: #50a3f7;
-}
-
-.error {
-  color: red;
-  font-size: 12px;
-  min-height: 20px;
-  margin-top: 10px;
-  text-align: center;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-
-  .description-section {
-    display: none;
-  }
-
-  .login-section {
-    flex: 1;
-    height: 100vh;
-  }
-
-  .stars-container {
-    height: 100vh;
-  }
-
-  .footer-link {
-    color: #60aefc;
-  }
-
-  form {
-    width: 85%;
-    position: relative;
-    top: -35px;
-    margin: 0 auto;
-  }
-
-  html {
-    font-size: 14px;
-  }
-
-  body {
-    padding: 0;
-    margin: 0;
-    height: 100vh;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  h5 {
-    font-size: 1.2rem;
-  }
-
-  .subtitle {
-    font-size: 0.7rem;
-  }
-
-  input {
-    height: 35px;
-  }
-
-  button {
-    height: 35px;
-  }
-
-  .terms-notice {
-    font-size: 0.7rem;
-  }
-}
-
-/* Laptop View */
-@media (min-width: 768px) {
-  .login-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  form {
-    margin: 0 auto;
-  }
 }

@@ -89,127 +89,17 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier les Mots de Passe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" href="../assets/images/logo-supnum2.png" />
-    <style>
-        * {
-            transition: all 0.2s ease;
-            box-sizing: border-box;
-            font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        
-        /* Remove transitions for inputs to eliminate animations */
-        input {
-            transition: all 0.6s ease !important;
-        }
-        
-        /* Target both inputs specifically */
-        input[name="user_search"], 
-        input[name="new_password"] {
-            border: 1px solid #d1d5db !important;
-            border-radius: 0.375rem !important;
-        }
-        
-        /* Simple yellow focus style without animations */
-        input:focus,
-        input[name="user_search"]:focus, 
-        input[name="new_password"]:focus {
-            outline: none !important;
-            border-color: #eab308 !important;
-            box-shadow: 0 0 10px rgba(234, 179, 8, 0.3) !important;
-        }
-        
-        .badge-admin {
-            background-color: #ede9fe;
-            color: #5b21b6;
-        }
-        
-        .badge-professor {
-            background-color: #e0f2fe;
-            color: #0369a1;
-        }
-        
-        .badge-student {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .role-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .user-card {
-            transition: all 0.3s ease;
-        }
-        
-        .user-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            z-index: 2000;
-            max-width: 350px;
-            transform: translateY(150%);
-            opacity: 0;
-            transition: transform 0.5s ease, opacity 0.3s ease;
-        }
-        
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .toast-success {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .toast-error {
-            background-color: #ef4444;
-            color: white;
-        }
-        
-        /* Search styles */
-        .highlight {
-            background-color: #fef3c7;
-            font-weight: 500;
-        }
-        
-        /* Mobile responsive styles */
-        @media (max-width: 640px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .user-card {
-                margin-bottom: 1rem;
-            }
-            
-            .search-box {
-                font-size: 16px; /* Prevent zoom on iOS */
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/pages/fix_passwords.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white shadow-md">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Modifier les Mots de Passe</h1>
-                <a href="../admin/index.php" class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded transition duration-300 text-sm flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-content">
+                <h1 class="header-title">Modifier les Mots de Passe</h1>
+                <a href="../admin/index.php" class="back-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Retour au Tableau de Bord
@@ -218,16 +108,16 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
         </div>
     </header>
     
-    <main class="container mx-auto px-4 py-8">
+    <main>
         <?php if ($message): ?>
             <div id="toast" class="toast <?php echo $messageType === 'success' ? 'toast-success' : 'toast-error'; ?>">
-                <div class="flex items-center">
+                <div class="toast-content">
                     <?php if ($messageType === 'success'): ?>
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     <?php else: ?>
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     <?php endif; ?>
@@ -236,35 +126,35 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
             </div>
         <?php endif; ?>
         
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex items-center mb-6">
-                <div class="bg-yellow-100 p-3 rounded-lg mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="content-card">
+            <div class="page-header">
+                <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                 </div>
-                <div>
-                    <h2 class="text-xl font-semibold">Modification des Mots de Passe</h2>
-                    <p class="text-gray-600 mt-1">Recherchez un utilisateur par son username puis modifiez son mot de passe</p>
+                <div class="header-text">
+                    <h2>Modification des Mots de Passe</h2>
+                    <p>Recherchez un utilisateur par son username puis modifiez son mot de passe</p>
                 </div>
             </div>
             
             <?php if (!$selectedUser): ?>
                 <!-- Step 1: Search for a user -->
-                <form method="post" action="" class="mb-6">
-                    <div class="mb-4">
-                        <label for="user_search" class="block text-sm font-medium text-gray-700 mb-1">Username utilisateur:</label>
-                        <div class="mt-1 relative rounded-md">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <form method="post" action="">
+                    <div class="form-group">
+                        <label for="user_search" class="form-label">Username utilisateur:</label>
+                        <div class="input-wrapper">
+                            <div class="input-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             </div>
-                            <input type="text" name="user_search" id="user_search" class="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Entrez le username à rechercher" required>
+                            <input type="text" name="user_search" id="user_search" placeholder="Entrez le username à rechercher" required>
                         </div>
                     </div>
-                    <button type="submit" name="search_user" class="w-full md:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button type="submit" name="search_user" class="btn btn-primary btn-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         Rechercher
@@ -273,20 +163,19 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                 
                 <!-- Show search results if any -->
                 <?php if (isset($searchResults) && !empty($searchResults)): ?>
-                    <div class="mt-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Résultats de recherche</h3>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
+                    <div class="table-container">
+                        <h3 class="table-title">Résultats de recherche</h3>
+                        <div class="table-wrapper">
+                                <table>
+                                    <thead>
                                         <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Rôle</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
+                                    <tbody>
                                         <?php foreach ($searchResults as $user): 
                                             // Set role badge class
                                             $role_class = 'badge-student';
@@ -297,19 +186,19 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                                             }
                                         ?>
                                             <tr>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['name']); ?></div>
+                                                <td>
+                                                    <div class="user-name"><?php echo htmlspecialchars($user['name']); ?></div>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['email']); ?></div>
+                                                <td>
+                                                    <div class="user-email"><?php echo htmlspecialchars($user['email']); ?></div>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                <td>
                                                     <span class="role-badge <?php echo $role_class; ?>">
                                                         <?php echo htmlspecialchars($user['role']); ?>
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <a href="?user_id=<?php echo $user['id']; ?>" class="text-yellow-600 hover:text-yellow-900">Sélectionner</a>
+                                                <td>
+                                                    <a href="?user_id=<?php echo $user['id']; ?>" class="table-link">Sélectionner</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -322,18 +211,18 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                 
             <?php else: ?>
                 <!-- Step 2: Change password for selected user -->
-                <div class="mb-6">
-                    <div class="bg-blue-50 rounded-lg p-4 mb-6">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <div>
+                    <div class="info-box">
+                        <div class="info-box-content">
+                            <div class="info-box-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <div class="ml-3 flex flex-col">
-                                <h3 class="text-sm font-medium text-blue-800">Modification du mot de passe pour:</h3>
-                                <div class="mt-2 flex items-center">
-                                    <span class="font-medium text-blue-800 mr-2"><?php echo htmlspecialchars($selectedUser['name']); ?></span>
+                            <div class="info-box-text">
+                                <h3 class="info-box-title">Modification du mot de passe pour:</h3>
+                                <div class="info-box-details">
+                                    <span class="info-box-username"><?php echo htmlspecialchars($selectedUser['name']); ?></span>
                                     <span class="role-badge <?php
                                         if ($selectedUser['role'] === 'admin') echo 'badge-admin';
                                         elseif ($selectedUser['role'] === 'professor') echo 'badge-professor';
@@ -346,28 +235,28 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                         </div>
                     </div>
                     
-                    <form method="post" action="" class="mt-4 password-form">
+                    <form method="post" action="">
                         <input type="hidden" name="user_id" value="<?php echo $selectedUser['id']; ?>">
                         
-                        <div class="mb-3">
-                            <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe:</label>
-                            <div class="relative">
-                                <input type="password" name="new_password" id="new_password" autocomplete="new-password" required class="block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Entrez le nouveau mot de passe">
-                                <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                                    <img src="../assets/images/eye-show-svgrepo-com.svg" alt="Toggle Password" class="h-5 w-5">
+                        <div class="form-group">
+                            <label for="new_password" class="form-label">Nouveau mot de passe:</label>
+                            <div class="input-wrapper password-field">
+                                <input type="password" name="new_password" id="new_password" autocomplete="new-password" required placeholder="Entrez le nouveau mot de passe">
+                                <button type="button" class="toggle-password">
+                                    <img src="../assets/images/eye-show-svgrepo-com.svg" alt="Toggle Password">
                                 </button>
                             </div>
                         </div>
                         
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button type="submit" name="change_password" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="btn-group">
+                            <button type="submit" name="change_password" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
                                 Modifier le mot de passe
                             </button>
-                            <a href="fix_passwords.php" class="text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <a href="fix_passwords.php" class="btn btn-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                                 Nouvelle recherche
