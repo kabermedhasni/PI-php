@@ -110,6 +110,7 @@ function redirectUserByRole($role) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page</title>
     <link rel="stylesheet" href="../assets/css/pages/login.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
   </head>
   <body>
     <div class="container">
@@ -179,10 +180,9 @@ function redirectUserByRole($role) {
           </form>
         </div>
       </div>
-      <!-- Background image section (without content) -->
       <div class="description-section background-image">
       </div>
     </div>
-    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/login.js"></script>
   </body>
 </html>

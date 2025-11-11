@@ -113,10 +113,8 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title><?php echo $pageTitle; ?></title>
-    <!-- Include Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Include Outfit Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
       * {
         transition: all 0.2s ease;
@@ -125,10 +123,12 @@ $headerBg = ($role === 'student') ? 'bg-blue-600' : 'bg-purple-700';
 
       body {
         background-color: #f5f7fa;
-        font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
-          Roboto, sans-serif;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
         margin: 0;
-        padding: 20px;
       }
 
       .card {

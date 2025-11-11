@@ -107,7 +107,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>University Timetable Management</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
 <style>
     * {
     transition: all 0.2s ease;
@@ -116,10 +116,12 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 
     body {
     background-color: #f5f7fa;
-    font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, sans-serif;
-    margin: 0;
     padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
     }
 
     .card {
@@ -129,7 +131,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     overflow: hidden;
     background-color: white;
     max-width: 1200px;
-    margin: 10px auto;
     transition: all 0.3s ease;
     }
 

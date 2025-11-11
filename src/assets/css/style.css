@@ -15,6 +15,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+input {
+  font-family: inherit;
+}
+
+select,option {
+  font-family: inherit;
+}
+
 /* Global Link Styles */
 a {
   text-decoration: none;

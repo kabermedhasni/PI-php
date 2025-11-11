@@ -89,9 +89,9 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier les Mots de Passe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" href="../assets/images/logo-supnum2.png" />
     <link rel="stylesheet" href="../assets/css/pages/fix_passwords.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <header>
