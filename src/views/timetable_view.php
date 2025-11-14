@@ -113,6 +113,7 @@ $headerBg = ($role === 'student') ? 'blue' : 'purple';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title><?php echo $pageTitle; ?></title>
+    <link rel="icon" href="../assets/images/logo-supnum2.png" />
     <link rel="stylesheet" href="../assets/css/pages/timetable_view.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
