@@ -62,9 +62,8 @@ body {
 
 form {
   background-color: transparent;
-  padding: 30px;
   border-radius: 15px;
-  width: 85%;
+  width: 100%;
   max-width: 320px;
   padding: 25px 20px;
   height: 420px;
@@ -74,17 +73,10 @@ form {
   z-index: 1;
 }
 
-.logo-placeholder {
-  height: 65px;
-  margin-bottom: -5px;
-  margin-top: -20px;
-  padding: 10px;
-}
-
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 35px;
 }
 
 .logo-image {
@@ -199,10 +191,10 @@ button {
   color: #fff;
   font-size: 0.9rem;
   font-weight: 500;
-  margin: 0 0 15px;
+  margin: 0 0 7px;
+  margin-top: 5px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 5px;
   padding: 0.7rem;
 }
 
@@ -221,7 +213,6 @@ button:active {
   font-size: 0.75rem;
   line-height: 1.4;
   margin: 0;
-  margin-top: 15px;
 }
 
 .footer-link {
@@ -237,8 +228,6 @@ button:active {
 .error {
   color: red;
   font-size: 12px;
-  min-height: 20px;
-  margin-top: 10px;
   text-align: center;
 }
 
@@ -268,7 +257,7 @@ button:active {
   form {
     width: 85%;
     position: relative;
-    top: -35px;
+    top: -20px;
     margin: 0 auto;
   }
 

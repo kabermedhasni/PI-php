@@ -1,34 +1,37 @@
-
-        // Toast notification
-        document.addEventListener('DOMContentLoaded', function() {
-            if ('<?php echo $success_message; ?>' || '<?php echo $error_message; ?>') {
-                const toast = document.getElementById('toast-notification');
-                toast.style.display = 'block';
+// Toast notification
+document.addEventListener('DOMContentLoaded', function() {
+    const toast = document.getElementById('toast-notification');
+    const toastMsgEl = document.getElementById('toast-message');
+    if (toast && toastMsgEl) {
+        const message = toastMsgEl.textContent.trim();
+        if (message) {
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
                 setTimeout(() => {
-                    toast.classList.add('show');
-                }, 100);
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => {
-                        toast.style.display = 'none';
-                    }, 300);
-                }, 3000);
-            }
-        });
-
-        // Toggle password visibility
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggle-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.src = '../assets/images/eye-off-svgrepo-com.svg';
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.src = '../assets/images/eye-show-svgrepo-com.svg';
-            }
+                    toast.style.display = 'none';
+                }, 300);
+            }, 3000);
         }
+    }
+});
+
+// Toggle password visibility
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.src = '../assets/images/eye-off-svgrepo-com.svg';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.src = '../assets/images/eye-show-svgrepo-com.svg';
+    }
+}
 
         // Toggle form fields based on role
         function toggleFields() {

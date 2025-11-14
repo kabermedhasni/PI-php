@@ -1,5 +1,4 @@
-
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
             // DOM Elements
             const searchInput = document.getElementById('email-search');
             const countDisplay = document.getElementById('count-display');
@@ -27,9 +26,16 @@
             
             function initUI() {
                 // Show toast notification if needed
-                if ('<?php echo $success_message; ?>' || '<?php echo $error_message; ?>') {
-                    showToast('<?php echo $success_message ? "success" : "error"; ?>', 
-                        '<?php echo addslashes($success_message ?: $error_message); ?>');
+                const toast = document.getElementById('toast-notification');
+                const toastMsgEl = document.getElementById('toast-message');
+                if (toast && toastMsgEl) {
+                    const message = toastMsgEl.textContent.trim();
+                    if (message) {
+                        const type = toast.classList.contains('toast-success')
+                            ? 'success'
+                            : (toast.classList.contains('toast-error') ? 'error' : 'info');
+                        showToast(type, message);
+                    }
                 }
                 
                 // Initialize all interactive components
@@ -267,7 +273,7 @@
                     }
                 });
             }
-            
+
             // Initialize modal handlers
             function initModalHandlers() {
                 // Close modal when clicking the close button
@@ -290,7 +296,7 @@
                     }
                 });
             }
-            
+
             // Show modal for deleting a single user
             function showSingleDeleteModal(userId, userEmail) {
                 isMultipleDelete = false;
@@ -303,7 +309,7 @@
                 
                 showModal(deleteModal);
             }
-            
+
             // Show modal for deleting multiple users
             function showMultiDeleteModal() {
                 isMultipleDelete = true;
@@ -324,20 +330,10 @@
                 
                 showModal(deleteModal);
             }
-            
+
             // Function to delete users (single or multiple)
             function deleteUsers(users) {
-                // Show processing state
-                confirmDeleteBtn.disabled = true;
-                confirmDeleteBtn.innerHTML = `
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Suppression...
-                `;
-                
-                // Process each user deletion sequentially
+                // Build fetch promises for each user
                 const deletePromises = users.map(user => {
                     const formData = new FormData();
                     formData.append('user_id', user.id);
@@ -358,57 +354,45 @@
                 
                 Promise.all(deletePromises)
                     .then(results => {
-                        // Count successes and failures
                         const successCount = results.filter(r => r.success).length;
                         const failureCount = results.length - successCount;
                         
-                        // Remove successful deletions from UI
+                        // Remove successful rows from the DOM
                         results.forEach(result => {
                             if (result.success) {
                                 const userRow = document.querySelector(`.user-row[data-id="${result.userId}"]`);
-                                if (userRow) {
-                                    userRow.remove();
-                                }
+                                if (userRow) userRow.remove();
                             }
                         });
                         
-                        // Update the user count
+                        // Update counts and selection state
                         countDisplay.textContent = document.querySelectorAll('.user-row').length;
-                        
-                        // Reset selected users
                         selectedUsers = [];
                         updateSelectedUsers();
                         updateSelectAllCheckbox();
                         
-                        // Hide the modal
+                        // Hide the modal after processing
                         hideModal(deleteModal);
                         
-                        // Show result message
+                        // Toast result
                         if (successCount > 0 && failureCount === 0) {
-                            // All deletions succeeded
-                            const message = successCount === 1 
-                                ? 'L\'utilisateur a été supprimé avec succès' 
+                            const message = successCount === 1
+                                ? "L'utilisateur a été supprimé avec succès"
                                 : `${successCount} utilisateurs ont été supprimés avec succès`;
                             showToast('success', message);
                         } else if (successCount > 0 && failureCount > 0) {
-                            // Some succeeded, some failed
                             showToast('error', `${successCount} supprimés, ${failureCount} échecs`);
                         } else {
-                            // All failed
                             showToast('error', 'Échec de la suppression');
                         }
-                        
-                        // Reset button state
-                        confirmDeleteBtn.disabled = false;
-                        confirmDeleteBtn.innerHTML = 'Supprimer';
                     });
             }
-            
+
             // Function to show modal
             function showModal(modal) {
                 modal.classList.add('active');
             }
-            
+
             // Reset confirm button state
             function resetConfirmButton() {
                 confirmDeleteBtn.disabled = false;
