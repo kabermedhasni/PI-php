@@ -223,6 +223,6 @@ $headerBg = ($role === 'student') ? 'blue' : 'purple';
         </div>
     </div>
 
-    <script src="assets/js/timetable_view.js"></script>
+    <script src="assets/js/index.js"></script>
 </body>
 </html>

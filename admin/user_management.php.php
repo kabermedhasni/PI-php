@@ -348,6 +348,6 @@ try {
             'groupsByYear' => $groupsByYear,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     </script>
-    <script src="../assets/js/manage_users.js"></script>
+    <script src="../assets/js/user_management.php.js"></script>
 </body>
 </html>

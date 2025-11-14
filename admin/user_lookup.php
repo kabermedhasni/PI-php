@@ -274,11 +274,11 @@ try {
         </div>
     </main>
     
-    <script src="../assets/js/check_users.js"></script>
+    <script src="../assets/js/user_lookup.js"></script>
 </body>
 </html>
 <?php
 } catch (PDOException $e) {
     echo "Database error: " . $e->getMessage();
 }
-?> 
+?>

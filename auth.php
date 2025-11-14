@@ -176,6 +176,6 @@ function redirectUserByRole($role) {
       <div class="description-section background-image">
       </div>
     </div>
-    <script src="assets/js/login.js"></script>
+    <script src="assets/js/auth.js"></script>
   </body>
 </html>

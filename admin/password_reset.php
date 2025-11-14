@@ -268,6 +268,6 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
         </div>
     </main>
     
-    <script src="../assets/js/fix_passwords.js"></script>
+    <script src="../assets/js/password_reset.js"></script>
 </body>
-</html> 
+</html>
