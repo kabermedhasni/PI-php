@@ -234,10 +234,13 @@ select:focus {
   color: #1e40af;
 }
 
-/* Animation for form sections */
+/* Animation and layout for conditional form sections (professor/student) */
 .form-section {
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   max-height: 0;
   opacity: 0;
   transform: translateY(-20px);
@@ -247,6 +250,8 @@ select:focus {
     padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   visibility: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 .form-section.visible {
@@ -256,6 +261,7 @@ select:focus {
   pointer-events: auto;
   visibility: visible;
 }
+
 /* Custom dropdown styling */
 .dropdown-container {
   position: relative;
