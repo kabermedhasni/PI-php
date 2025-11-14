@@ -90,7 +90,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier les Mots de Passe</title>
     <link rel="icon" href="../assets/images/logo-supnum2.png" />
-    <link rel="stylesheet" href="../assets/css/pages/fix_passwords.css">
+    <link rel="stylesheet" href="../assets/css/pages/password_reset.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>

@@ -106,7 +106,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 <title>University Timetable Management</title>
 <link rel="icon" href="../assets/images/logo-supnum2.png" />
 <link rel="stylesheet" href="../assets/css/style.css">
-<link rel="stylesheet" href="../assets/css/pages/admin_timetable.css">
+<link rel="stylesheet" href="../assets/css/pages/timetable_management.css">
 </head>
 <body>
 <div id="timetable-root" class="card" data-config='<?= htmlspecialchars(json_encode([

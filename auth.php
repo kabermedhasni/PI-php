@@ -102,7 +102,7 @@ function redirectUserByRole($role) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page</title>
     <link rel="icon" href="assets/images/logo-supnum2.png" />
-    <link rel="stylesheet" href="assets/css/pages/login.css" />
+    <link rel="stylesheet" href="assets/css/pages/auth.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
   </head>
   <body>

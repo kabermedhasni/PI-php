@@ -68,7 +68,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérifier les Utilisateurs</title>
     <link rel="icon" href="../assets/images/logo-supnum2.png" />
-    <link rel="stylesheet" href="../assets/css/pages/check_users.css">
+    <link rel="stylesheet" href="../assets/css/pages/user_lookup.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
