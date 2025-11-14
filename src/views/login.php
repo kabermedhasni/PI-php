@@ -36,7 +36,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['role'] = $user['role'];
-                        $_SESSION['group_id'] = $user['group_id'] ?? null;
+
+                        if ($user['role'] === 'student' && !empty($user['group_id'])) {
+                            $groupStmt = $pdo->prepare("SELECT g.name AS group_name, y.name AS year_name FROM `groups` g JOIN `years` y ON g.year_id = y.id WHERE g.id = ?");
+                            $groupStmt->execute([$user['group_id']]);
+                            $groupInfo = $groupStmt->fetch(PDO::FETCH_ASSOC);
+
+                            if ($groupInfo) {
+                                $_SESSION['group_id'] = $groupInfo['group_name'];
+                                $_SESSION['year_id'] = $groupInfo['year_name'];
+                            } else {
+                                $_SESSION['group_id'] = null;
+                                $_SESSION['year_id'] = null;
+                            }
+                        } else {
+                            $_SESSION['group_id'] = null;
+                            $_SESSION['year_id'] = null;
+                        }
+
                         redirectUserByRole($user['role']);
                     } else {
                         // Password doesn't match
@@ -64,36 +81,11 @@ function redirectUserByRole($role) {
             break;
         case 'student':
             // For students, redirect directly to the timetable with their year and group
-            if (isset($_SESSION['group_id'])) {
-                // Group ID format assumption: First digit is year, second digit is group number
-                // For example: 12 = Year 1, Group 2
-                $groupNumeric = $_SESSION['group_id'];
-                if (is_numeric($groupNumeric) && strlen($groupNumeric) >= 2) {
-                    $year = substr($groupNumeric, 0, 1);
-                    $group = substr($groupNumeric, 1, 1);
-                    
-                    // Convert to the format expected by timetable_view.php and the JSON files
-                    // Use "First Year", "Second Year", etc. instead of "Y1", "Y2"
-                    switch($year) {
-                        case '1':
-                            $yearName = "Première Année";
-                            break;
-                        case '2':
-                            $yearName = "Deuxième Année";
-                            break;
-                        case '3':
-                            $yearName = "Troisième Année";
-                            break;
-                        default:
-                            $yearName = "Troisième Année";
-                    }
-                    $groupName = "G" . $group;
-                    $_SESSION['group_id'] = $groupName;
-                    $_SESSION['year_id'] = $yearName;
-                    error_log("Student login redirection: Parsed group $groupNumeric as Year $yearName, Group $groupName");
-                    header("Location: timetable_view.php?role=student&year=$yearName&group=$groupName");
-                    exit;
-                }
+            if (isset($_SESSION['group_id']) && isset($_SESSION['year_id'])) {
+                $yearName = $_SESSION['year_id'];
+                $groupName = $_SESSION['group_id'];
+                header("Location: timetable_view.php?role=student&year=$yearName&group=$groupName");
+                exit;
             }
             break;
         default:
