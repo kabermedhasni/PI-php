@@ -546,6 +546,18 @@ body {
   margin-bottom: 2px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.class-block.dragging {
+  opacity: 0.85;
+  transform: scale(1.03);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.subject-cell.drop-target {
+  background-color: #eef2ff;
+  box-shadow: inset 0 0 0 2px #4f46e5;
 }
 
 /* .class-block:hover {

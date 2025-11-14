@@ -31,6 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let deleteClassDay = null;
   let deleteClassTime = null;
 
+  let dragSourceDay = null;
+  let dragSourceTime = null;
+  let dragDestinationDay = null;
+  let dragDestinationTime = null;
+
   const timeSlots = cfg.timeSlots || [];
   const days = cfg.days || [];
 
@@ -89,6 +94,35 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("cancel-btn").addEventListener("click", function () {
     closeModalWithAnimation("class-modal");
   });
+
+  // Move class confirmation modal handlers
+  const moveClassModal = document.getElementById("move-class-modal");
+  if (moveClassModal) {
+    const moveClose = document.getElementById("move-class-close");
+    const moveCancel = document.getElementById("move-class-cancel");
+    const moveConfirm = document.getElementById("move-class-confirm");
+
+    if (moveClose) {
+      moveClose.addEventListener("click", function () {
+        closeModalWithAnimation("move-class-modal");
+        resetDragState();
+      });
+    }
+
+    if (moveCancel) {
+      moveCancel.addEventListener("click", function () {
+        closeModalWithAnimation("move-class-modal");
+        resetDragState();
+      });
+    }
+
+    if (moveConfirm) {
+      moveConfirm.addEventListener("click", function () {
+        closeModalWithAnimation("move-class-modal");
+        applyMoveOrSwap();
+      });
+    }
+  }
 
   // Consolidated dropdown handling function
   function toggleDropdown(dropdownButton, dropdownMenu) {
@@ -295,6 +329,8 @@ document.addEventListener("DOMContentLoaded", function () {
       days.forEach((day) => {
         const cell = document.createElement("td");
         cell.className = "subject-cell";
+        cell.setAttribute("data-day", day);
+        cell.setAttribute("data-time", time);
 
         // Check if we have data for this cell
         if (timetableData[day] && timetableData[day][time]) {
@@ -497,6 +533,168 @@ document.addEventListener("DOMContentLoaded", function () {
 
       tbody.appendChild(row);
     });
+
+    attachDragHandlers();
+  }
+
+  function attachDragHandlers() {
+    const cells = document.querySelectorAll("#timetable-body .subject-cell");
+
+    cells.forEach((cell) => {
+      const day = cell.getAttribute("data-day");
+      const time = cell.getAttribute("data-time");
+      const classBlock = cell.querySelector(".class-block");
+
+      if (classBlock) {
+        classBlock.setAttribute("draggable", "true");
+
+        classBlock.addEventListener("dragstart", function (e) {
+          dragSourceDay = day;
+          dragSourceTime = time;
+          dragDestinationDay = null;
+          dragDestinationTime = null;
+
+          this.classList.add("dragging");
+
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", `${day}-${time}`);
+          }
+        });
+
+        classBlock.addEventListener("dragend", function () {
+          this.classList.remove("dragging");
+          document
+            .querySelectorAll(".subject-cell.drop-target")
+            .forEach((c) => c.classList.remove("drop-target"));
+        });
+      }
+
+      cell.addEventListener("dragover", function (e) {
+        if (!dragSourceDay) return;
+        e.preventDefault();
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = "move";
+        }
+        this.classList.add("drop-target");
+      });
+
+      cell.addEventListener("dragleave", function () {
+        this.classList.remove("drop-target");
+      });
+
+      cell.addEventListener("drop", function (e) {
+        if (!dragSourceDay) return;
+        e.preventDefault();
+
+        document
+          .querySelectorAll(".subject-cell.drop-target")
+          .forEach((c) => c.classList.remove("drop-target"));
+
+        const destDay = this.getAttribute("data-day");
+        const destTime = this.getAttribute("data-time");
+
+        dragDestinationDay = destDay;
+        dragDestinationTime = destTime;
+
+        if (
+          dragDestinationDay === dragSourceDay &&
+          dragDestinationTime === dragSourceTime
+        ) {
+          resetDragState();
+          return;
+        }
+
+        const sourceData =
+          timetableData[dragSourceDay] &&
+          timetableData[dragSourceDay][dragSourceTime];
+
+        if (!sourceData) {
+          resetDragState();
+          return;
+        }
+
+        const destData =
+          timetableData[dragDestinationDay] &&
+          timetableData[dragDestinationDay][dragDestinationTime];
+
+        const moveMessageEl = document.getElementById("move-class-message");
+        if (moveMessageEl) {
+          const destLabel = `${dragDestinationDay} ${dragDestinationTime}`;
+
+          if (destData) {
+            const sourceLabel = `${dragSourceDay} ${dragSourceTime}`;
+            const srcSubject = sourceData.subject || "(Matière inconnue)";
+            const srcProf = sourceData.professor || "(Professeur inconnu)";
+            const srcRoom = sourceData.room || "(Salle inconnue)";
+
+            const destSubject = destData.subject || "(Matière inconnue)";
+            const destProf = destData.professor || "(Professeur inconnu)";
+            const destRoom = destData.room || "(Salle inconnue)";
+
+            moveMessageEl.innerHTML =
+              `<strong>Cours déplacé :</strong><br>` +
+              `${srcSubject} — ${srcProf} — Salle ${srcRoom} (${sourceLabel})<br><br>` +
+              `<strong>Cours cible :</strong><br>` +
+              `${destSubject} — ${destProf} — Salle ${destRoom} (${destLabel})<br><br>` +
+              `Voulez-vous échanger ces deux cours ?`;
+          } else {
+            const srcSubject = sourceData.subject || "ce cours";
+            moveMessageEl.textContent = `Voulez-vous déplacer ${srcSubject} vers le créneau ${destLabel} ?`;
+          }
+
+          showModalWithAnimation("move-class-modal");
+        } else {
+          applyMoveOrSwap();
+        }
+      });
+    });
+  }
+
+  function resetDragState() {
+    dragSourceDay = null;
+    dragSourceTime = null;
+    dragDestinationDay = null;
+    dragDestinationTime = null;
+  }
+
+  function applyMoveOrSwap() {
+    if (!dragSourceDay || !dragDestinationDay) {
+      resetDragState();
+      return;
+    }
+
+    const sourceData =
+      timetableData[dragSourceDay] &&
+      timetableData[dragSourceDay][dragSourceTime];
+    const destData =
+      timetableData[dragDestinationDay] &&
+      timetableData[dragDestinationDay][dragDestinationTime];
+
+    if (!sourceData) {
+      resetDragState();
+      return;
+    }
+
+    if (destData) {
+      // Swap classes between the two cells
+      timetableData[dragSourceDay][dragSourceTime] = destData;
+      timetableData[dragDestinationDay][dragDestinationTime] = sourceData;
+    } else {
+      // Move class to an empty cell
+      timetableData[dragSourceDay][dragSourceTime] = null;
+      timetableData[dragDestinationDay][dragDestinationTime] = sourceData;
+    }
+
+    hasUnsavedChanges = true;
+    updatePublishStatus();
+    generateEmptyTimetable();
+    showToast(
+      "success",
+      "Cours déplacé. N'oubliez pas d'enregistrer les modifications."
+    );
+
+    resetDragState();
   }
 
   // Set up initial state

@@ -567,6 +567,27 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
         </div>
     </div>
 </div>
+<div id="move-class-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Déplacer le Cours</h2>
+            <span class="close" id="move-class-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="modal-section">
+                <p id="move-class-message"></p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="move-class-cancel" class="btn btn-outline">
+                    Annuler
+                </button>
+                <button type="button" id="move-class-confirm" class="btn btn-primary">
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="../assets/js/admin_timetable.js"></script>
 </body>

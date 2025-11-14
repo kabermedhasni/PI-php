@@ -166,8 +166,6 @@ try {
     <title>Gestion des Utilisateurs</title>
     <link rel="stylesheet" href="../assets/css/pages/manage_users.css">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-    </style>
 </head>
 <body>
     <header>
@@ -188,8 +186,8 @@ try {
     </header>
     
     <main>
-        <div id="toast-notification" class="toast <?php echo !empty($success_message) ? 'toast-success' : (!empty($error_message) ? 'toast-error' : ''); ?>" style="display: none;">
-            <div style="display: flex; align-items: center;">
+        <div id="toast-notification" class="toast <?php echo !empty($success_message) ? 'toast-success' : (!empty($error_message) ? 'toast-error' : ''); ?>">
+            <div class="toast-content">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <?php if (!empty($success_message)): ?>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -297,6 +295,40 @@ try {
                     </div>
                 </div>
 
+                <div id="student-fields" class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">Année</label>
+                        <input type="hidden" id="student-year-id" name="year_id">
+                        <div class="dropdown-container">
+                            <button type="button" class="dropdown-button" id="year-dropdown">
+                                <span id="selected-year">Sélectionner une année</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu" id="year-menu">
+                                <?php foreach ($years as $year): ?>
+                                    <div class="dropdown-item" data-id="<?php echo $year['id']; ?>" data-name="<?php echo htmlspecialchars($year['name']); ?>"><?php echo htmlspecialchars($year['name']); ?></div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Groupe</label>
+                        <input type="hidden" id="student-group-id" name="group_id">
+                        <div class="dropdown-container">
+                            <button type="button" class="dropdown-button" id="group-dropdown" disabled>
+                                <span id="selected-group">Sélectionner une année d'abord</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu" id="group-menu"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="submit-container">
                     <button type="submit" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -309,6 +341,12 @@ try {
         </div>
     </main>
 
+    <script>
+        window.manageUsersConfig = <?php echo json_encode([
+            'years' => $years,
+            'groupsByYear' => $groupsByYear,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    </script>
     <script src="../assets/js/manage_users.js"></script>
 </body>
 </html>
