@@ -1,0 +1,20 @@
+RewriteEngine On
+
+RewriteBase /pi-php/
+
+ # Redirect /pi-php/.../index.php to /pi-php/.../
+RewriteCond %{REQUEST_METHOD} GET [NC]
+RewriteCond %{THE_REQUEST} \s+/pi-php/(.*/)?index\.php[\s?] [NC]
+RewriteRule ^(.*?/)?index\.php$ /pi-php/%1 [R=301,L]
+
+ # Redirect explicit .php URLs under /pi-php to extensionless
+RewriteCond %{REQUEST_METHOD} GET [NC]
+RewriteCond %{THE_REQUEST} \s+/pi-php/(.+)\.php[\s?] [NC]
+RewriteRule ^(.+)\.php$ /pi-php/$1 [R=301,L]
+
+ # Internally map extensionless URLs to .php files if they exist
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+?)/?$ $1.php [L]
+
+DirectoryIndex index.php

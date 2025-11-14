@@ -53,6 +53,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord Admin</title>
+    <link rel="icon" href="../assets/images/logo-supnum2.png" />
     <link rel="stylesheet" href="../assets/css/pages/admin_index.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
