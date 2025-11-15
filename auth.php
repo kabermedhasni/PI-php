@@ -80,13 +80,7 @@ function redirectUserByRole($role) {
             header("Location: index.php");
             break;
         case 'student':
-            // For students, redirect directly to the timetable with their year and group
-            if (isset($_SESSION['group_id']) && isset($_SESSION['year_id'])) {
-                $yearName = $_SESSION['year_id'];
-                $groupName = $_SESSION['group_id'];
-                header("Location: index.php");
-                exit;
-            }
+            header("Location: index.php");
             break;
         default:
             echo "Unknown role.";

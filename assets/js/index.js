@@ -22,6 +22,38 @@ document.addEventListener("DOMContentLoaded", function () {
   const days = cfg.days || [];
   const isProfessorDebug = !!cfg.isProfessorDebug;
 
+  // Clean sensitive selection parameters from the visible URL while
+  // keeping them available in session / JS config.
+  (function cleanParamsFromUrl() {
+    try {
+      const url = new URL(window.location.href);
+      let changed = false;
+
+      if (url.searchParams.has("year")) {
+        url.searchParams.delete("year");
+        changed = true;
+      }
+
+      if (url.searchParams.has("group")) {
+        url.searchParams.delete("group");
+        changed = true;
+      }
+
+      // In professor debug mode, also hide the professor_id used to
+      // select which professor timetable is shown.
+      if (url.searchParams.has("professor_id")) {
+        url.searchParams.delete("professor_id");
+        changed = true;
+      }
+
+      if (changed) {
+        window.history.replaceState({}, "", url);
+      }
+    } catch (e) {
+      console.error("Failed to clean year/group from URL:", e);
+    }
+  })();
+
   // Timetable data
   let timetableData = {};
 
@@ -452,8 +484,7 @@ document.addEventListener("DOMContentLoaded", function () {
           generateViewTimetable();
           showToast("success", `Emploi du temps chargé`);
 
-          // Update URL with current year and group
-          updateUrlWithYearAndGroup(currentYear, currentGroup);
+          // Keep currentYear/currentGroup internal; do not expose in URL
         } else {
           // If no data from server, show empty timetable
           initTimetableData();
@@ -468,9 +499,6 @@ document.addEventListener("DOMContentLoaded", function () {
               "info",
               `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`
             );
-
-            // Update URL with current year and group even if no data found
-            updateUrlWithYearAndGroup(currentYear, currentGroup);
           }
         }
       })
@@ -482,28 +510,6 @@ document.addEventListener("DOMContentLoaded", function () {
         initTimetableData();
         generateViewTimetable();
       });
-  }
-
-  // Function to update URL with current year and group without reloading the page
-  function updateUrlWithYearAndGroup(year, group) {
-    if (userRole !== "professor" && !isProfessorDebug) {
-      const url = new URL(window.location.href);
-
-      // Only persist year/group when we have real values
-      if (year) {
-        url.searchParams.set("year", year);
-      } else {
-        url.searchParams.delete("year");
-      }
-
-      if (group) {
-        url.searchParams.set("group", group);
-      } else {
-        url.searchParams.delete("group");
-      }
-
-      window.history.replaceState({}, "", url);
-    }
   }
 
   // Function to update class status (cancel or reschedule)

@@ -39,6 +39,31 @@ document.addEventListener("DOMContentLoaded", function () {
   const timeSlots = cfg.timeSlots || [];
   const days = cfg.days || [];
 
+  // Clean selection parameters from the visible URL while keeping them
+  // available in PHP/JS config (timetable still loads correctly).
+  (function cleanAdminYearGroupFromUrl() {
+    try {
+      const url = new URL(window.location.href);
+      let changed = false;
+
+      if (url.searchParams.has("year")) {
+        url.searchParams.delete("year");
+        changed = true;
+      }
+
+      if (url.searchParams.has("group")) {
+        url.searchParams.delete("group");
+        changed = true;
+      }
+
+      if (changed) {
+        window.history.replaceState({}, "", url);
+      }
+    } catch (e) {
+      console.error("Failed to clean admin year/group from URL:", e);
+    }
+  })();
+
   // Consolidated modal animation functions (aligned with admin_index.js behavior)
   window.showModalWithAnimation = function (modalId) {
     const modal = document.getElementById(modalId);
@@ -1179,9 +1204,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         console.log("Server response:", data);
         if (data.success) {
-          // Update URL with current year and group to prevent redirection issues
-          updateUrlWithYearAndGroup(currentYear, currentGroup);
-
           showToast(
             "success",
             `Emploi du temps enregistré pour ${currentYear}-${currentGroup}`
@@ -1247,9 +1269,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         console.log("Server response:", data);
         if (data.success) {
-          // Update URL with current year and group
-          updateUrlWithYearAndGroup(currentYear, currentGroup);
-
           showToast(
             "success",
             `Emploi du temps publié pour ${currentYear}-${currentGroup}`
@@ -1574,9 +1593,6 @@ document.addEventListener("DOMContentLoaded", function () {
             `Emploi du temps chargé pour ${currentYear}-${currentGroup}`
           );
 
-          // Update URL with current year and group
-          updateUrlWithYearAndGroup(currentYear, currentGroup);
-
           // Set published flag based on the server response
           isCurrentlyPublished = data.is_published || false;
           hasDraftChanges = data.has_draft_changes || false;
@@ -1590,9 +1606,6 @@ document.addEventListener("DOMContentLoaded", function () {
             "info",
             `Aucun emploi du temps trouvé pour ${currentYear}-${currentGroup}`
           );
-
-          // Update URL with current year and group
-          updateUrlWithYearAndGroup(currentYear, currentGroup);
 
           isCurrentlyPublished = false;
           hasDraftChanges = false;
@@ -1612,14 +1625,6 @@ document.addEventListener("DOMContentLoaded", function () {
         hasUnsavedChanges = false;
         updatePublishStatus();
       });
-  }
-
-  // Function to update URL with current year and group without reloading the page
-  function updateUrlWithYearAndGroup(year, group) {
-    const url = new URL(window.location.href);
-    url.searchParams.set("year", year);
-    url.searchParams.set("group", group);
-    window.history.replaceState({}, "", url);
   }
 
   // Filter subjects based on professor ID
