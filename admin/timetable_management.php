@@ -588,6 +588,6 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
     </div>
 </div>
 
-<script src="../assets/js/timetable_management.js"></script>
+<script type="module" src="../assets/js/timetable_management.js"></script>
 </body>
 </html>
