@@ -4,9 +4,9 @@ const passwordInput = document.getElementById("password");
 togglePassword.addEventListener("click", function () {
   if (passwordInput.type === "password") {
     passwordInput.type = "text";
-    togglePassword.src = "assets/images/eye-off-svgrepo-com.svg";
+    togglePassword.src = "assets/images/eye-off.svg";
   } else {
     passwordInput.type = "password";
-    togglePassword.src = "assets/images/eye-show-svgrepo-com.svg";
+    togglePassword.src = "assets/images/eye-show.svg";
   }
 });

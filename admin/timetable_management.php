@@ -104,7 +104,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>University Timetable Management</title>
-<link rel="icon" href="../assets/images/logo-supnum2.png" />
+<link rel="icon" href="../assets/images/logo-supnum.png" />
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/pages/timetable_management.css">
 </head>

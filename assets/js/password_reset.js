@@ -30,10 +30,10 @@
                         const img = this.querySelector('img');
                         if (type === 'text') {
                             // Show the "hide" icon when password is visible
-                            img.src = "../assets/images/eye-off-svgrepo-com.svg";
+                            img.src = "../assets/images/eye-off.svg";
                         } else {
                             // Show the "show" icon when password is hidden
-                            img.src = "../assets/images/eye-show-svgrepo-com.svg";
+                            img.src = "../assets/images/eye-show.svg";
                         }
                     });
                 });

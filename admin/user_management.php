@@ -164,7 +164,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Utilisateurs</title>
-    <link rel="icon" href="../assets/images/logo-supnum2.png" />
+    <link rel="icon" href="../assets/images/logo-supnum.png" />
     <link rel="stylesheet" href="../assets/css/pages/user_management.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -252,7 +252,7 @@ try {
                         </div>
                         <input type="password" id="password" name="password" required class="with-icon" placeholder="Mot de passe">
                         <button type="button" class="toggle-password" onclick="togglePassword()">
-                            <img src="../assets/images/eye-show-svgrepo-com.svg" alt="Toggle Password" id="toggle-icon">
+                            <img src="../assets/images/eye-show.svg" alt="Toggle Password" id="toggle-icon">
                         </button>
                     </div>
                 </div>
@@ -348,6 +348,6 @@ try {
             'groupsByYear' => $groupsByYear,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     </script>
-    <script src="../assets/js/user_management.php.js"></script>
+    <script src="../assets/js/user_management.js"></script>
 </body>
 </html>

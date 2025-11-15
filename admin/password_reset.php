@@ -89,7 +89,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier les Mots de Passe</title>
-    <link rel="icon" href="../assets/images/logo-supnum2.png" />
+    <link rel="icon" href="../assets/images/logo-supnum.png" />
     <link rel="stylesheet" href="../assets/css/pages/password_reset.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -243,7 +243,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                             <div class="input-wrapper password-field">
                                 <input type="password" name="new_password" id="new_password" autocomplete="new-password" required placeholder="Entrez le nouveau mot de passe">
                                 <button type="button" class="toggle-password">
-                                    <img src="../assets/images/eye-show-svgrepo-com.svg" alt="Toggle Password">
+                                    <img src="../assets/images/eye-show.svg" alt="Toggle Password">
                                 </button>
                             </div>
                         </div>

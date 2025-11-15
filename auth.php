@@ -95,7 +95,7 @@ function redirectUserByRole($role) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page</title>
-    <link rel="icon" href="assets/images/logo-supnum2.png" />
+    <link rel="icon" href="assets/images/logo-supnum.png" />
     <link rel="stylesheet" href="assets/css/pages/auth.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
   </head>
@@ -110,7 +110,7 @@ function redirectUserByRole($role) {
             <!-- Only logo -->
             <div class="logo-container">
               <img
-                src="assets/images/logo-supnum2.png"
+                src="assets/images/logo-supnum.png"
                 alt="SupNum"
                 class="logo-image"
               />
@@ -121,7 +121,7 @@ function redirectUserByRole($role) {
             </p>
             <div class="input-container">
               <img
-                src="assets/images/email-svgrepo-com.svg"
+                src="assets/images/email.svg"
                 alt="Email Icon"
                 class="input-icon"
               />
@@ -134,7 +134,7 @@ function redirectUserByRole($role) {
             </div>
             <div class="input-container">
               <img
-                src="assets/images/lock-alt-svgrepo-com.svg"
+                src="assets/images/lock.svg"
                 alt="Password Icon"
                 class="input-icon"
               />
@@ -146,7 +146,7 @@ function redirectUserByRole($role) {
                 required
               />
               <img
-                src="assets/images/eye-show-svgrepo-com.svg"
+                src="assets/images/eye-show.svg"
                 class="toggle-password"
                 alt="Toggle Password"
                 id="togglePassword"

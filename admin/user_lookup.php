@@ -67,7 +67,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérifier les Utilisateurs</title>
-    <link rel="icon" href="../assets/images/logo-supnum2.png" />
+    <link rel="icon" href="../assets/images/logo-supnum.png" />
     <link rel="stylesheet" href="../assets/css/pages/user_lookup.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -77,7 +77,7 @@ try {
             <div class="header-content">
                 <h1 class="header-title">Vérifier les Utilisateurs</h1>
                 <div class="header-actions">
-                    <a href="user_management.php.php" class="header-btn">
+                    <a href="user_management.php" class="header-btn">
                         Créer un Utilisateur
                     </a>
                     <a href="../admin/index.php" class="header-btn">
