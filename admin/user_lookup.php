@@ -1,6 +1,9 @@
 <?php
 require_once '../core/db.php';
 session_start();
+require_once '../core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
 
 // This script should only be accessible from specific IPs
 /*$client_ip = $_SERVER['REMOTE_ADDR'];

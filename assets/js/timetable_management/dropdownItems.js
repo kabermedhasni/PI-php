@@ -68,6 +68,8 @@ export class DropdownItemHandlers {
         this.config.currentGroup;
     }
 
+    this.saveCurrentSelection();
+
     if (this.loadDataCallback) this.loadDataCallback();
     this.toast.show(
       "info",
@@ -127,11 +129,32 @@ export class DropdownItemHandlers {
     document.getElementById("group-menu").classList.remove("open");
     document.getElementById("group-dropdown").classList.remove("active");
 
+    this.saveCurrentSelection();
+
     if (this.loadDataCallback) this.loadDataCallback();
     this.toast.show(
       "info",
       `Affichage de l'emploi du temps pour ${this.config.currentYear}-${this.config.currentGroup}`
     );
+  }
+
+  async saveCurrentSelection() {
+    try {
+      const params = new URLSearchParams({
+        year: this.config.currentYear,
+        group: this.config.currentGroup,
+      });
+
+      await fetch("../api/timetables/set_admin_selection.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+    } catch (error) {
+      console.error("Failed to persist admin selection:", error);
+    }
   }
 
   setupProfessorSelection() {

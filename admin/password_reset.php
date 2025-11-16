@@ -1,6 +1,9 @@
 <?php
 require_once '../core/db.php';
 session_start();
+require_once '../core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
 
 // Check admin authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {

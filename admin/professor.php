@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../core/db.php';
+require_once '../core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {

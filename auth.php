@@ -1,6 +1,13 @@
 <?php
 session_start();
 require_once 'core/db.php'; // Fixed path to database connection
+require_once 'core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
+
+if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
+    redirectUserByRole($_SESSION['role']);
+}
 
 // Initialize an error message variable
 $error_message = "";
@@ -53,6 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $_SESSION['group_id'] = null;
                             $_SESSION['year_id'] = null;
                         }
+
+                        create_remember_me_cookie($user);
 
                         redirectUserByRole($user['role']);
                     } else {

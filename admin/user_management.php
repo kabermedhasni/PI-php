@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../core/db.php';
+require_once '../core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
 
 // Function to reset auto-increment to prevent gaps
 function resetAutoIncrement($pdo) {

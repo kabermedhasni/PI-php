@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../core/db.php';
+require_once '../core/auth_helper.php';
+
+restore_session_from_cookie($pdo);
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
@@ -94,8 +97,23 @@ $rooms = [
 ];
 
 // Default selections
-$currentYear = isset($_GET['year']) ? $_GET['year'] : 'Première Année';
-$currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
+if (isset($_GET['year']) && isset($_GET['group'])) {
+    $currentYear = $_GET['year'];
+    $currentGroup = $_GET['group'];
+    $_SESSION['admin_current_year'] = $currentYear;
+    $_SESSION['admin_current_group'] = $currentGroup;
+} else {
+    if (isset($_SESSION['admin_current_year']) && isset($_SESSION['admin_current_group'])) {
+        $currentYear = $_SESSION['admin_current_year'];
+        $currentGroup = $_SESSION['admin_current_group'];
+    } else {
+        $currentYear = 'Première Année';
+        $currentGroup = 'G1';
+        $_SESSION['admin_current_year'] = $currentYear;
+        $_SESSION['admin_current_group'] = $currentGroup;
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
