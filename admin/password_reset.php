@@ -241,7 +241,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                         <div class="form-group">
                             <label for="new_password" class="form-label">Nouveau mot de passe:</label>
                             <div class="input-wrapper password-field">
-                                <input type="password" name="new_password" id="new_password" autocomplete="new-password" required placeholder="Entrez le nouveau mot de passe">
+                                <input type="password" style="padding-left: 0.75rem !important;" name="new_password" id="new_password" autocomplete="new-password" required placeholder="Entrez le nouveau mot de passe">
                                 <button type="button" class="toggle-password">
                                     <img src="../assets/images/eye-show.svg" alt="Toggle Password">
                                 </button>
@@ -255,7 +255,7 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                                 </svg>
                                 Modifier le mot de passe
                             </button>
-                            <a href="fix_passwords.php" class="btn btn-secondary">
+                            <a href="password_reset.php" class="btn btn-secondary">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>

@@ -237,13 +237,13 @@
     }
 
     .badge-admin {
-    background-color: #ede9fe;
-    color: #5b21b6;
+    background-color: #f0ffd4;
+    color: #f3d985;
     }
 
     .badge-professor {
-    background-color: #e0f2fe;
-    color: #0369a1;
+    background-color: #ede9fe;
+    color: #5b21b6;
     }
 
     .badge-student {
@@ -251,9 +251,17 @@
     color: #1e40af;
     }
 
+    .current-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    background: #dafaef;
+    color: #10b981;
+    }
+
     /* Search Highlight */
     .highlight {
-    background-color: #fef3c7;
+    background-color: #f1eacd;
     font-weight: 500;
     }
 
@@ -636,7 +644,7 @@
     }
 
     /* Mobile Responsive Styles */
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
     /* Convert table to cards on mobile */
     table,
     thead,
@@ -696,15 +704,19 @@
         content: attr(data-label);
     }
 
-    /* Fix role badges on mobile */
-    td .role-badge {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
     /* Improve search box on mobile */
     .search-box {
         font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .bulk-delete-btn {
+        width: 13.9rem;
+        height: 2rem;
+        font-size: 0.8rem;
+    }
+
+    .search-results {
+        width: 11rem;
     }
 
     .header-actions {

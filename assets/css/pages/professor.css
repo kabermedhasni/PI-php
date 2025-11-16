@@ -16,7 +16,6 @@ body {
 
 .container {
     max-width: 56rem;
-    min-width: 50rem;
     margin: 0 auto;
     background-color: #ffffff;
     border-radius: 0.5rem;
@@ -63,8 +62,8 @@ body {
 }
 
 .back-button svg {
-    height: 1rem;
-    width: 1rem;
+    width: 1.6rem;
+    height: auto;
     margin-right: 0.5rem;
 }
 
@@ -87,12 +86,22 @@ body {
     .professor-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .back-button svg {
+        width: 1rem;
+        height: auto;
+    }
 }
 
 @media (min-width: 1024px) {
     .professor-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+
+    .container {
+        min-width: 56rem;
+    }
+
 }
 
 .professor-card {

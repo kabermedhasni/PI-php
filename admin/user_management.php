@@ -174,7 +174,7 @@ try {
             <div class="header-content">
                 <h1 class="header-title">Gestion des Utilisateurs</h1>
                 <div class="header-actions">
-                    <a href="check_users.php" class="header-btn">Liste des Utilisateurs</a>
+                    <a href="user_lookup.php" class="header-btn">Liste des Utilisateurs</a>
                     <a href="../admin/index.php" class="header-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -263,7 +263,7 @@ try {
                     <div class="dropdown-container">
                         <button type="button" class="dropdown-button" id="role-dropdown">
                             <span id="selected-role">Sélectionner un rôle</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
@@ -303,7 +303,7 @@ try {
                         <div class="dropdown-container">
                             <button type="button" class="dropdown-button" id="year-dropdown">
                                 <span id="selected-year">Sélectionner une année</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
@@ -321,7 +321,7 @@ try {
                         <div class="dropdown-container">
                             <button type="button" class="dropdown-button" id="group-dropdown" disabled>
                                 <span id="selected-group">Sélectionner une année d'abord</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="" style="width: 1.2rem; height: 1.2rem; color: #999;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>

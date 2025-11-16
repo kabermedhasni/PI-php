@@ -493,14 +493,9 @@
     font-size: 0.75rem;
   }
 
-  .header-bar .btn .icon {
-    width: 0.75rem;
-    height: 0.75rem;
-  }
-
-  #arrow {
-    width: 22px;
-    height: auto;
+  .icon {
+    width: 1.2rem !important;
+    height: auto !important;
   }
 }
 

@@ -322,7 +322,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 <!-- Subgroup options - initially hidden -->
                 <div id="subgroup-options" class="form-section hidden">
                     <label class="form-label">Options de sous-groupe</label>
-                    <div class="radio-line mb-1">
+                    <div class="radio-line">
                         <input type="radio" id="subgroup-single" name="subgroup-option" value="single" checked>
                         <label for="subgroup-single" class="radio-label">Classe entière</label>
                     </div>
@@ -335,7 +335,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
                 <!-- Subgroup split options - initially hidden -->
                 <div id="subgroup-split-options" class="form-section hidden">
                     <label class="form-label">Options de division</label>
-                    <div class="radio-line mb-1">
+                    <div class="radio-line">
                         <input type="radio" id="subgroup-same-time" name="subgroup-split-option" value="same-time" checked>
                         <label for="subgroup-same-time" class="radio-label">Même créneau horaire</label>
                     </div>

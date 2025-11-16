@@ -157,13 +157,8 @@ main {
 }
 
 @media (max-width: 768px) {
-    .btn svg.mobile-icon {
-        width: 35px;
-        height: auto;
-    }
-    
-    .btn svg.mobile-icon-small {
-        width: 20px;
+    .btn svg {
+        width: 3rem;
         height: auto;
     }
 }
