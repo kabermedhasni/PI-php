@@ -600,7 +600,6 @@ body {
 
 .empty-cell .btn-icon:hover {
   color: #2563eb;
-  background-color: rgba(59, 130, 246, 0.05);
 }
 
 /* Semantic classes used by JS-generated elements */
@@ -875,6 +874,7 @@ body {
 
   .class-block div {
     margin-bottom: 2px;
+    flex-direction: column;
   }
 
   .filters {
