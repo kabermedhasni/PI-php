@@ -492,11 +492,6 @@
     padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
   }
-
-  .icon {
-    width: 1.2rem !important;
-    height: auto !important;
-  }
 }
 
 @media (max-width: 480px) {

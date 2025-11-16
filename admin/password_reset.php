@@ -161,50 +161,48 @@ if (isset($_POST['change_password']) && isset($_POST['user_id']) && isset($_POST
                     </button>
                 </form>
                 
-                <!-- Show search results if any -->
                 <?php if (isset($searchResults) && !empty($searchResults)): ?>
                     <div class="table-container">
                         <h3 class="table-title">Résultats de recherche</h3>
                         <div class="table-wrapper">
-                                <table>
-                                    <thead>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Rôle</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($searchResults as $user): 
+                                        // Set role badge class
+                                        $role_class = 'badge-student';
+                                        if ($user['role'] === 'admin') {
+                                            $role_class = 'badge-admin';
+                                        } elseif ($user['role'] === 'professor') {
+                                            $role_class = 'badge-professor';
+                                        }
+                                    ?>
                                         <tr>
-                                            <th>Username</th>
-                                            <th>Email</th>
-                                            <th>Rôle</th>
-                                            <th>Action</th>
+                                            <td data-label="Username">
+                                                <div class="user-name"><?php echo htmlspecialchars($user['name']); ?></div>
+                                            </td>
+                                            <td data-label="Email">
+                                                <div class="user-email"><?php echo htmlspecialchars($user['email']); ?></div>
+                                            </td>
+                                            <td data-label="Rôle">
+                                                <span class="role-badge <?php echo $role_class; ?>">
+                                                    <?php echo htmlspecialchars($user['role']); ?>
+                                                </span>
+                                            </td>
+                                            <td data-label="Action">
+                                                <a href="?user_id=<?php echo $user['id']; ?>" class="table-link">Sélectionner</a>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($searchResults as $user): 
-                                            // Set role badge class
-                                            $role_class = 'badge-student';
-                                            if ($user['role'] === 'admin') {
-                                                $role_class = 'badge-admin';
-                                            } elseif ($user['role'] === 'professor') {
-                                                $role_class = 'badge-professor';
-                                            }
-                                        ?>
-                                            <tr>
-                                                <td>
-                                                    <div class="user-name"><?php echo htmlspecialchars($user['name']); ?></div>
-                                                </td>
-                                                <td>
-                                                    <div class="user-email"><?php echo htmlspecialchars($user['email']); ?></div>
-                                                </td>
-                                                <td>
-                                                    <span class="role-badge <?php echo $role_class; ?>">
-                                                        <?php echo htmlspecialchars($user['role']); ?>
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <a href="?user_id=<?php echo $user['id']; ?>" class="table-link">Sélectionner</a>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 <?php endif; ?>

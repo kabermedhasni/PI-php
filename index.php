@@ -11,7 +11,18 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 
 // Check if user is student, professor, or admin
 $role = $_SESSION['role'];
-$isProfessorDebug = isset($_GET['professor_id']) && $role === 'admin';
+
+if ($role === 'admin') {
+    if (isset($_GET['professor_id'])) {
+        $_SESSION['professor_debug_id'] = $_GET['professor_id'];
+    }
+
+    if (isset($_GET['exit_debug'])) {
+        unset($_SESSION['professor_debug_id']);
+    }
+}
+
+$isProfessorDebug = ($role === 'admin' && isset($_SESSION['professor_debug_id']));
 
 // Handle invalid roles
 if ($role !== 'student' && $role !== 'professor' && $role !== 'admin') {
@@ -70,8 +81,8 @@ $days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"
 // If we're in admin preview with professor_id set, get professor info
 $professorId = null;
 $professorName = null;
-if ($isProfessorDebug && isset($_GET['professor_id'])) {
-    $professorId = $_GET['professor_id'];
+if ($isProfessorDebug) {
+    $professorId = $_SESSION['professor_debug_id'];
     $currentYear = null;
     $currentGroup = null;
     try {
