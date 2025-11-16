@@ -556,6 +556,11 @@ body {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
+.subject-cell {
+  vertical-align: middle !important;
+  padding: 4px;
+}
+
 .subject-cell.drop-target {
   background-color: #eef2ff;
   box-shadow: inset 0 0 0 2px #4f46e5;
@@ -567,11 +572,35 @@ body {
     } */
 
 .empty-cell {
+  min-height: 72px;
   height: 100%;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
+}
+
+/* Plus button - Fills available space and centers icon */
+.empty-cell .btn-icon {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.empty-cell .btn-icon:hover {
+  color: #2563eb;
+  background-color: rgba(59, 130, 246, 0.05);
 }
 
 /* Semantic classes used by JS-generated elements */
@@ -816,9 +845,14 @@ body {
     border-radius: 0.25rem;
   }
 
-  .timetable th,
-  .timetable td {
+  .timetable th {
     padding: 4px;
+    font-size: 0.7rem;
+  }
+
+  .timetable td {
+    padding: 0;
+    height: 80px;
     font-size: 0.7rem;
   }
 

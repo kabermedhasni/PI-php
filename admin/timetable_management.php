@@ -503,7 +503,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
         </div>
         <div class="modal-body">
             <div class="modal-section">
-                <p class="mb-2 text-danger">Ce professeur ne peut pas être assigné à ce créneau horaire car il est déjà occupé :</p>
+                <p class="text-danger">Ce professeur ne peut pas être assigné à ce créneau horaire car il est déjà occupé :</p>
                 <div id="conflict-details" class="conflict-box">
                     <!-- Conflict details will be inserted here -->
                 </div>
@@ -527,7 +527,7 @@ $currentGroup = isset($_GET['group']) ? $_GET['group'] :'G1';
         </div>
         <div class="modal-body">
             <div class="modal-section">
-                <p class="mb-2 text-danger">Cette salle ne peut pas être réservée à ce créneau horaire car elle est déjà occupée :</p>
+                <p class="text-danger">Cette salle ne peut pas être réservée à ce créneau horaire car elle est déjà occupée :</p>
                 <div id="room-conflict-details" class="conflict-box">
                     <!-- Room conflict details will be inserted here -->
                 </div>
