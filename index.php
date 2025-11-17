@@ -218,6 +218,7 @@ $headerBg = ($role === 'student') ? 'blue' : 'purple';
             </div>
             <?php endif; ?>
 
+
             <!-- Timetable -->
             <div class="timetable-container">
                 <table class="timetable" id="timetable">
@@ -234,6 +235,14 @@ $headerBg = ($role === 'student') ? 'blue' : 'purple';
                     </tbody>
                 </table>
             </div>
+            <!-- Publish info banner (latest publish date and history) -->
+            <?php if ($role === 'student' || ($role === 'professor' && !$isProfessorDebug)): ?>
+            <?php $publishClass = ($role === 'professor') ? 'publish-professor' : 'publish-student'; ?>
+            <div id="publish-info" class="info-box <?php echo $publishClass; ?>">
+                <div id="publish-latest" class="info-subtitle"></div>
+                <ul id="publish-history" class="info-list"></ul>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

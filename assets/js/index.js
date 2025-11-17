@@ -484,6 +484,11 @@ document.addEventListener("DOMContentLoaded", function () {
           generateViewTimetable();
           showToast("success", `Emploi du temps chargé`);
 
+          // Render publish info for students and professors (not in debug)
+          if (userRole === "student" || (userRole === "professor" && !isProfessorDebug)) {
+            renderPublishInfo(data);
+          }
+
           // Keep currentYear/currentGroup internal; do not expose in URL
         } else {
           // If no data from server, show empty timetable
@@ -510,6 +515,76 @@ document.addEventListener("DOMContentLoaded", function () {
         initTimetableData();
         generateViewTimetable();
       });
+  }
+
+  // Render publish info (latest and history) for students
+  function renderPublishInfo(apiData) {
+    const box = document.getElementById("publish-info");
+    const latestDiv = document.getElementById("publish-latest");
+    const historyUl = document.getElementById("publish-history");
+    if (!box || !latestDiv || !historyUl) return;
+
+    const lastPublishedAt = apiData.last_published_at || null;
+    const history = Array.isArray(apiData.publish_history)
+      ? apiData.publish_history
+      : [];
+
+    // Nothing to show
+    if (!lastPublishedAt && history.length === 0) {
+      box.style.display = "none";
+      return;
+    }
+
+    // Helper: format date to label
+    function formatDateLabel(isoDateString) {
+      // isoDateString can be 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD'
+      const dateOnly = isoDateString.split(" ")[0];
+      const [y, m, d] = dateOnly.split("-").map((v) => parseInt(v, 10));
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+      const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(
+        today.getDate()
+      )}`;
+      const yesterdayStr = `${yesterday.getFullYear()}-${pad(
+        yesterday.getMonth() + 1
+      )}-${pad(yesterday.getDate())}`;
+
+      if (dateOnly === todayStr) return "aujourd'hui";
+      if (dateOnly === yesterdayStr) return "hier";
+      // Fallback: DD/MM/YYYY
+      return `${pad(d)}/${pad(m)}/${y}`;
+    }
+
+    // Latest label
+    let latestLabel = null;
+    if (lastPublishedAt) {
+      latestLabel = formatDateLabel(lastPublishedAt);
+      latestDiv.textContent = `Dernière mise à jour: ${latestLabel}`;
+    } else if (history.length > 0) {
+      latestLabel = formatDateLabel(history[0]);
+      latestDiv.textContent = `Dernière mise à jour: ${latestLabel}`;
+    } else {
+      latestDiv.textContent = "";
+    }
+
+    // Build history list: show up to remaining dates excluding the latest date
+    historyUl.innerHTML = "";
+    const latestDateOnly = (lastPublishedAt || history[0] || "").split(" ")[0];
+    history
+      .filter((d, idx) => d.split(" ")[0] !== latestDateOnly || idx !== 0)
+      .slice(0, 9)
+      .forEach((d) => {
+        const li = document.createElement("li");
+        li.textContent = formatDateLabel(d);
+        historyUl.appendChild(li);
+      });
+
+    box.style.display = latestDiv.textContent || historyUl.children.length
+      ? "block"
+      : "none";
   }
 
   // Function to update class status (cancel or reschedule)

@@ -91,9 +91,36 @@ try {
         }
         
         if (!empty($all_timetable_data)) {
+            // Compute professor-level publish meta across all published entries
+            $prof_last_published_at = null;
+            $prof_publish_history = [];
+            try {
+                $lpStmt = $pdo->prepare("
+                    SELECT MAX(created_at) FROM `timetables`
+                    WHERE is_published = 1 AND (professor_id = ? OR professor2_id = ?)
+                ");
+                $lpStmt->execute([$professor_id, $professor_id]);
+                $prof_last_published_at = $lpStmt->fetchColumn();
+
+                $histStmt = $pdo->prepare("
+                    SELECT DATE(created_at) as d
+                    FROM `timetables`
+                    WHERE is_published = 1 AND (professor_id = ? OR professor2_id = ?)
+                    GROUP BY DATE(created_at)
+                    ORDER BY d DESC
+                    LIMIT 10
+                ");
+                $histStmt->execute([$professor_id, $professor_id]);
+                $prof_publish_history = $histStmt->fetchAll(PDO::FETCH_COLUMN);
+            } catch (PDOException $e) {
+                // ignore meta errors
+            }
+
             echo json_encode([
                 'success' => true,
-                'data' => $all_timetable_data
+                'data' => $all_timetable_data,
+                'last_published_at' => $prof_last_published_at,
+                'publish_history' => $prof_publish_history
             ]);
         } else {
             echo json_encode([
@@ -167,6 +194,34 @@ try {
         $publishedCheckStmt->execute([$year_id, $group_id]);
         $has_published = $publishedCheckStmt->fetchColumn() > 0;
         
+        // Compute last published at (latest creation time of published entries)
+        $last_published_at = null;
+        if ($has_published) {
+            $lastPublishedStmt = $pdo->prepare("
+                SELECT MAX(created_at) FROM `timetables`
+                WHERE year_id = ? AND group_id = ? AND is_published = 1
+            ");
+            $lastPublishedStmt->execute([$year_id, $group_id]);
+            $last_published_at = $lastPublishedStmt->fetchColumn();
+        }
+
+        // Build publish history (distinct dates with at least one published entry)
+        $publish_history = [];
+        try {
+            $histStmt = $pdo->prepare("
+                SELECT DATE(created_at) as d
+                FROM `timetables`
+                WHERE year_id = ? AND group_id = ? AND is_published = 1
+                GROUP BY DATE(created_at)
+                ORDER BY d DESC
+                LIMIT 10
+            ");
+            $histStmt->execute([$year_id, $group_id]);
+            $publish_history = $histStmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            // ignore history errors in response
+        }
+        
         // Check for draft changes
         $has_draft_changes = false;
         if ($admin && $has_published) {
@@ -210,7 +265,9 @@ try {
                 'data' => $timetable_data,
                 'is_published' => $has_published,
                 'has_draft_changes' => $has_draft_changes,
-                'last_modified' => date('Y-m-d H:i:s')
+                'last_modified' => date('Y-m-d H:i:s'),
+                'last_published_at' => $last_published_at,
+                'publish_history' => $publish_history
             ]);
         } else {
             echo json_encode([
@@ -220,7 +277,9 @@ try {
                 'data' => [],
                 'is_published' => $has_published,
                 'has_draft_changes' => $has_draft_changes,
-                'message' => 'No timetable entries found'
+                'message' => 'No timetable entries found',
+                'last_published_at' => $last_published_at,
+                'publish_history' => $publish_history
             ]);
         }
     }
