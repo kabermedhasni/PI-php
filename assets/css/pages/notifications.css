@@ -132,6 +132,12 @@ main {
     border-color: #1d4ed8;
 }
 
+.filter-pill.active-mixed {
+    background-color: rgb(229, 231, 235);
+    color: #111827;
+    border-color: rgb(226, 226, 226);
+}
+
 .status-dot {
     width: 0.5rem;
     height: 0.5rem;
@@ -238,7 +244,7 @@ main {
 }
 
 .detail-row svg {
-    height: 1rem;
+    height: 1.1rem;
     width: 1rem;
     margin-right: 0.5rem;
 }
@@ -274,4 +280,9 @@ main {
 .status-badge.red {
     background-color: #fee2e2;
     color: #991b1b;
+}
+
+.status-badge.gray {
+    background-color: #ccc;
+    color: #111827;
 }

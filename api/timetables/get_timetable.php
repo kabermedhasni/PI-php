@@ -59,6 +59,26 @@ try {
             if ($entry['subject2_id']) {
                 $entry['subject2'] = getSubjectName($entry['subject2_id']);
             }
+
+            // For professor view on split same_time classes, make the status
+            // (is_canceled / is_reschedule) reflect ONLY the current professor's
+            // own flags so one professor's action does not block the other.
+            $isSplitSameTime = isset($entry['is_split']) && (int)$entry['is_split'] === 1
+                && isset($entry['split_type']) && $entry['split_type'] === 'same_time'
+                && !empty($entry['professor2_id']);
+
+            if ($isSplitSameTime) {
+                $pid = (int)$professor_id;
+                if (isset($entry['professor_id']) && (int)$entry['professor_id'] === $pid) {
+                    // Current professor is in slot 1
+                    $entry['is_canceled'] = isset($entry['professor1_canceled']) ? (int)$entry['professor1_canceled'] : 0;
+                    $entry['is_reschedule'] = isset($entry['professor1_rescheduled']) ? (int)$entry['professor1_rescheduled'] : 0;
+                } elseif (isset($entry['professor2_id']) && (int)$entry['professor2_id'] === $pid) {
+                    // Current professor is in slot 2
+                    $entry['is_canceled'] = isset($entry['professor2_canceled']) ? (int)$entry['professor2_canceled'] : 0;
+                    $entry['is_reschedule'] = isset($entry['professor2_rescheduled']) ? (int)$entry['professor2_rescheduled'] : 0;
+                }
+            }
             
             if (!isset($all_timetable_data[$entry['day']])) {
                 $all_timetable_data[$entry['day']] = [];

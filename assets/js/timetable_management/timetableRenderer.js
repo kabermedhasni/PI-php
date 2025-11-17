@@ -75,9 +75,18 @@ export class TimetableRenderer {
     classBlock.style.borderLeftColor = color;
 
     // Apply visual indicators if class is canceled or rescheduled
-    if (data.is_canceled == 1) {
+    const isSameTimeSplitTwoProf =
+      data && data.is_split && data.split_type === "same_time" && data.professor2_id;
+    const hasCancel = data && data.is_canceled == 1;
+    const hasReschedule = data && data.is_reschedule == 1;
+
+    if (isSameTimeSplitTwoProf && hasCancel && hasReschedule) {
+      // Mixed case: one professor canceled and the other requested a reschedule
+      // Show a neutral grey background to indicate a complex status
+      classBlock.style.backgroundColor = "#E5E7EB"; // Tailwind gray-200
+    } else if (hasCancel) {
       classBlock.style.backgroundColor = "#FEE2E2";
-    } else if (data.is_reschedule == 1) {
+    } else if (hasReschedule) {
       classBlock.style.backgroundColor = "#DBEAFE";
     }
 
@@ -212,12 +221,81 @@ export class TimetableRenderer {
 
   createStatusDiv(data) {
     const statusDiv = document.createElement("div");
-    if (data.is_canceled == 1) {
-      statusDiv.className = "class-status class-status-canceled";
-      statusDiv.textContent = "DEMANDE D'ANNULATION";
-    } else if (data.is_reschedule == 1) {
-      statusDiv.className = "class-status class-status-reschedule";
-      statusDiv.textContent = "DEMANDE DE REPORT";
+    const isSameTimeSplitTwoProf =
+      data && data.is_split && data.split_type === "same_time" && data.professor2_id;
+
+    if (
+      isSameTimeSplitTwoProf &&
+      (data.professor1_canceled == 1 ||
+        data.professor1_rescheduled == 1 ||
+        data.professor2_canceled == 1 ||
+        data.professor2_rescheduled == 1)
+    ) {
+      const prof1Name = data.professor || "";
+      const prof2Name = data.professor2 || "";
+
+      let prof1Action = null;
+      if (data.professor1_canceled == 1) {
+        prof1Action = "cancel";
+      } else if (data.professor1_rescheduled == 1) {
+        prof1Action = "reschedule";
+      }
+
+      let prof2Action = null;
+      if (data.professor2_canceled == 1) {
+        prof2Action = "cancel";
+      } else if (data.professor2_rescheduled == 1) {
+        prof2Action = "reschedule";
+      }
+
+      // Build descriptive text depending on the combination of actions
+      if (prof1Action === "cancel" && prof2Action === "cancel") {
+        statusDiv.className = "class-status class-status-canceled";
+        statusDiv.textContent =
+          "Les professeurs " +
+          [prof1Name, prof2Name].filter(Boolean).join(" et ") +
+          " ont annulé ce cours.";
+      } else if (prof1Action === "reschedule" && prof2Action === "reschedule") {
+        statusDiv.className = "class-status class-status-reschedule";
+        statusDiv.textContent =
+          "Les professeurs " +
+          [prof1Name, prof2Name].filter(Boolean).join(" et ") +
+          " ont demandé un report.";
+      } else if (prof1Action && prof2Action && prof1Action !== prof2Action) {
+        // Mixed case: one canceled and the other requested a reschedule
+        statusDiv.className = "class-status";
+        const cancelName =
+          prof1Action === "cancel" ? prof1Name : prof2Name;
+        const rescheduleName =
+          prof1Action === "reschedule" ? prof1Name : prof2Name;
+        statusDiv.textContent =
+          "Le professeur " +
+          cancelName +
+          " a annulé, le professeur " +
+          rescheduleName +
+          " a demandé un report.";
+      } else if (prof1Action || prof2Action) {
+        // Only one professor took an action
+        const name = prof1Action ? prof1Name : prof2Name;
+        const action = prof1Action || prof2Action;
+        if (action === "cancel") {
+          statusDiv.className = "class-status class-status-canceled";
+          statusDiv.textContent =
+            "Le professeur " + name + " a annulé ce cours.";
+        } else if (action === "reschedule") {
+          statusDiv.className = "class-status class-status-reschedule";
+          statusDiv.textContent =
+            "Le professeur " + name + " a demandé un report.";
+        }
+      }
+    } else {
+      if (data.is_canceled == 1) {
+        statusDiv.className = "class-status class-status-canceled";
+        statusDiv.textContent = "DEMANDE D'ANNULATION";
+      } else if (data.is_reschedule == 1) {
+        statusDiv.className = "class-status class-status-reschedule";
+        statusDiv.textContent = "DEMANDE DE REPORT";
+      }
     }
     return statusDiv;
   }
