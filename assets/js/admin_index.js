@@ -47,10 +47,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (type === "success") {
       toast.classList.add("toast-success");
+      toast.style.backgroundColor = "";
+      toast.style.color = "";
     } else if (type === "error") {
       toast.classList.add("toast-error");
+      toast.style.backgroundColor = "";
+      toast.style.color = "";
     } else {
-      toast.classList.add("bg-blue-500", "text-white");
+      // Info: force exact blue color
+      toast.classList.add("toast-info");
+      toast.style.backgroundColor = "#3b82f6";
+      toast.style.color = "#ffffff";
     }
 
     toast.classList.add("show");
@@ -116,15 +123,19 @@ document.addEventListener("DOMContentLoaded", function () {
             clearText.textContent = "Effacer Tous les Emplois du Temps";
 
             if (data.success) {
-              showToast(
-                "success",
-                data.message ||
-                  "Tous les emplois du temps ont été effacés avec succès !"
-              );
-              // Optionally refresh the page to show emptied timetable lists
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
+              const msg = data.message ||
+                "Tous les emplois du temps ont été effacés avec succès !";
+              const isInfo = typeof msg === "string" && msg.toLowerCase().includes("aucun emploi du temps");
+              // If backend indicates nothing to delete, show info toast (blue) and DO NOT reload
+              if (isInfo) {
+                showToast("info", msg);
+              } else {
+                showToast("success", msg);
+                // Refresh only when data actually changed
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1000);
+              }
             } else {
               showToast(
                 "error",
@@ -201,15 +212,23 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            showToast(
-              "success",
-              data.message ||
-                "Tous les emplois du temps ont été publiés avec succès !"
+            const count = typeof data.published_count === "number" ? data.published_count : null;
+            const msg = data.message || (
+              count && count > 0
+                ? "Tous les emplois du temps ont été publiés avec succès !"
+                : "Aucun emploi du temps à publier"
             );
-            // Reload the page to refresh notifications
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
+            const isInfo = (count === 0) || (typeof msg === "string" && msg.toLowerCase().includes("aucun emploi du temps"));
+            // If nothing to publish, show info toast (blue) and DO NOT reload
+            if (isInfo) {
+              showToast("info", msg);
+            } else {
+              showToast("success", msg);
+              // Reload only when something was actually published
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            }
           } else {
             showToast(
               "error",

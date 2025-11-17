@@ -12,12 +12,22 @@ sleep(1);
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+        // Check if table is already empty
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM timetables");
+        $countStmt->execute();
+        $count = (int) $countStmt->fetchColumn();
+
+        if ($count === 0) {
+            echo json_encode(['success' => true, 'message' => "Aucun emploi du temps à supprimer"]);
+            exit;
+        }
+
         // Use TRUNCATE TABLE instead of DELETE - it's faster and automatically resets auto-increment
         $stmt = $pdo->prepare("TRUNCATE TABLE timetables");
         $stmt->execute();
         
         // Return success response
-        echo json_encode(['success' => true, 'message' => 'All timetables cleared successfully']);
+        echo json_encode(['success' => true, 'message' => 'Tous les emplois du temps ont été effacés avec succès !']);
         exit;
         
     } catch (PDOException $e) {
