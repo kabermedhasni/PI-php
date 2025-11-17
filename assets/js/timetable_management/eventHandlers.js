@@ -70,6 +70,27 @@ export class EventHandlers {
     document
       .getElementById("delete-timetable-confirm")
       .addEventListener("click", async () => {
+        // Check if timetable is empty
+        let isEmptyTimetable = true;
+        for (const d in this.config.timetableData) {
+          for (const t in this.config.timetableData[d]) {
+            if (this.config.timetableData[d][t] !== null) {
+              isEmptyTimetable = false;
+              break;
+            }
+          }
+          if (!isEmptyTimetable) break;
+        }
+
+        if (isEmptyTimetable) {
+          this.formHandler.toast.show(
+            "info",
+            "L'emploi du temps est vide. Rien à supprimer."
+          );
+          this.modal.closeModal("delete-timetable-modal");
+          return;
+        }
+
         const success = await this.api.deleteTimetable();
         this.modal.closeModal("delete-timetable-modal");
 
@@ -100,9 +121,40 @@ export class EventHandlers {
           const day = this.config.deleteClassDay;
           const time = this.config.deleteClassTime;
 
-          this.config.timetableData[day][time] = null;
-          this.statusManager.updatePublishStatus();
+          const existing = this.config.timetableData[day]?.[time] || null;
+          const wasPersisted = existing && existing.__persisted === true;
 
+          // Always remove from UI first
+          this.config.timetableData[day][time] = null;
+
+          if (!wasPersisted) {
+            // Local-only class removal
+            this.config.computeUnsavedChanges();
+            this.statusManager.updatePublishStatus();
+
+            const timetableManager = window.timetableManagerInstance;
+            if (timetableManager) {
+              this.renderer.render(
+                (d, t) => timetableManager.openEditModal(d, t),
+                (d, t, s) => timetableManager.handleDeleteClick(d, t, s),
+                (d, t) => timetableManager.openAddModal(d, t)
+              );
+            }
+
+            // Friendly toast for unsaved class deletion
+            this.formHandler.toast.show(
+              "success",
+              "Cours retiré. N'oubliez pas d'enregistrer pour appliquer la suppression"
+            );
+
+            this.modal.closeModal("delete-class-modal");
+            this.config.deleteClassDay = null;
+            this.config.deleteClassTime = null;
+            return;
+          }
+
+          // Persisted entry: call API
+          this.statusManager.updatePublishStatus();
           const success = await this.api.deleteClass(day, time);
 
           if (success) {
@@ -114,6 +166,13 @@ export class EventHandlers {
                 (d, t) => timetableManager.openAddModal(d, t)
               );
             }
+            // Deleting a persisted entry creates draft changes if timetable was published
+            if (this.config.isCurrentlyPublished) {
+              this.config.hasDraftChanges = true;
+            } else {
+              this.config.computeUnsavedChanges();
+            }
+            this.statusManager.updatePublishStatus();
           }
 
           this.modal.closeModal("delete-class-modal");

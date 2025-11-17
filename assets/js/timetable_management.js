@@ -154,10 +154,11 @@ class TimetableManager {
           }
 
           for (const time in result.data[day]) {
-            this.config.timetableData[day][time] = result.data[day][time];
+            const entry = result.data[day][time];
+            if (entry) entry.__persisted = true;
+            this.config.timetableData[day][time] = entry;
 
             // Debug logging for split classes
-            const entry = result.data[day][time];
             if (entry && entry.is_split) {
               console.log(`Split class found at ${day} ${time}:`, {
                 split_type: entry.split_type,
@@ -182,6 +183,7 @@ class TimetableManager {
         this.config.isCurrentlyPublished = result.isPublished;
         this.config.hasDraftChanges = result.hasDraftChanges;
         this.config.hasUnsavedChanges = false;
+        this.config.setPersistedSnapshotFromCurrent();
         this.statusManager.updatePublishStatus();
       } else {
         console.log("No timetable data found or invalid response");
@@ -194,6 +196,7 @@ class TimetableManager {
         this.config.isCurrentlyPublished = false;
         this.config.hasDraftChanges = false;
         this.config.hasUnsavedChanges = false;
+        this.config.setPersistedSnapshotFromCurrent();
         this.statusManager.updatePublishStatus();
       }
     } catch (error) {

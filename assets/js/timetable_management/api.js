@@ -45,6 +45,31 @@ export class APIManager {
   async saveTimetable(callback) {
     const timetableDataCopy = JSON.parse(JSON.stringify(this.config.timetableData || {}));
 
+    // Determine if timetable is completely empty
+    let isEmptyTimetable = true;
+    for (const day in this.config.timetableData) {
+      for (const time in this.config.timetableData[day]) {
+        if (this.config.timetableData[day][time] !== null) {
+          isEmptyTimetable = false;
+          break;
+        }
+      }
+      if (!isEmptyTimetable) break;
+    }
+
+    // If there are no unsaved changes
+    if (!this.config.hasUnsavedChanges) {
+      if (isEmptyTimetable) {
+        this.toast.show("info", "L'emploi du temps est vide. Rien à enregistrer.");
+        if (callback) callback();
+        return false;
+      } else {
+        this.toast.show("info", "Aucune modification à enregistrer.");
+        if (callback) callback();
+        return false;
+      }
+    }
+
     const payload = {
       year: this.config.currentYear,
       group: this.config.currentGroup,
@@ -69,12 +94,26 @@ export class APIManager {
       console.log("Server response:", data);
 
       if (data.success) {
-        this.toast.show("success", `Emploi du temps enregistré pour ${this.config.currentYear}-${this.config.currentGroup}`);
-        
+        // Choose toast based on emptiness
+        if (isEmptyTimetable) {
+          this.toast.show("info", "Emploi du temps vide enregistré.");
+        } else {
+          this.toast.show("success", `Emploi du temps enregistré pour ${this.config.currentYear}-${this.config.currentGroup}`);
+        }
+
+        // After a successful save, mark entries as persisted
+        for (const d in this.config.timetableData) {
+          for (const t in this.config.timetableData[d]) {
+            const entry = this.config.timetableData[d][t];
+            if (entry) entry.__persisted = true;
+          }
+        }
+
         this.config.hasUnsavedChanges = false;
         this.config.isCurrentlyPublished = data.is_published || false;
-        this.config.hasDraftChanges = data.is_published ? true : false;
-        
+        // Only set draft changes when timetable is not empty
+        this.config.hasDraftChanges = data.is_published ? !isEmptyTimetable : false;
+
         if (callback) callback();
         return true;
       } else {
@@ -93,6 +132,29 @@ export class APIManager {
   
   async publishTimetable() {
     const timetableDataCopy = JSON.parse(JSON.stringify(this.config.timetableData || {}));
+
+    // Determine if timetable is completely empty
+    let isEmptyTimetable = true;
+    for (const day in this.config.timetableData) {
+      for (const time in this.config.timetableData[day]) {
+        if (this.config.timetableData[day][time] !== null) {
+          isEmptyTimetable = false;
+          break;
+        }
+      }
+      if (!isEmptyTimetable) break;
+    }
+
+    // If nothing to publish
+    if (isEmptyTimetable) {
+      this.toast.show("info", "L'emploi du temps est vide. Rien à publier.");
+      return false;
+    }
+
+    if (!this.config.hasUnsavedChanges && !this.config.hasDraftChanges && this.config.isCurrentlyPublished) {
+      this.toast.show("info", "Aucune modification à publier.");
+      return false;
+    }
 
     const payload = {
       year: this.config.currentYear,
