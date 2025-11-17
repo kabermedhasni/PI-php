@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 17, 2025 at 06:01 PM
+-- Generation Time: Nov 17, 2025 at 06:59 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -138,15 +138,6 @@ CREATE TABLE `timetables` (
   `professor2_canceled` tinyint(1) NOT NULL DEFAULT '0',
   `professor2_rescheduled` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `timetables`
---
-
-INSERT INTO `timetables` (`id`, `year_id`, `group_id`, `day`, `time_slot`, `subject_id`, `professor_id`, `room`, `is_published`, `created_at`, `updated_at`, `is_canceled`, `is_reschedule`, `class_type`, `is_split`, `split_type`, `professor2_id`, `subject2_id`, `room2`, `subgroup1`, `subgroup2`, `subgroup`, `professor1_canceled`, `professor1_rescheduled`, `professor2_canceled`, `professor2_rescheduled`) VALUES
-(4, 1, 1, 'Mardi', '08:00 - 09:30', 5, 3, 'Salle 201', 1, '2025-11-17 17:56:28', '2025-11-17 17:56:28', 0, 0, 'TD', 1, 'same_time', 20, 1, 'Salle 101', 'TD1', 'TD2', NULL, 0, 0, 0, 0),
-(5, 1, 1, 'Mardi', '09:45 - 11:15', 6, 22, 'Salle 201', 1, '2025-11-17 17:56:28', '2025-11-17 17:56:28', 0, 0, 'TP', 1, 'same_time', 19, 4, 'Salle 202', 'TP1', 'TP2', NULL, 0, 0, 0, 0),
-(6, 1, 1, 'Mardi', '11:30 - 13:00', 4, 19, 'Salle 102', 1, '2025-11-17 17:56:28', '2025-11-17 17:56:28', 0, 0, 'TP', 1, 'same_time', 22, 6, 'Labo 301', 'TP1', 'TP2', NULL, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -285,7 +276,7 @@ ALTER TABLE `subjects`
 -- AUTO_INCREMENT for table `timetables`
 --
 ALTER TABLE `timetables`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
