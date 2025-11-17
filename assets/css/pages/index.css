@@ -57,7 +57,6 @@
   padding: 8px;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  vertical-align: top;
   height: 100px;
 }
 
@@ -440,7 +439,6 @@
 
   .timetable td {
     height: 70px;
-    vertical-align: top;
   }
 
   .class-block {

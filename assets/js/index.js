@@ -399,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 classBlock.style.backgroundColor = "#FEE2E2"; // Light red background
                 const statusDiv = document.createElement("div");
                 statusDiv.className = "status status-red";
-                statusDiv.textContent = "ANNULÉ PAR LE PROFESSEUR";
+                statusDiv.textContent = "DEMANDE D'ANNULATION";
                 classBlock.appendChild(statusDiv);
               } else if (classData.is_reschedule == 1) {
                 classBlock.style.backgroundColor = "#DBEAFE"; // Light blue background

@@ -214,7 +214,7 @@ export class TimetableRenderer {
     const statusDiv = document.createElement("div");
     if (data.is_canceled == 1) {
       statusDiv.className = "class-status class-status-canceled";
-      statusDiv.textContent = "ANNULÉ PAR LE PROFESSEUR";
+      statusDiv.textContent = "DEMANDE D'ANNULATION";
     } else if (data.is_reschedule == 1) {
       statusDiv.className = "class-status class-status-reschedule";
       statusDiv.textContent = "DEMANDE DE REPORT";

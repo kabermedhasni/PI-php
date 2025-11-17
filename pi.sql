@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 14, 2025 at 12:36 PM
+-- Generation Time: Nov 17, 2025 at 06:52 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -132,8 +132,20 @@ CREATE TABLE `timetables` (
   `room2` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `subgroup1` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `subgroup2` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `subgroup` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `subgroup` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `canceled_by_professors` varchar(5000) COLLATE utf8mb4_unicode_ci DEFAULT '',
+  `rescheduled_by_professors` varchar(5000) COLLATE utf8mb4_unicode_ci DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `timetables`
+--
+
+INSERT INTO `timetables` (`id`, `year_id`, `group_id`, `day`, `time_slot`, `subject_id`, `professor_id`, `room`, `is_published`, `created_at`, `updated_at`, `is_canceled`, `is_reschedule`, `class_type`, `is_split`, `split_type`, `professor2_id`, `subject2_id`, `room2`, `subgroup1`, `subgroup2`, `subgroup`, `canceled_by_professors`, `rescheduled_by_professors`) VALUES
+(18, 2, 7, 'Lundi', '13:15 - 14:45', 6, 22, 'Labo 301', 1, '2025-11-17 06:35:37', '2025-11-17 06:36:06', 0, 0, 'TD', 1, 'single_group', NULL, NULL, NULL, NULL, NULL, 'TD2', '', ''),
+(19, 2, 7, 'Mercredi', '09:45 - 11:15', 5, 3, 'Salle 101', 1, '2025-11-17 06:35:37', '2025-11-17 06:35:37', 0, 0, 'TD', 1, 'same_time', 22, 6, 'Salle 202', 'TD1', 'TD2', NULL, '', ''),
+(20, 2, 7, 'Samedi', '15:00 - 16:30', 6, 22, 'Labo 301', 1, '2025-11-17 06:35:37', '2025-11-17 06:38:55', 1, 0, 'CO', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', ''),
+(21, 2, 7, 'Dimanche', '09:45 - 11:15', 6, 22, 'Salle 102', 1, '2025-11-17 06:35:37', '2025-11-17 06:38:53', 0, 1, 'TP', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '');
 
 -- --------------------------------------------------------
 
@@ -175,7 +187,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `group_id`, `cre
 (22, 'bekar', 'bekar@gmail.com', '$2y$10$Cm7EYIng8zWbEXhfo/XN5eYOaGYFdbE0PVyqXZRbcefHzeBnMZqbq', 'professor', NULL, '2025-04-26 16:16:27'),
 (24, 'Moussa', 'Moussa@gmail.com', '$2y$10$Nhr5tClmDNp1xxp4NZGbruicnPKvew72fiHp/Ec4w1Ty5vTgdaCnq', 'admin', NULL, '2025-05-20 19:24:59'),
 (25, '2ymen', '24124@supnum.mr', '$2y$10$siG8PcIrlYfLS7ucdLQIdOo1uFrLnC4nv8ov4K/QsFX3HKcxd8FdO', 'student', 9, '2025-05-23 20:24:18'),
-(26, 'Lhacen med', '2l7acenmed653@gmail.com', '$2y$10$9g.WT0vtftHHGU8B4spez.4np2Dw996PaawuU291NCagq0yjfvQSW', 'admin', NULL, '2025-06-01 14:43:26');
+(26, 'Lhacen med', '2l7acenmed653@gmail.com', '$2y$10$9g.WT0vtftHHGU8B4spez.4np2Dw996PaawuU291NCagq0yjfvQSW', 'admin', NULL, '2025-06-01 14:43:26'),
+(27, 'kaber sidi', 'kaber@hi.com', '$2y$10$sMVk.GAch6GU8D2vD6b01.JgTdASFY5iAv1ZhdXuIzmSKLFJ2sU8.', 'student', 7, '2025-11-14 16:20:20');
 
 -- --------------------------------------------------------
 
@@ -271,13 +284,13 @@ ALTER TABLE `subjects`
 -- AUTO_INCREMENT for table `timetables`
 --
 ALTER TABLE `timetables`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `years`

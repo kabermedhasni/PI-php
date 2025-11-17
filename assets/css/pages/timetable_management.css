@@ -408,7 +408,6 @@ body {
   padding: 4px;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  vertical-align: top;
   height: 80px;
 }
 
@@ -557,7 +556,6 @@ body {
 }
 
 .subject-cell {
-  vertical-align: middle !important;
   padding: 4px;
 }
 
@@ -863,7 +861,6 @@ body {
 
   .timetable td {
     height: 70px;
-    vertical-align: top;
   }
 
   .class-block {
