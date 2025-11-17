@@ -39,13 +39,9 @@ try {
         LEFT JOIN subjects s2 ON t.subject2_id = s2.id
         WHERE ";
 
-    if ($filter === 'canceled') {
-        $query .= "(t.is_canceled = 1 OR t.professor1_canceled = 1 OR t.professor2_canceled = 1) ";
-    } elseif ($filter === 'rescheduled') {
-        $query .= "(t.is_reschedule = 1 OR t.professor1_rescheduled = 1 OR t.professor2_rescheduled = 1) ";
-    } else {
-        $query .= "(t.is_canceled = 1 OR t.is_reschedule = 1 OR t.professor1_canceled = 1 OR t.professor1_rescheduled = 1 OR t.professor2_canceled = 1 OR t.professor2_rescheduled = 1) ";
-    }
+    // Always fetch all notification rows (any cancel/report at top-level or per-professor)
+    // so that counters remain stable regardless of the selected filter.
+    $query .= "(t.is_canceled = 1 OR t.is_reschedule = 1 OR t.professor1_canceled = 1 OR t.professor1_rescheduled = 1 OR t.professor2_canceled = 1 OR t.professor2_rescheduled = 1) ";
 
     $query .= "ORDER BY t.year_id ASC, t.group_id ASC, t.day ASC, t.time_slot ASC";
 
@@ -250,6 +246,7 @@ try {
                                 $displayNotifications[] = $card;
                             }
                         } elseif ($prof1Action !== null && $prof2Action !== null && $prof1Action !== $prof2Action) {
+
                             // Cas mixte : un professeur annule et l'autre reporte -> une seule carte grise
                             $card = $notification;
                             $card['subject'] = $notification['subject'];
@@ -261,7 +258,7 @@ try {
                             $card['both_canceled'] = 0;
                             $card['both_rescheduled'] = 0;
 
-                            if ($filter === 'all' || $filter === 'mixed') {
+                            if ($filter === 'all' || $filter === 'mixed' || $filter === 'canceled' || $filter === 'rescheduled') {
                                 $displayNotifications[] = $card;
                             }
                         } else {
@@ -350,25 +347,20 @@ try {
                             if (!empty($notification['is_split']) && (int)$notification['is_split'] === 1) {
                                 // if same_time split and per-slot flags used, show subgroup(s) next to subject for affected slot(s)
                                 if (!empty($notification['split_type']) && $notification['split_type'] === 'same_time') {
+                                    // Enforce subgroup order: subgroup1 (TD1) then subgroup2 (TD2)
                                     $parts = [];
-                                    if (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1) {
-                                        if (!empty($notification['subgroup1'])) $parts[] = $notification['subgroup1'];
-                                        else $parts[] = '(sous-groupe 1)';
+                                    $p1_acted = (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1)
+                                                || (!empty($notification['professor1_rescheduled']) && $notification['professor1_rescheduled'] == 1);
+                                    $p2_acted = (!empty($notification['professor2_canceled']) && $notification['professor2_canceled'] == 1)
+                                                || (!empty($notification['professor2_rescheduled']) && $notification['professor2_rescheduled'] == 1);
+                                    if ($p1_acted) {
+                                        $parts[] = !empty($notification['subgroup1']) ? $notification['subgroup1'] : '(sous-groupe 1)';
                                     }
-                                    if (!empty($notification['professor2_canceled']) && $notification['professor2_canceled'] == 1) {
-                                        if (!empty($notification['subgroup2'])) $parts[] = $notification['subgroup2'];
-                                        else $parts[] = '(sous-groupe 2)';
-                                    }
-                                    if (!empty($notification['professor1_rescheduled']) && $notification['professor1_rescheduled'] == 1) {
-                                        if (!empty($notification['subgroup1'])) $parts[] = $notification['subgroup1'];
-                                        else $parts[] = '(sous-groupe 1)';
-                                    }
-                                    if (!empty($notification['professor2_rescheduled']) && $notification['professor2_rescheduled'] == 1) {
-                                        if (!empty($notification['subgroup2'])) $parts[] = $notification['subgroup2'];
-                                        else $parts[] = '(sous-groupe 2)';
+                                    if ($p2_acted) {
+                                        $parts[] = !empty($notification['subgroup2']) ? $notification['subgroup2'] : '(sous-groupe 2)';
                                     }
                                     if (!empty($parts)) {
-                                        $subgroupLabel = ' - ' . implode(' / ', array_unique($parts));
+                                        $subgroupLabel = ' - ' . implode(' / ', $parts);
                                     }
                                 } else {
                                     // single-group split: show generic subgroup if provided
@@ -394,7 +386,28 @@ try {
                                                 if (!empty($notification['professor_name'])) $profList[] = $notification['professor_name'];
                                             }
                                         } else {
-                                            // split: collect per-slot actors
+                                            // split: collect per-slot actors, enforce subgroup order
+                                            $isSameTimeSplit = !empty($notification['split_type']) && $notification['split_type'] === 'same_time';
+                                            if (!$isSameTimeSplit) {
+                                                if (!empty($notification['is_canceled']) && (int)$notification['is_canceled'] === 1) {
+                                                    if (!empty($notification['professor_name'])) $profList[] = $notification['professor_name'];
+                                                }
+                                                if (!empty($notification['is_reschedule']) && (int)$notification['is_reschedule'] === 1) {
+                                                    if (!empty($notification['professor_name'])) $profList[] = $notification['professor_name'];
+                                                }
+                                            } else {
+                                                $p1_acted = (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1)
+                                                            || (!empty($notification['professor1_rescheduled']) && $notification['professor1_rescheduled'] == 1);
+                                                $p2_acted = (!empty($notification['professor2_canceled']) && $notification['professor2_canceled'] == 1)
+                                                            || (!empty($notification['professor2_rescheduled']) && $notification['professor2_rescheduled'] == 1);
+                                                if ($p1_acted && !empty($notification['professor_name'])) {
+                                                    $profList[] = $notification['professor_name'];
+                                                }
+                                                if ($p2_acted && !empty($notification['professor2_name'])) {
+                                                    $profList[] = $notification['professor2_name'];
+                                                }
+                                            }
+                                            // Also include explicit per-flag actors but dedupe with array_unique later
                                             if (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1) {
                                                 if (!empty($notification['professor_name'])) $profList[] = $notification['professor_name'];
                                             }
@@ -408,7 +421,7 @@ try {
                                                 if (!empty($notification['professor2_name'])) $profList[] = $notification['professor2_name'];
                                             }
                                         }
-                                        echo htmlspecialchars(implode(', ', array_unique($profList)));
+                                        echo htmlspecialchars(implode(' / ', array_unique($profList)));
                                     ?>
                                 </span>
                             </div>
@@ -416,7 +429,35 @@ try {
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span><?php echo htmlspecialchars($notification['room']); ?></span>
+                                <span>
+                                    <?php
+                                        // Build room line: for same_time split show TD1 room then TD2 room if both acted
+                                        $roomText = '';
+                                        $isSameTimeSplit = !empty($notification['is_split']) && (int)$notification['is_split'] === 1
+                                            && !empty($notification['split_type']) && $notification['split_type'] === 'same_time';
+                                        if ($isSameTimeSplit) {
+                                            $p1_acted = (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1)
+                                                        || (!empty($notification['professor1_rescheduled']) && $notification['professor1_rescheduled'] == 1);
+                                            $p2_acted = (!empty($notification['professor2_canceled']) && $notification['professor2_canceled'] == 1)
+                                                        || (!empty($notification['professor2_rescheduled']) && $notification['professor2_rescheduled'] == 1);
+                                            $roomParts = [];
+                                            if ($p1_acted && !empty($notification['room'])) {
+                                                $roomParts[] = $notification['room'];
+                                            }
+                                            if ($p2_acted && !empty($notification['room2'])) {
+                                                $roomParts[] = $notification['room2'];
+                                            }
+                                            if (!empty($roomParts)) {
+                                                $roomText = implode(' / ', $roomParts);
+                                            }
+                                        }
+                                        if ($roomText === '') {
+                                            // fallback: single room value
+                                            $roomText = !empty($notification['room']) ? $notification['room'] : 'Salle non spécifiée';
+                                        }
+                                        echo htmlspecialchars($roomText);
+                                    ?>
+                                </span>
                             </div>
                             <div class="detail-row <?php echo $iconColor; ?>">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -445,9 +486,19 @@ try {
                                 // Show detailed per-professor actor lines
                                 $canceledActors = [];
                                 $rescheduledActors = [];
+                                $isSameTimeSplit = !empty($notification['is_split']) && (int)$notification['is_split'] === 1 && !empty($notification['split_type']) && $notification['split_type'] === 'same_time' ? 1 : 0;
+                                if (!empty($notification['is_split']) && (int)$notification['is_split'] === 1 && !$isSameTimeSplit) {
+                                    if (!empty($notification['is_canceled']) && (int)$notification['is_canceled'] === 1) {
+                                        if (!empty($notification['professor_name'])) $canceledActors[] = $notification['professor_name'];
+                                    }
+                                    if (!empty($notification['is_reschedule']) && (int)$notification['is_reschedule'] === 1) {
+                                        if (!empty($notification['professor_name'])) $rescheduledActors[] = $notification['professor_name'];
+                                    }
+                                }
                                 if (!empty($notification['professor1_canceled']) && $notification['professor1_canceled'] == 1) {
                                     if (!empty($notification['professor_name'])) $canceledActors[] = $notification['professor_name'];
                                 }
+
                                 if (!empty($notification['professor2_canceled']) && $notification['professor2_canceled'] == 1) {
                                     if (!empty($notification['professor2_name'])) $canceledActors[] = $notification['professor2_name'];
                                 }
